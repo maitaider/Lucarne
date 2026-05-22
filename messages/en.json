@@ -1,0 +1,40 @@
+{
+  "common": {
+    "appName": "Lucarne",
+    "tagline": "Predict the Cup with your crew.",
+    "loading": "Loading…",
+    "save": "Save",
+    "cancel": "Cancel",
+    "submit": "Submit",
+    "back": "Back",
+    "next": "Next"
+  },
+  "landing": {
+    "heroEyebrow": "FIFA World Cup 2026",
+    "heroTitle": "The Cup isn't a solo experience.",
+    "heroSubtitle": "Predict every match, challenge your friends, and keep score all the way to the final on July 19.",
+    "ctaHasCode": "I have an invite code",
+    "ctaLearnMore": "Discover Lucarne",
+    "featuresTitle": "Why Lucarne",
+    "feature1Title": "Bet with friends",
+    "feature1Body": "Virtual chips, real-money settlement validated by an admin. The ledger lives in the app, trust stays IRL.",
+    "feature2Title": "Anti-copy by design",
+    "feature2Body": "Friends' bets reveal only at kickoff. Not before. Cheating is impossible.",
+    "feature3Title": "48 teams, 104 matches",
+    "feature3Body": "Every match of the new format, from the first kickoff to the final.",
+    "footerRights": "All rights reserved.",
+    "footerLanguage": "Français"
+  },
+  "auth": {
+    "loginTitle": "Sign in",
+    "signupTitle": "Create an account",
+    "email": "Email address",
+    "password": "Password",
+    "loginButton": "Sign in",
+    "signupButton": "Create my account",
+    "noAccount": "No account yet?",
+    "hasAccount": "Already have an account?",
+    "invitationCodeLabel": "Invitation code",
+    "invitationCodePlaceholder": "LUC-XXXX-XX"
+  }
+}

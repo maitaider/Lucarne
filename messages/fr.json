@@ -1,0 +1,40 @@
+{
+  "common": {
+    "appName": "Lucarne",
+    "tagline": "Pronostique le Mondial avec tes potes.",
+    "loading": "Chargement…",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "submit": "Valider",
+    "back": "Retour",
+    "next": "Suivant"
+  },
+  "landing": {
+    "heroEyebrow": "Coupe du Monde 2026",
+    "heroTitle": "Le Mondial ne se vit pas seul.",
+    "heroSubtitle": "Pronostique chaque match, défie tes potes, et garde le score jusqu'à la finale du 19 juillet.",
+    "ctaHasCode": "J'ai un code d'invitation",
+    "ctaLearnMore": "Découvrir Lucarne",
+    "featuresTitle": "Pourquoi Lucarne",
+    "feature1Title": "Paris entre amis",
+    "feature1Body": "Jetons virtuels, paiements IRL validés par l'admin. Le ledger reste dans l'app, la confiance reste IRL.",
+    "feature2Title": "Anti-copie native",
+    "feature2Body": "Les paris des amis se révèlent au coup d'envoi. Pas avant. Pas de triche possible.",
+    "feature3Title": "48 équipes, 104 matchs",
+    "feature3Body": "Tous les matchs du nouveau format, du premier coup d'envoi à la finale.",
+    "footerRights": "Tous droits réservés.",
+    "footerLanguage": "English"
+  },
+  "auth": {
+    "loginTitle": "Connexion",
+    "signupTitle": "Créer un compte",
+    "email": "Adresse e-mail",
+    "password": "Mot de passe",
+    "loginButton": "Se connecter",
+    "signupButton": "Créer mon compte",
+    "noAccount": "Pas encore de compte ?",
+    "hasAccount": "Déjà un compte ?",
+    "invitationCodeLabel": "Code d'invitation",
+    "invitationCodePlaceholder": "LUC-XXXX-XX"
+  }
+}
