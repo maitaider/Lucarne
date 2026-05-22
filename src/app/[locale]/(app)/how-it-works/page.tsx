@@ -2,6 +2,12 @@ import { setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { WorldTrophyMark } from "@/components/brand/sport-icons";
 import {
+  getAppSettings,
+  getOverviewStats,
+  computePrizePool,
+  formatMoney,
+} from "@/lib/admin/economy";
+import {
   ArrowRight,
   CalendarDays,
   Coins,
@@ -27,9 +33,71 @@ export default async function HowItWorksPage({
   setRequestLocale(locale);
   const L = locale as Locale;
 
+  const [settings, stats] = await Promise.all([
+    getAppSettings(),
+    getOverviewStats(),
+  ]);
+  const prize = computePrizePool(stats.net_cents, settings);
+  const tokenPriceFmt = formatMoney(settings.token_price_cents);
+  const deadline = settings.buy_in_deadline
+    ? new Date(settings.buy_in_deadline)
+    : null;
+
   return (
     <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
       <Hero locale={L} />
+
+      {/* Live economy snapshot */}
+      <section className="mb-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <LiveStat
+          label={L === "fr" ? "Prix du jeton" : "Token price"}
+          value={tokenPriceFmt}
+          detail={L === "fr" ? "tarif officiel" : "official rate"}
+        />
+        <LiveStat
+          label={L === "fr" ? "Date butoir" : "Deadline"}
+          value={
+            deadline
+              ? deadline.toLocaleDateString(
+                  L === "fr" ? "fr-FR" : "en-US",
+                  { day: "2-digit", month: "short", year: "2-digit" },
+                )
+              : "—"
+          }
+          detail={
+            deadline
+              ? L === "fr"
+                ? "fin des achats"
+                : "buy-in ends"
+              : L === "fr"
+                ? "non fixée"
+                : "not set"
+          }
+        />
+        <LiveStat
+          label={L === "fr" ? "Cagnotte projetée" : "Projected pool"}
+          value={formatMoney(prize.pool_cents)}
+          detail={
+            stats.payment_count > 0
+              ? `${stats.payment_count} ${L === "fr" ? "paiements" : "payments"}`
+              : L === "fr"
+                ? "à remplir"
+                : "to grow"
+          }
+        />
+        <LiveStat
+          label={L === "fr" ? "Joueurs payants" : "Paying players"}
+          value={String(stats.paying_users_count)}
+          detail={
+            L === "fr"
+              ? "ont contribué"
+              : "have contributed"
+          }
+        />
+      </section>
+
+      <PrizeBreakdown prize={prize} settings={settings} locale={L} />
+
 
       <Section
         title={L === "fr" ? "Parier en 4 étapes" : "Bet in 4 steps"}
@@ -216,6 +284,102 @@ export default async function HowItWorksPage({
 }
 
 /* -------------------------------------------------------------------------- */
+
+function LiveStat({
+  label,
+  value,
+  detail,
+}: {
+  label: string;
+  value: string;
+  detail: string;
+}) {
+  return (
+    <div className="rounded-[10px] border border-white/[0.08] bg-surface-1/[0.5] p-4 backdrop-blur-xl">
+      <p className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
+        {label}
+      </p>
+      <p className="mt-1 font-display text-xl font-bold tabular-nums text-text-primary sm:text-2xl">
+        {value}
+      </p>
+      <p className="mt-1 text-[10px] text-text-tertiary">{detail}</p>
+    </div>
+  );
+}
+
+function PrizeBreakdown({
+  prize,
+  settings,
+  locale,
+}: {
+  prize: { pool_cents: number; house_cents: number; payouts: number[] };
+  settings: { prize_distribution: { shares: number[]; house_rake_pct: number; description_fr: string; description_en: string } };
+  locale: Locale;
+}) {
+  if (prize.pool_cents === 0) {
+    return (
+      <section className="mb-12 rounded-[14px] border border-gold-500/25 bg-gold-500/[0.06] p-6 backdrop-blur-xl">
+        <h2 className="font-display text-xl font-semibold tracking-tight text-text-primary">
+          {locale === "fr"
+            ? "La cagnotte se construit avec vos contributions"
+            : "The pool grows with your contributions"}
+        </h2>
+        <p className="mt-2 text-sm text-text-secondary">
+          {locale === "fr"
+            ? "Quand vous achetez des jetons via l'admin, la cagnotte se remplit. Voici comment elle sera partagée quand le tournoi se termine :"
+            : "When you buy tokens via the admin, the pool fills. Here's how it gets split when the tournament ends:"}
+        </p>
+        <p className="mt-3 text-sm font-medium text-gold-300">
+          {settings.prize_distribution[locale === "fr" ? "description_fr" : "description_en"]}
+        </p>
+      </section>
+    );
+  }
+  return (
+    <section className="mb-12 rounded-[14px] border border-gold-500/25 bg-gradient-to-br from-gold-500/[0.1] via-primary-500/[0.04] to-transparent p-6 backdrop-blur-xl">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="font-display text-xl font-semibold tracking-tight text-text-primary">
+            {locale === "fr" ? "Cagnotte actuelle" : "Current pool"}
+          </h2>
+          <p className="mt-1 text-sm text-text-secondary">
+            {locale === "fr"
+              ? "Mise à jour en temps réel selon les paiements admins."
+              : "Updates live as admins record payments."}
+          </p>
+        </div>
+        <p className="font-display text-3xl font-bold tabular-nums text-gold-300 sm:text-4xl">
+          {formatMoney(prize.pool_cents)}
+        </p>
+      </div>
+      <div className="mt-5 space-y-1.5">
+        {prize.payouts.map((amount, idx) => {
+          const labels = [
+            { fr: "🥇 Champion", en: "🥇 Champion" },
+            { fr: "🥈 Finaliste", en: "🥈 Runner-up" },
+            { fr: "🥉 3ᵉ place", en: "🥉 3rd place" },
+          ];
+          const label = idx < 3
+            ? labels[idx]?.[locale] ?? `${idx + 1}ᵉ`
+            : `${idx + 1}ᵉ`;
+          return (
+            <div
+              key={idx}
+              className="flex items-center justify-between rounded-md bg-white/[0.04] px-3 py-2 text-sm"
+            >
+              <span className="text-text-secondary">
+                {label} · {settings.prize_distribution.shares[idx]}%
+              </span>
+              <span className="font-display font-semibold tabular-nums text-text-primary">
+                {formatMoney(amount)}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
 
 function Hero({ locale }: { locale: Locale }) {
   return (

@@ -1,0 +1,265 @@
+import "server-only";
+import { getSupabaseServer } from "@/lib/supabase/server";
+
+export type AppSettings = {
+  token_price_cents: number;
+  buy_in_deadline: string | null;
+  tournament_start_at: string;
+  tournament_end_at: string;
+  prize_distribution: {
+    shares: number[];
+    house_rake_pct: number;
+    description_fr: string;
+    description_en: string;
+  };
+  scoring_rules: Record<string, number>;
+  contact_label: string | null;
+  contact_info: string | null;
+  updated_at: string;
+};
+
+const DEFAULT: AppSettings = {
+  token_price_cents: 100,
+  buy_in_deadline: null,
+  tournament_start_at: "2026-06-11T20:00:00Z",
+  tournament_end_at: "2026-07-19T21:00:00Z",
+  prize_distribution: {
+    shares: [50, 30, 20],
+    house_rake_pct: 0,
+    description_fr: "50% au champion · 30% au 2ᵉ · 20% au 3ᵉ",
+    description_en: "50% to champion · 30% to 2nd · 20% to 3rd",
+  },
+  scoring_rules: {
+    match_winner: 2,
+    exact_score: 8,
+    first_scorer: 6,
+    anytime_scorer: 3,
+    both_teams_score: 2,
+    over_under: 2.5,
+    tournament_winner: 20,
+    top_scorer: 15,
+  },
+  contact_label: "Lucarne Admin",
+  contact_info: null,
+  updated_at: new Date().toISOString(),
+};
+
+export async function getAppSettings(): Promise<AppSettings> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return DEFAULT;
+  const supabase = await getSupabaseServer();
+  const { data } = await supabase
+    .from("app_settings")
+    .select(
+      "token_price_cents, buy_in_deadline, tournament_start_at, tournament_end_at, prize_distribution, scoring_rules, contact_label, contact_info, updated_at",
+    )
+    .eq("id", 1)
+    .maybeSingle();
+  if (!data) return DEFAULT;
+  return {
+    token_price_cents: data.token_price_cents,
+    buy_in_deadline: data.buy_in_deadline,
+    tournament_start_at: data.tournament_start_at,
+    tournament_end_at: data.tournament_end_at,
+    prize_distribution:
+      (data.prize_distribution as AppSettings["prize_distribution"]) ??
+      DEFAULT.prize_distribution,
+    scoring_rules:
+      (data.scoring_rules as AppSettings["scoring_rules"]) ??
+      DEFAULT.scoring_rules,
+    contact_label: data.contact_label,
+    contact_info: data.contact_info,
+    updated_at: data.updated_at,
+  };
+}
+
+export type OverviewStats = {
+  total_collected_cents: number;
+  total_refunded_cents: number;
+  payment_count: number;
+  paying_users_count: number;
+  net_cents: number;
+};
+
+export async function getOverviewStats(): Promise<OverviewStats> {
+  const empty: OverviewStats = {
+    total_collected_cents: 0,
+    total_refunded_cents: 0,
+    payment_count: 0,
+    paying_users_count: 0,
+    net_cents: 0,
+  };
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return empty;
+  const supabase = await getSupabaseServer();
+  const { data } = await supabase
+    .from("admin_overview_stats")
+    .select("*")
+    .maybeSingle();
+  if (!data) return empty;
+  const collected = Number(data.total_collected_cents ?? 0);
+  const refunded = Number(data.total_refunded_cents ?? 0);
+  return {
+    total_collected_cents: collected,
+    total_refunded_cents: refunded,
+    payment_count: Number(data.payment_count ?? 0),
+    paying_users_count: Number(data.paying_users_count ?? 0),
+    net_cents: collected - refunded,
+  };
+}
+
+export type PaymentRow = {
+  id: string;
+  user_id: string;
+  username: string;
+  display_name: string | null;
+  amount_cents: number;
+  currency: string;
+  method: string;
+  status: string;
+  reference: string | null;
+  note: string | null;
+  tokens_credited: number;
+  received_at: string;
+  refunded_at: string | null;
+  refund_reason: string | null;
+  recorded_by_name: string | null;
+};
+
+export async function listPayments(opts?: {
+  status?: "all" | "confirmed" | "refunded" | "pending" | "cancelled";
+  limit?: number;
+}): Promise<PaymentRow[]> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return [];
+  const supabase = await getSupabaseServer();
+
+  let query = supabase
+    .from("real_payments")
+    .select(
+      `
+      id, user_id, amount_cents, currency, method, status, reference, note,
+      tokens_credited, received_at, refunded_at, refund_reason,
+      user:profiles!real_payments_user_id_fkey(username, display_name),
+      recorder:profiles!real_payments_recorded_by_fkey(username, display_name)
+    `,
+    )
+    .order("received_at", { ascending: false })
+    .limit(opts?.limit ?? 200);
+
+  if (opts?.status && opts.status !== "all") {
+    query = query.eq("status", opts.status);
+  }
+
+  const { data, error } = await query;
+  if (error || !data) return [];
+
+  return data.map((row) => {
+    const author = pickOne(row.user);
+    const recorder = pickOne(row.recorder);
+    return {
+      id: row.id,
+      user_id: row.user_id,
+      username: author?.username ?? "?",
+      display_name: author?.display_name ?? null,
+      amount_cents: row.amount_cents,
+      currency: row.currency,
+      method: row.method,
+      status: row.status,
+      reference: row.reference,
+      note: row.note,
+      tokens_credited: row.tokens_credited,
+      received_at: row.received_at,
+      refunded_at: row.refunded_at,
+      refund_reason: row.refund_reason,
+      recorded_by_name: recorder?.display_name ?? recorder?.username ?? null,
+    };
+  });
+}
+
+function pickOne<T>(v: T | T[] | null | undefined): T | null {
+  if (!v) return null;
+  return Array.isArray(v) ? (v[0] ?? null) : v;
+}
+
+export type AdminUserRow = {
+  id: string;
+  username: string;
+  display_name: string | null;
+  role: "player" | "admin" | "super_admin";
+  balance_cents: number;
+  bets_count: number;
+  total_paid_cents: number;
+  created_at: string;
+};
+
+export async function listAdminUsers(): Promise<AdminUserRow[]> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return [];
+  const supabase = await getSupabaseServer();
+
+  // Get all profiles with their balance + role
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, username, display_name, role, balance_cents, created_at")
+    .order("created_at", { ascending: true });
+  if (!profiles) return [];
+
+  // Get bets count per user
+  const { data: betCounts } = await supabase
+    .from("bets")
+    .select("user_id")
+    .in("status", ["validated", "settled"]);
+  const betsByUser = new Map<string, number>();
+  for (const row of betCounts ?? []) {
+    betsByUser.set(row.user_id, (betsByUser.get(row.user_id) ?? 0) + 1);
+  }
+
+  // Get total paid per user (confirmed only)
+  const { data: payments } = await supabase
+    .from("real_payments")
+    .select("user_id, amount_cents")
+    .eq("status", "confirmed");
+  const paidByUser = new Map<string, number>();
+  for (const row of payments ?? []) {
+    paidByUser.set(
+      row.user_id,
+      (paidByUser.get(row.user_id) ?? 0) + row.amount_cents,
+    );
+  }
+
+  return profiles.map((p) => ({
+    id: p.id,
+    username: p.username,
+    display_name: p.display_name,
+    role: p.role,
+    balance_cents: p.balance_cents,
+    bets_count: betsByUser.get(p.id) ?? 0,
+    total_paid_cents: paidByUser.get(p.id) ?? 0,
+    created_at: p.created_at,
+  }));
+}
+
+/**
+ * Compute estimated prize pool distribution based on settings.
+ */
+export function computePrizePool(
+  totalCollectedCents: number,
+  settings: AppSettings,
+): { house_cents: number; pool_cents: number; payouts: number[] } {
+  const housePct = settings.prize_distribution.house_rake_pct ?? 0;
+  const houseCents = Math.floor((totalCollectedCents * housePct) / 100);
+  const poolCents = totalCollectedCents - houseCents;
+  const shares = settings.prize_distribution.shares ?? [];
+  const payouts = shares.map((s) => Math.floor((poolCents * s) / 100));
+  return { house_cents: houseCents, pool_cents: poolCents, payouts };
+}
+
+export function formatMoney(
+  cents: number,
+  currency: string = "EUR",
+  locale: string = "fr-FR",
+): string {
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(cents / 100);
+}
