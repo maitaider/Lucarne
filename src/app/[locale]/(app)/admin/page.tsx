@@ -49,8 +49,7 @@ export default async function AdminOverviewPage({
         0,
       )
     : null;
-  const currency = "EUR";
-  const fmt = (cents: number) => formatMoney(cents, currency);
+  const fmt = (cents: number) => formatMoney(cents, settings.currency);
 
   return (
     <div className="space-y-6">

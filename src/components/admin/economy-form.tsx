@@ -27,12 +27,21 @@ type Props = {
       description_en: string;
     };
     contact_info: string | null;
+    currency: string;
   };
   totalCollectedCents: number;
   locale: Locale;
 };
 
+const CURRENCY_SYMBOL: Record<string, string> = {
+  CAD: "$ CA",
+  USD: "$ US",
+  EUR: "€",
+  GBP: "£",
+};
+
 export function EconomyForm({ initial, totalCollectedCents, locale }: Props) {
+  const symbol = CURRENCY_SYMBOL[initial.currency] ?? initial.currency;
   const [tokenPriceEur, setTokenPriceEur] = useState(
     (initial.token_price_cents / 100).toFixed(2),
   );
@@ -121,13 +130,13 @@ export function EconomyForm({ initial, totalCollectedCents, locale }: Props) {
             className="w-full rounded-[8px] border border-white/[0.1] bg-abyss/[0.6] px-3 py-2.5 text-lg tabular-nums text-text-primary outline-none transition focus:border-primary-500/50"
           />
           <span className="font-display text-base text-text-tertiary">
-            € / {locale === "fr" ? "jeton" : "token"}
+            {symbol} / {locale === "fr" ? "jeton" : "token"}
           </span>
         </div>
         <p className="mt-2 text-[11px] text-text-tertiary">
           {locale === "fr"
-            ? `Exemple : 20€ = ${Math.floor((20 / Math.max(Number(tokenPriceEur), 0.01)))} jetons`
-            : `Example: €20 = ${Math.floor((20 / Math.max(Number(tokenPriceEur), 0.01)))} tokens`}
+            ? `Exemple : 20 ${symbol} = ${Math.floor(20 / Math.max(Number(tokenPriceEur), 0.01))} jetons`
+            : `Example: 20 ${symbol} = ${Math.floor(20 / Math.max(Number(tokenPriceEur), 0.01))} tokens`}
         </p>
       </Card>
 
@@ -219,7 +228,7 @@ export function EconomyForm({ initial, totalCollectedCents, locale }: Props) {
                   {projectedPayouts[idx] != null
                     ? new Intl.NumberFormat(
                         locale === "fr" ? "fr-FR" : "en-US",
-                        { style: "currency", currency: "EUR" },
+                        { style: "currency", currency: initial.currency },
                       ).format(projectedPayouts[idx]! / 100)
                     : "—"}
                 </span>

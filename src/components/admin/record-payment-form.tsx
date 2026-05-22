@@ -14,6 +14,13 @@ type UserOption = {
   display_name: string | null;
 };
 
+const CURRENCY_SYMBOL: Record<string, string> = {
+  CAD: "$ CA",
+  USD: "$ US",
+  EUR: "€",
+  GBP: "£",
+};
+
 const METHOD_LABELS: Record<
   (typeof PAYMENT_METHODS)[number],
   { fr: string; en: string }
@@ -30,12 +37,15 @@ const METHOD_LABELS: Record<
 export function RecordPaymentForm({
   users,
   tokenPriceCents,
+  currency,
   locale,
 }: {
   users: UserOption[];
   tokenPriceCents: number;
+  currency: string;
   locale: Locale;
 }) {
+  const symbol = CURRENCY_SYMBOL[currency] ?? currency;
   const [open, setOpen] = useState(false);
   const [userId, setUserId] = useState("");
   const [amountEur, setAmountEur] = useState("20");
@@ -66,7 +76,7 @@ export function RecordPaymentForm({
         user_id: userId,
         amount_cents: amountCents,
         method,
-        currency: "EUR",
+        currency,
         reference: reference || undefined,
         note: note || undefined,
       });
@@ -146,7 +156,11 @@ export function RecordPaymentForm({
 
                 <div className="grid grid-cols-2 gap-3">
                   <Field
-                    label={locale === "fr" ? "Montant (€)" : "Amount (€)"}
+                    label={
+                      locale === "fr"
+                        ? `Montant (${symbol})`
+                        : `Amount (${symbol})`
+                    }
                     required
                   >
                     <input
@@ -235,8 +249,8 @@ export function RecordPaymentForm({
                   </div>
                   <p className="mt-1 text-[10px] text-text-tertiary">
                     {locale === "fr"
-                      ? `Au prix actuel : ${(tokenPriceCents / 100).toFixed(2)}€ par jeton.`
-                      : `At current rate: ${(tokenPriceCents / 100).toFixed(2)}€ per token.`}
+                      ? `Au prix actuel : ${(tokenPriceCents / 100).toFixed(2)} ${symbol} par jeton.`
+                      : `At current rate: ${(tokenPriceCents / 100).toFixed(2)} ${symbol} per token.`}
                   </p>
                 </div>
 

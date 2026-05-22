@@ -15,6 +15,7 @@ export type AppSettings = {
   scoring_rules: Record<string, number>;
   contact_label: string | null;
   contact_info: string | null;
+  currency: string;
   updated_at: string;
 };
 
@@ -41,6 +42,7 @@ const DEFAULT: AppSettings = {
   },
   contact_label: "Lucarne Admin",
   contact_info: null,
+  currency: "CAD",
   updated_at: new Date().toISOString(),
 };
 
@@ -50,7 +52,7 @@ export async function getAppSettings(): Promise<AppSettings> {
   const { data } = await supabase
     .from("app_settings")
     .select(
-      "token_price_cents, buy_in_deadline, tournament_start_at, tournament_end_at, prize_distribution, scoring_rules, contact_label, contact_info, updated_at",
+      "token_price_cents, buy_in_deadline, tournament_start_at, tournament_end_at, prize_distribution, scoring_rules, contact_label, contact_info, currency, updated_at",
     )
     .eq("id", 1)
     .maybeSingle();
@@ -68,6 +70,7 @@ export async function getAppSettings(): Promise<AppSettings> {
       DEFAULT.scoring_rules,
     contact_label: data.contact_label,
     contact_info: data.contact_info,
+    currency: data.currency ?? "CAD",
     updated_at: data.updated_at,
   };
 }
@@ -253,8 +256,8 @@ export function computePrizePool(
 
 export function formatMoney(
   cents: number,
-  currency: string = "EUR",
-  locale: string = "fr-FR",
+  currency: string = "CAD",
+  locale: string = "fr-CA",
 ): string {
   return new Intl.NumberFormat(locale, {
     style: "currency",

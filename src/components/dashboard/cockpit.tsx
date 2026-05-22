@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { useQuickBet, type QuickBetMatch } from "@/components/bet/quick-bet-provider";
 import { Flag } from "@/components/team/flag";
@@ -9,7 +10,15 @@ import {
   OrbitBallMark,
   StadiumBeamMark,
 } from "@/components/brand/sport-icons";
-import { Trophy, Network, ArrowRight } from "lucide-react";
+import {
+  Activity,
+  ArrowRight,
+  Network,
+  Radio,
+  Trophy,
+  Zap,
+} from "lucide-react";
+import { useRealtimeActivity, type ActivityEvent } from "@/lib/hooks/use-realtime-activity";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
 
@@ -44,6 +53,8 @@ export type StandingRow = {
    Main cockpit panel — the right-hand "Console live" frame
    ============================================================================ */
 
+type CockpitTab = "standings" | "bracket" | "activity";
+
 export function Cockpit({
   locale,
   tickets,
@@ -63,6 +74,9 @@ export function Cockpit({
   donutLabel: string;
   formPoints: number[];
 }) {
+  const [tab, setTab] = useState<CockpitTab>("standings");
+  const events = useRealtimeActivity();
+
   return (
     <div className="relative rounded-[12px] border border-white/[0.16] bg-white/[0.045] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_30px_90px_rgba(0,0,0,0.4)] backdrop-blur-2xl">
       <span
@@ -70,18 +84,33 @@ export function Cockpit({
         className="pointer-events-none absolute left-12 right-12 top-0 h-px bg-gradient-to-r from-transparent via-white/45 to-transparent"
       />
       <div className="grid gap-3 md:grid-cols-[2.75rem_1fr]">
-        <ConsoleRail />
+        <ConsoleRail tab={tab} setTab={setTab} />
         <div className="rounded-[10px] border border-black/30 bg-abyss/[0.7] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
-          <ConsoleHeader locale={locale} />
+          <ConsoleHeader locale={locale} events={events} />
           <div className="mt-3 grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
             {tickets.map((t) => (
               <PredictionCard key={t.match.id} ticket={t} locale={locale} />
             ))}
           </div>
-          <div className="mt-3 grid gap-3 xl:grid-cols-[1.02fr_1.18fr]">
-            <MiniStandings locale={locale} rows={standings} />
-            <MiniBracket locale={locale} columns={bracket} />
-          </div>
+
+          <CockpitTabs current={tab} onChange={setTab} locale={locale} />
+
+          {tab === "standings" && (
+            <div className="mt-3">
+              <MiniStandings locale={locale} rows={standings} />
+            </div>
+          )}
+          {tab === "bracket" && (
+            <div className="mt-3">
+              <MiniBracket locale={locale} columns={bracket} />
+            </div>
+          )}
+          {tab === "activity" && (
+            <div className="mt-3">
+              <ActivityTicker events={events} locale={locale} />
+            </div>
+          )}
+
           <div className="mt-3 grid gap-3 xl:grid-cols-[0.85fr_1.25fr_0.9fr]">
             <ProgressDonut value={donutValue} label={donutLabel} locale={locale} />
             <FormCurve points={formPoints} locale={locale} />
@@ -94,55 +123,226 @@ export function Cockpit({
 }
 
 /* ============================================================================
+   Tabs + live ticker
+   ============================================================================ */
+
+function CockpitTabs({
+  current,
+  onChange,
+  locale,
+}: {
+  current: CockpitTab;
+  onChange: (t: CockpitTab) => void;
+  locale: Locale;
+}) {
+  const tabs: { key: CockpitTab; icon: typeof Trophy; fr: string; en: string }[] = [
+    { key: "standings", icon: Trophy, fr: "Classement", en: "Leaderboard" },
+    { key: "bracket", icon: Network, fr: "Organigramme", en: "Bracket" },
+    { key: "activity", icon: Activity, fr: "Activité live", en: "Live activity" },
+  ];
+
+  return (
+    <div className="mt-3 inline-flex rounded-[10px] border border-white/[0.08] bg-white/[0.04] p-1">
+      {tabs.map((t) => {
+        const Icon = t.icon;
+        const active = current === t.key;
+        return (
+          <button
+            key={t.key}
+            type="button"
+            onClick={() => onChange(t.key)}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-[7px] px-3 py-1.5 text-xs font-semibold transition",
+              active
+                ? "bg-primary-500 text-abyss shadow-glow-primary"
+                : "text-text-secondary hover:text-text-primary",
+            )}
+          >
+            <Icon className="size-3.5" strokeWidth={2} />
+            {locale === "fr" ? t.fr : t.en}
+            {t.key === "activity" && (
+              <span className="relative ml-0.5 flex size-1.5">
+                <span className="absolute inline-flex size-full animate-ping rounded-full bg-violet-400 opacity-75" />
+                <span className="relative inline-flex size-1.5 rounded-full bg-violet-400" />
+              </span>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function ActivityTicker({
+  events,
+  locale,
+}: {
+  events: ActivityEvent[];
+  locale: Locale;
+}) {
+  if (events.length === 0) {
+    return (
+      <div className="rounded-[8px] border border-white/[0.06] bg-abyss/[0.4] p-6 text-center">
+        <Radio className="mx-auto mb-2 size-4 text-violet-300" strokeWidth={1.7} />
+        <p className="text-xs text-text-secondary">
+          {locale === "fr"
+            ? "Écoute des paris, paiements et coups d'envoi en temps réel…"
+            : "Listening for bets, payments, and kickoffs in real time…"}
+        </p>
+        <p className="mt-1 text-[10px] text-text-tertiary">
+          {locale === "fr"
+            ? "Les événements apparaîtront ici dès qu'ils se produisent."
+            : "Events appear here the moment they happen."}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <ul className="space-y-1.5">
+      {events.map((ev) => {
+        const accent =
+          ev.kind === "bet_placed"
+            ? "border-primary-500/30 bg-primary-500/[0.06]"
+            : ev.kind === "payment"
+              ? "border-gold-500/30 bg-gold-500/[0.06]"
+              : "border-violet-500/30 bg-violet-500/[0.06]";
+        return (
+          <li
+            key={ev.id}
+            className={cn(
+              "flex items-center justify-between gap-3 rounded-[8px] border px-3 py-2 text-xs",
+              accent,
+            )}
+          >
+            <span className="text-text-primary">{ev.message}</span>
+            <span className="font-mono text-[10px] tabular-nums text-text-tertiary">
+              {formatTickerTime(ev.createdAt, locale)}
+            </span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+function formatTickerTime(iso: string, locale: Locale): string {
+  const d = new Date(iso);
+  const diff = Math.max(Date.now() - d.getTime(), 0);
+  const sec = Math.floor(diff / 1000);
+  if (sec < 5) return locale === "fr" ? "à l'instant" : "just now";
+  if (sec < 60) return `${sec}s`;
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min}m`;
+  return d.toLocaleTimeString(locale === "fr" ? "fr-FR" : "en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+/* ============================================================================
    Sub-components
    ============================================================================ */
 
-function ConsoleRail() {
-  const icons = [
-    { Icon: OrbitBallMark, tone: "text-text-tertiary", active: false },
-    { Icon: StadiumBeamMark, tone: "text-text-tertiary", active: false },
-    { Icon: TerminalGridMark, tone: "text-primary-400", active: true },
-    { Icon: WorldTrophyMark, tone: "text-gold-400", active: false },
-  ] as const;
+function ConsoleRail({
+  tab,
+  setTab,
+}: {
+  tab: CockpitTab;
+  setTab: (t: CockpitTab) => void;
+}) {
+  const items: {
+    Icon: typeof OrbitBallMark;
+    target?: CockpitTab;
+    tone: string;
+  }[] = [
+    { Icon: OrbitBallMark, tone: "text-text-tertiary" },
+    {
+      Icon: StadiumBeamMark,
+      target: "activity",
+      tone: "text-violet-300",
+    },
+    {
+      Icon: TerminalGridMark,
+      target: "standings",
+      tone: "text-primary-300",
+    },
+    { Icon: WorldTrophyMark, target: "bracket", tone: "text-gold-300" },
+  ];
   return (
     <div className="hidden flex-col items-center gap-3 rounded-[8px] border border-white/[0.08] bg-abyss/[0.5] py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] md:flex">
-      {icons.map(({ Icon, tone, active }, idx) => (
-        <span
-          key={idx}
-          className={cn(
-            "flex size-9 items-center justify-center rounded-[8px] border",
-            active
-              ? "border-primary-500/40 bg-primary-500/[0.13] shadow-glow-primary"
-              : "border-white/[0.08] bg-white/[0.035]",
-            tone,
-          )}
-        >
-          <Icon className="size-5" />
-        </span>
-      ))}
+      {items.map(({ Icon, target, tone }, idx) => {
+        const active = target ? tab === target : false;
+        const button = (
+          <span
+            className={cn(
+              "flex size-9 items-center justify-center rounded-[8px] border transition",
+              active
+                ? "border-primary-500/40 bg-primary-500/[0.13] shadow-glow-primary"
+                : "border-white/[0.08] bg-white/[0.035] hover:bg-white/[0.06]",
+              tone,
+            )}
+          >
+            <Icon className="size-5" />
+          </span>
+        );
+        if (target) {
+          return (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => setTab(target)}
+              aria-label={target}
+            >
+              {button}
+            </button>
+          );
+        }
+        return <span key={idx}>{button}</span>;
+      })}
       <span className="mt-2 h-16 w-1 rounded-full bg-gradient-to-b from-primary-400 via-gold-400 to-violet-400" />
     </div>
   );
 }
 
-function ConsoleHeader({ locale }: { locale: Locale }) {
+function ConsoleHeader({
+  locale,
+  events,
+}: {
+  locale: Locale;
+  events: ActivityEvent[];
+}) {
+  const recent = events[0];
   return (
-    <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
-      <div className="flex items-center gap-2">
+    <div className="flex items-center justify-between gap-3 border-b border-white/[0.08] pb-3">
+      <div className="flex min-w-0 items-center gap-2">
         <span className="flex size-8 items-center justify-center rounded-[8px] border border-primary-500/25 bg-primary-500/[0.1] text-primary-400">
           <TerminalGridMark className="size-5" />
         </span>
-        <div>
+        <div className="min-w-0">
           <p className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
             {locale === "fr" ? "Console live" : "Live console"}
+            <span className="ml-1.5 inline-flex items-center gap-1 text-violet-300">
+              <span className="relative flex size-1.5">
+                <span className="absolute inline-flex size-full animate-ping rounded-full bg-violet-400 opacity-75" />
+                <span className="relative inline-flex size-1.5 rounded-full bg-violet-400" />
+              </span>
+              {locale === "fr" ? "branché" : "online"}
+            </span>
           </p>
-          <p className="text-sm font-semibold text-text-primary">
-            {locale === "fr" ? "Vue tactique du tournoi" : "Tournament tactical view"}
+          <p className="truncate text-sm font-semibold text-text-primary">
+            {recent
+              ? recent.message
+              : locale === "fr"
+                ? "Vue tactique du tournoi"
+                : "Tournament tactical view"}
           </p>
         </div>
       </div>
       <div className="hidden items-center gap-2 sm:flex">
-        <span className="h-1.5 w-10 rounded-full bg-white/[0.16]" />
+        <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
+          {events.length} {locale === "fr" ? "événements" : "events"}
+        </span>
         <span className="size-1.5 rounded-full bg-primary-400" />
         <span className="size-1.5 rounded-full bg-gold-400" />
         <span className="size-1.5 rounded-full bg-violet-400" />

@@ -39,6 +39,7 @@ export default async function AdminEconomyPage({
           buy_in_deadline: settings.buy_in_deadline,
           prize_distribution: settings.prize_distribution,
           contact_info: settings.contact_info,
+          currency: settings.currency,
         }}
         totalCollectedCents={stats.net_cents}
         locale={L}

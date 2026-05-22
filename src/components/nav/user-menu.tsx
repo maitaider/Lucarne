@@ -13,11 +13,13 @@ import {
   HelpCircle,
   User,
 } from "lucide-react";
+import { useRealtimeBalance } from "@/lib/hooks/use-realtime-balance";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
 
 type Props = {
   user: {
+    id: string;
     username: string;
     display_name: string | null;
     avatar_url: string | null;
@@ -56,7 +58,8 @@ export function UserMenu({ user, locale }: Props) {
     .toUpperCase();
 
   const isAdmin = user.role === "admin" || user.role === "super_admin";
-  const balanceTokens = Math.floor(user.balance_cents / 100);
+  const liveBalanceCents = useRealtimeBalance(user.id, user.balance_cents);
+  const balanceTokens = Math.floor(liveBalanceCents / 100);
 
   function switchLocale() {
     const next: Locale = locale === "fr" ? "en" : "fr";

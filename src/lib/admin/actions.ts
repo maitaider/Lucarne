@@ -18,7 +18,7 @@ const recordPaymentSchema = z.object({
   user_id: z.string().uuid(),
   amount_cents: z.number().int().min(1).max(1_000_000),
   method: z.enum(PAYMENT_METHODS),
-  currency: z.string().length(3).default("EUR"),
+  currency: z.string().length(3).default("CAD"),
   reference: z.string().max(120).optional(),
   note: z.string().max(500).optional(),
 });

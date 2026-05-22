@@ -1,5 +1,5 @@
 import { setRequestLocale } from "next-intl/server";
-import { listAdminUsers, formatMoney } from "@/lib/admin/economy";
+import { listAdminUsers, formatMoney, getAppSettings } from "@/lib/admin/economy";
 import { getCurrentUser } from "@/lib/profile/queries";
 import { AdjustBalanceButton } from "@/components/admin/user-actions";
 import { Crown, ShieldCheck, User } from "lucide-react";
@@ -15,7 +15,11 @@ export default async function AdminUsersPage({
   setRequestLocale(locale);
   const L = locale as Locale;
 
-  const [users, me] = await Promise.all([listAdminUsers(), getCurrentUser()]);
+  const [users, me, settings] = await Promise.all([
+    listAdminUsers(),
+    getCurrentUser(),
+    getAppSettings(),
+  ]);
   const isSuperAdmin = me?.role === "super_admin";
 
   return (
@@ -117,7 +121,7 @@ export default async function AdminUsersPage({
                       )}
                     >
                       {u.total_paid_cents > 0
-                        ? formatMoney(u.total_paid_cents)
+                        ? formatMoney(u.total_paid_cents, settings.currency)
                         : "—"}
                     </span>
                   </td>

@@ -62,7 +62,7 @@ export default async function AdminPaymentsPage({
     .filter((p) => p.status === "refunded")
     .reduce((s, p) => s + p.amount_cents, 0);
 
-  const fmt = (cents: number) => formatMoney(cents, "EUR");
+  const fmt = (cents: number) => formatMoney(cents, settings.currency);
 
   return (
     <div className="space-y-6">
@@ -85,6 +85,7 @@ export default async function AdminPaymentsPage({
             display_name: u.display_name,
           }))}
           tokenPriceCents={settings.token_price_cents}
+          currency={settings.currency}
           locale={L}
         />
       </header>

@@ -38,7 +38,10 @@ export default async function HowItWorksPage({
     getOverviewStats(),
   ]);
   const prize = computePrizePool(stats.net_cents, settings);
-  const tokenPriceFmt = formatMoney(settings.token_price_cents);
+  const tokenPriceFmt = formatMoney(
+    settings.token_price_cents,
+    settings.currency,
+  );
   const deadline = settings.buy_in_deadline
     ? new Date(settings.buy_in_deadline)
     : null;
@@ -76,7 +79,7 @@ export default async function HowItWorksPage({
         />
         <LiveStat
           label={L === "fr" ? "Cagnotte projetée" : "Projected pool"}
-          value={formatMoney(prize.pool_cents)}
+          value={formatMoney(prize.pool_cents, settings.currency)}
           detail={
             stats.payment_count > 0
               ? `${stats.payment_count} ${L === "fr" ? "paiements" : "payments"}`
@@ -313,7 +316,7 @@ function PrizeBreakdown({
   locale,
 }: {
   prize: { pool_cents: number; house_cents: number; payouts: number[] };
-  settings: { prize_distribution: { shares: number[]; house_rake_pct: number; description_fr: string; description_en: string } };
+  settings: { currency: string; prize_distribution: { shares: number[]; house_rake_pct: number; description_fr: string; description_en: string } };
   locale: Locale;
 }) {
   if (prize.pool_cents === 0) {
@@ -349,7 +352,7 @@ function PrizeBreakdown({
           </p>
         </div>
         <p className="font-display text-3xl font-bold tabular-nums text-gold-300 sm:text-4xl">
-          {formatMoney(prize.pool_cents)}
+          {formatMoney(prize.pool_cents, settings.currency)}
         </p>
       </div>
       <div className="mt-5 space-y-1.5">
@@ -371,7 +374,7 @@ function PrizeBreakdown({
                 {label} · {settings.prize_distribution.shares[idx]}%
               </span>
               <span className="font-display font-semibold tabular-nums text-text-primary">
-                {formatMoney(amount)}
+                {formatMoney(amount, settings.currency)}
               </span>
             </div>
           );
