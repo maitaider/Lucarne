@@ -3,27 +3,28 @@ import { setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/profile/queries";
 import { getMyStats } from "@/lib/profile/stats";
-import { listMatches } from "@/lib/matches/queries";
+import { listMatches, type MatchListItem } from "@/lib/matches/queries";
 import { listMyBets } from "@/lib/bets/queries";
+import { getGlobalStandings, listMyLeagues } from "@/lib/leagues/queries";
+import { getCommunityOdds, shareToOdds } from "@/lib/bets/community-odds";
 import {
-  getGlobalStandings,
-  listMyLeagues,
-} from "@/lib/leagues/queries";
-import { MatchCard } from "@/components/match/match-card";
-import { BetStatusBadge } from "@/components/bet/bet-status-badge";
-import { QuickBetButton } from "@/components/bet/quick-bet-button";
-import { Flag } from "@/components/team/flag";
+  Cockpit,
+  TrophyModeCard,
+  type PredictionTicket,
+  type BracketCell,
+  type StandingRow,
+} from "@/components/dashboard/cockpit";
 import { WorldTrophyMark } from "@/components/brand/sport-icons";
+import { QuickBetButton } from "@/components/bet/quick-bet-button";
+import { BetStatusBadge } from "@/components/bet/bet-status-badge";
 import {
   ArrowRight,
   CalendarClock,
   Coins,
   Crown,
+  Link2,
   Receipt,
-  Sparkles,
-  Trophy,
   Users,
-  Zap,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -38,137 +39,289 @@ export default async function DashboardPage({
   setRequestLocale(locale);
   const L = locale as Locale;
 
-  const [user, stats, allMatches, myBets, myLeagues, globalStandings] =
+  const [user, stats, allMatches, myBets, myLeagues, standings] =
     await Promise.all([
       getCurrentUser(),
       getMyStats(),
       listMatches(),
       listMyBets(),
       listMyLeagues(),
-      getGlobalStandings(5),
+      getGlobalStandings(6),
     ]);
 
   const now = Date.now();
   const liveMatches = allMatches.filter((m) => m.status === "live");
-  const upcomingMatches = allMatches
+  const scheduledMatches = allMatches
     .filter(
       (m) =>
-        m.status === "scheduled" && new Date(m.kickoff_at).getTime() > now,
+        m.status === "scheduled" &&
+        new Date(m.kickoff_at).getTime() > now + 60_000,
     )
-    .slice(0, 6);
-  const featuredMatch = liveMatches[0] ?? upcomingMatches[0] ?? null;
-  const upcomingMatchesGrid = featuredMatch
-    ? upcomingMatches.filter((m) => m.id !== featuredMatch.id).slice(0, 3)
-    : upcomingMatches.slice(0, 3);
-  const recentBets = myBets.slice(0, 4);
+    .slice(0, 4);
+
+  // 4 prediction tickets: live first, then scheduled.
+  const ticketCandidates = [...liveMatches, ...scheduledMatches].slice(0, 4);
+  const communityOdds = await getCommunityOdds(
+    ticketCandidates.map((m) => m.id),
+  );
+
+  const tickets: PredictionTicket[] = ticketCandidates.map((m, idx) => {
+    const odds = communityOdds.get(m.id) ?? { home: 38, draw: 24, away: 38, total: 0 };
+    const accent: PredictionTicket["accent"] =
+      m.status === "live"
+        ? "violet"
+        : idx === 0
+          ? "primary"
+          : idx === 1
+            ? "gold"
+            : idx === 2
+              ? "emerald"
+              : "primary";
+    return {
+      match: {
+        id: m.id,
+        kickoff_at: m.kickoff_at,
+        status: m.status,
+        home_team: m.home_team
+          ? {
+              iso_code: m.home_team.iso_code ?? null,
+              name_fr: m.home_team.name_fr,
+              name_en: m.home_team.name_en,
+              flag_emoji: m.home_team.flag_emoji ?? null,
+            }
+          : null,
+        away_team: m.away_team
+          ? {
+              iso_code: m.away_team.iso_code ?? null,
+              name_fr: m.away_team.name_fr,
+              name_en: m.away_team.name_en,
+              flag_emoji: m.away_team.flag_emoji ?? null,
+            }
+          : null,
+        home_placeholder: m.home_placeholder,
+        away_placeholder: m.away_placeholder,
+      },
+      label: ticketLabel(m, idx, L),
+      stage:
+        m.stage === "group" && m.group_label
+          ? `${L === "fr" ? "Groupe" : "Group"} ${m.group_label}`
+          : stageName(m.stage, L),
+      venue: m.venue
+        ? `${L === "fr" ? m.venue.city_fr : m.venue.city_en} · ${m.venue.name}`
+        : ticketLabel(m, idx, L),
+      time: new Date(m.kickoff_at).toLocaleString(
+        L === "fr" ? "fr-FR" : "en-US",
+        { day: "2-digit", month: "short", timeZone: "Europe/Paris" },
+      ),
+      accent,
+      shares: [odds.home, odds.draw, odds.away],
+      odds: [
+        shareToOdds(odds.home),
+        shareToOdds(odds.draw),
+        shareToOdds(odds.away),
+      ],
+    };
+  });
+
+  // Build standings rows (max 4 for cockpit display)
+  const standingRows: StandingRow[] = standings.slice(0, 4).map((s) => ({
+    rank: s.rank,
+    name: s.display_name ?? `@${s.username}`,
+    wins: s.wins,
+    points: s.total_points,
+    isMe: user?.id === s.user_id,
+  }));
+
+  // Build bracket preview (3 cols × ~3 cells)
+  const bracket = buildBracketPreview(allMatches, L);
+
+  // Real metrics for rings
   const activeBets = myBets.filter((b) =>
     ["pending_payment", "paid", "validated"].includes(b.status),
   );
+  const activeStake = activeBets.reduce(
+    (sum, b) => sum + b.stake_cents,
+    0,
+  );
+  const balanceCents = user?.balance_cents ?? 0;
+  const totalCapital = activeStake + balanceCents;
+  const riskPct =
+    totalCapital > 0 ? Math.round((activeStake / totalCapital) * 100) : 0;
+  const roiPct =
+    stats.total_staked_cents > 0
+      ? Math.round(
+          ((stats.total_payout_cents - stats.total_staked_cents) /
+            stats.total_staked_cents) *
+            100,
+        )
+      : 0;
+  const goldPct = Math.round(stats.win_rate * 100);
 
-  const firstName = user?.display_name?.split(" ")[0] ?? user?.username ?? "";
-  const balanceTokens = Math.floor((user?.balance_cents ?? 0) / 100);
+  // Form curve: cumulative points over last settled bets (or flat zeros)
+  const settledBets = myBets
+    .filter((b) => b.status === "settled")
+    .slice(0, 12)
+    .reverse();
+  const formPoints =
+    settledBets.length > 0
+      ? settledBets.reduce<number[]>((acc, b, i) => {
+          const prev = i === 0 ? 0 : acc[i - 1]!;
+          acc.push(prev + b.points);
+          return acc;
+        }, [])
+      : [0, 0, 0, 0, 0];
+
+  const finishedCount = allMatches.filter((m) => m.status === "finished").length;
+  const donutValue = Math.min(
+    Math.round((finishedCount / Math.max(allMatches.length, 1)) * 100),
+    100,
+  );
+
+  // Page-level metrics
+  const balanceTokens = Math.floor(balanceCents / 100);
   const winRatePct = Math.round(stats.win_rate * 100);
-  const netTokens = Math.floor(stats.net_cents / 100);
   const myRank =
-    user && globalStandings.find((s) => s.user_id === user.id)?.rank;
+    user && standings.find((s) => s.user_id === user.id)?.rank;
 
   return (
-    <main className="mx-auto max-w-6xl space-y-8 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-      {/* Hero greeting */}
-      <HeroCard
-        locale={L}
-        firstName={firstName}
-        balanceTokens={balanceTokens}
-        liveCount={liveMatches.length}
-      />
+    <main className="mx-auto max-w-[1600px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+      <section className="relative overflow-hidden rounded-[12px] border border-white/[0.13] bg-abyss/[0.78] shadow-[0_38px_120px_rgba(0,0,0,0.42),inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-2xl">
+        <Image
+          src="/marketing/lucarne-hero-stadium.jpg"
+          alt=""
+          fill
+          sizes="(max-width: 1024px) 100vw, 1600px"
+          priority
+          className="absolute inset-0 -z-20 object-cover object-[55%_45%] opacity-[0.42]"
+        />
+        <div className="absolute inset-0 -z-10 bg-[linear-gradient(96deg,rgba(5,6,5,0.93)_0%,rgba(5,6,5,0.78)_38%,rgba(5,6,5,0.46)_100%)]" />
+        <div
+          aria-hidden
+          className="absolute inset-0 -z-10 opacity-[0.08]"
+          style={{
+            backgroundImage:
+              "linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px)",
+            backgroundSize: "54px 54px",
+            maskImage: "linear-gradient(to bottom, black 0%, transparent 80%)",
+          }}
+        />
 
-      {/* Stats grid */}
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          icon={Coins}
-          label={L === "fr" ? "Solde" : "Balance"}
-          value={balanceTokens.toLocaleString(L === "fr" ? "fr-FR" : "en-US")}
-          unit={L === "fr" ? "jetons" : "tokens"}
-          accent="primary"
-          href="/profile/wallet"
-        />
-        <StatCard
-          icon={Receipt}
-          label={L === "fr" ? "Paris actifs" : "Active bets"}
-          value={String(activeBets.length)}
-          unit={
-            stats.total_bets > 0
-              ? `${stats.total_bets} ${L === "fr" ? "au total" : "total"}`
-              : L === "fr"
-                ? "à placer"
-                : "to place"
-          }
-          accent="violet"
-          href="/bets"
-        />
-        <StatCard
-          icon={Crown}
-          label={L === "fr" ? "Points" : "Points"}
-          value={stats.total_points.toLocaleString(
-            L === "fr" ? "fr-FR" : "en-US",
-          )}
-          unit={
-            stats.settled_bets > 0
-              ? `${winRatePct}% ${L === "fr" ? "réussite" : "win rate"}`
-              : L === "fr"
-                ? "en attente"
-                : "pending"
-          }
-          accent="gold"
-          href="/leaderboard/global"
-        />
-        <StatCard
-          icon={Trophy}
-          label={L === "fr" ? "Rang global" : "Global rank"}
-          value={myRank ? `#${myRank}` : "—"}
-          unit={
-            netTokens > 0
-              ? `+${netTokens.toLocaleString(L === "fr" ? "fr-FR" : "en-US")} ${L === "fr" ? "nets" : "net"}`
-              : netTokens < 0
-                ? `${netTokens.toLocaleString(L === "fr" ? "fr-FR" : "en-US")} ${L === "fr" ? "nets" : "net"}`
-                : L === "fr"
-                  ? "tout à jouer"
-                  : "wide open"
-          }
-          accent={netTokens >= 0 ? "primary" : "error"}
-          href="/leaderboard/global"
-        />
+        <div className="grid gap-6 p-5 sm:p-6 lg:grid-cols-[0.62fr_1.38fr] lg:p-8">
+          {/* Left side — greeting + trophy mode + 4 stats */}
+          <div className="flex flex-col gap-6">
+            <div>
+              <div className="mb-3 inline-flex items-center gap-1.5 rounded-[8px] border border-gold-500/30 bg-gold-500/[0.1] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-gold-400 shadow-glow-gold">
+                <WorldTrophyMark className="size-3.5" />
+                {L === "fr" ? "Coupe du Monde 2026" : "FIFA World Cup 2026"}
+              </div>
+              <h1 className="font-display text-3xl font-semibold leading-tight text-text-primary sm:text-4xl lg:text-5xl">
+                {L === "fr" ? "Salut" : "Hey"}
+                {user?.display_name ? `, ${user.display_name.split(" ")[0]}` : ""}.
+                <br />
+                {L === "fr" ? "Voici ton dashboard Mondial." : "Here's your World Cup dashboard."}
+              </h1>
+              <p className="mt-3 max-w-xl text-sm leading-6 text-text-secondary sm:text-base">
+                {L === "fr"
+                  ? "Console live, classement, organigramme et stats — tout pour piloter ton tournoi."
+                  : "Live console, leaderboard, bracket, and stats — everything to drive your tournament."}
+              </p>
+            </div>
+
+            <TrophyModeCard locale={L} />
+
+            <div className="grid grid-cols-2 gap-3">
+              <CommandMetric
+                icon={Link2}
+                label={L === "fr" ? "Solde" : "Balance"}
+                value={balanceTokens.toLocaleString(L === "fr" ? "fr-FR" : "en-US")}
+                detail={L === "fr" ? "jetons dispo" : "tokens ready"}
+                accent="primary"
+                href="/profile/wallet"
+              />
+              <CommandMetric
+                icon={Receipt}
+                label={L === "fr" ? "Paris actifs" : "Active bets"}
+                value={activeBets.length}
+                detail={`${Math.floor(activeStake / 100)} ${L === "fr" ? "jetons" : "tokens"}`}
+                accent="violet"
+                href="/bets"
+              />
+              <CommandMetric
+                icon={Crown}
+                label={L === "fr" ? "Points" : "Points"}
+                value={stats.total_points}
+                detail={
+                  stats.settled_bets > 0
+                    ? `${winRatePct}% ${L === "fr" ? "réussite" : "win rate"}`
+                    : L === "fr"
+                      ? "en attente"
+                      : "pending"
+                }
+                accent="gold"
+                href="/leaderboard/global"
+              />
+              <CommandMetric
+                icon={Users}
+                label={L === "fr" ? "Ligues" : "Leagues"}
+                value={myLeagues.length}
+                detail={
+                  myRank
+                    ? `${L === "fr" ? "rang" : "rank"} #${myRank}`
+                    : L === "fr"
+                      ? "espaces privés"
+                      : "private rooms"
+                }
+                accent="primary"
+                href="/leagues"
+              />
+            </div>
+          </div>
+
+          {/* Right side — cockpit */}
+          <Cockpit
+            locale={L}
+            tickets={tickets}
+            standings={standingRows}
+            bracket={bracket}
+            rings={[
+              { label: "ROI", value: clampRing(roiPct + 50), color: "primary" },
+              {
+                label: L === "fr" ? "Risque" : "Risk",
+                value: riskPct,
+                color: "violet",
+              },
+              { label: "Gold", value: goldPct, color: "gold" },
+            ]}
+            donutValue={donutValue}
+            donutLabel={
+              L === "fr"
+                ? `${finishedCount}/${allMatches.length} matchs`
+                : `${finishedCount}/${allMatches.length} matches`
+            }
+            formPoints={formPoints}
+          />
+        </div>
       </section>
 
-      {/* Onboarding card if no bets */}
-      {stats.total_bets === 0 && featuredMatch && (
-        <OnboardingCard locale={L} balanceTokens={balanceTokens} />
-      )}
-
-      {/* Featured match — biggest CTA on page */}
-      {featuredMatch && (
-        <FeaturedMatchCard match={featuredMatch} locale={L} />
-      )}
-
-      {/* Two-column: upcoming + recent bets/leagues */}
-      <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+      {/* Featured upcoming + my activity */}
+      <div className="mt-8 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
         <section>
           <SectionHeader
             icon={CalendarClock}
-            title={L === "fr" ? "Prochains matchs" : "Upcoming matches"}
-            href="/matches?view=calendar"
-            linkLabel={L === "fr" ? "Calendrier" : "Calendar"}
+            title={L === "fr" ? "Action rapide" : "Quick action"}
+            href="/matches"
+            linkLabel={L === "fr" ? "Tous les matchs" : "All matches"}
           />
-          {upcomingMatchesGrid.length === 0 ? (
-            <EmptyPanel
-              text={L === "fr" ? "Aucun match programmé." : "No upcoming matches."}
-            />
+          {ticketCandidates[0] ? (
+            <FeaturedActionCard match={ticketCandidates[0]} locale={L} />
           ) : (
-            <div className="grid gap-3 sm:grid-cols-2">
-              {upcomingMatchesGrid.map((m) => (
-                <MatchCard key={m.id} match={m} locale={L} />
-              ))}
-            </div>
+            <EmptyPanel
+              text={
+                L === "fr"
+                  ? "Aucun match ouvert pour le moment."
+                  : "No open match right now."
+              }
+            />
           )}
         </section>
 
@@ -180,17 +333,17 @@ export default async function DashboardPage({
               href="/bets"
               linkLabel={L === "fr" ? "Tous" : "All"}
             />
-            {recentBets.length === 0 ? (
+            {myBets.length === 0 ? (
               <EmptyPanel
                 text={
                   L === "fr"
-                    ? "Pas encore de pari. Lance-toi !"
-                    : "No bet yet. Get started!"
+                    ? "Pas encore de pari."
+                    : "No bet yet."
                 }
               />
             ) : (
               <ul className="divide-y divide-white/[0.06] overflow-hidden rounded-[10px] border border-white/[0.08] bg-surface-1/[0.55] backdrop-blur-xl">
-                {recentBets.map((b) => (
+                {myBets.slice(0, 4).map((b) => (
                   <li
                     key={b.id}
                     className="flex items-center justify-between gap-3 px-4 py-3"
@@ -223,10 +376,17 @@ export default async function DashboardPage({
               linkLabel={L === "fr" ? "Voir tout" : "View all"}
             />
             {myLeagues.length === 0 ? (
-              <EmptyLeaguePanel locale={L} />
+              <Link
+                href="/leagues/new"
+                className="block rounded-[10px] border border-dashed border-white/[0.1] bg-surface-1/[0.4] p-5 text-center text-sm text-text-secondary transition hover:border-primary-500/40 hover:bg-surface-1/[0.6] hover:text-text-primary"
+              >
+                {L === "fr"
+                  ? "Crée ta première ligue"
+                  : "Create your first league"}
+              </Link>
             ) : (
               <ul className="space-y-2">
-                {myLeagues.slice(0, 4).map((l) => (
+                {myLeagues.slice(0, 3).map((l) => (
                   <li key={l.id}>
                     <Link
                       href={`/leagues/${l.slug}`}
@@ -261,95 +421,54 @@ export default async function DashboardPage({
 /*  Sub-components                                                            */
 /* -------------------------------------------------------------------------- */
 
-function HeroCard({
-  locale,
-  firstName,
-  balanceTokens,
-  liveCount,
+function CommandMetric({
+  icon: Icon,
+  label,
+  value,
+  detail,
+  accent,
+  href,
 }: {
-  locale: Locale;
-  firstName: string;
-  balanceTokens: number;
-  liveCount: number;
+  icon: LucideIcon;
+  label: string;
+  value: number | string;
+  detail: string;
+  accent: "primary" | "gold" | "violet";
+  href?: string;
 }) {
-  const greeting = greet(locale, firstName);
-  return (
-    <section className="relative overflow-hidden rounded-[14px] border border-white/[0.1] bg-abyss/70 shadow-[0_24px_60px_rgba(0,0,0,0.4)]">
-      <Image
-        src="/marketing/lucarne-hero-stadium.jpg"
-        alt=""
-        fill
-        sizes="(max-width: 1024px) 100vw, 1100px"
-        priority
-        className="absolute inset-0 -z-10 object-cover object-[58%_45%] opacity-30"
-      />
-      <div className="absolute inset-0 -z-10 bg-[linear-gradient(95deg,rgba(5,6,5,0.92)_0%,rgba(5,6,5,0.76)_40%,rgba(5,6,5,0.42)_100%)]" />
-      <div className="flex flex-col gap-6 px-5 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-7 sm:py-7">
-        <div className="min-w-0">
-          <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-gold-500/30 bg-gold-500/[0.1] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-gold-400">
-            <WorldTrophyMark className="size-3" />
-            {locale === "fr" ? "Coupe du Monde 2026" : "FIFA World Cup 2026"}
-          </div>
-          <h1 className="font-display text-2xl font-semibold tracking-tight text-text-primary sm:text-3xl">
-            {greeting}
-          </h1>
-          <p className="mt-1 text-sm text-text-secondary">
-            {locale === "fr"
-              ? "Voici l'état de ton mondial."
-              : "Here's your tournament dashboard."}
-          </p>
-        </div>
-        <div className="flex items-center gap-4">
-          {liveCount > 0 && (
-            <Link
-              href="/matches?view=calendar"
-              className="hidden items-center gap-1.5 rounded-full border border-violet-500/40 bg-violet-500/[0.12] px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-violet-300 transition hover:bg-violet-500/[0.18] sm:inline-flex"
-            >
-              <span className="relative flex size-1.5">
-                <span className="absolute inline-flex size-full animate-ping rounded-full bg-violet-400 opacity-75" />
-                <span className="relative inline-flex size-1.5 rounded-full bg-violet-400" />
-              </span>
-              {liveCount} live
-            </Link>
-          )}
-          <div className="text-right">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
-              {locale === "fr" ? "Solde" : "Balance"}
-            </div>
-            <div className="font-display text-3xl font-bold tabular-nums text-primary-400">
-              {balanceTokens.toLocaleString(locale === "fr" ? "fr-FR" : "en-US")}
-              <span className="ml-1 text-xs font-medium text-text-secondary">
-                {locale === "fr" ? "jetons" : "tokens"}
-              </span>
-            </div>
-          </div>
-        </div>
+  const colors = {
+    primary: { bg: "bg-primary-500/12 ring-primary-500/30", text: "text-primary-400" },
+    gold: { bg: "bg-gold-500/12 ring-gold-500/30", text: "text-gold-400" },
+    violet: { bg: "bg-violet-500/12 ring-violet-500/30", text: "text-violet-400" },
+  }[accent];
+
+  const inner = (
+    <div className="group relative overflow-hidden rounded-[10px] border border-white/[0.08] bg-white/[0.04] p-4 backdrop-blur-xl transition hover:border-white/[0.16] hover:bg-white/[0.07]">
+      <div className="mb-3 flex items-center justify-between">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
+          {label}
+        </span>
+        <span className={cn("rounded-md p-1.5 ring-1", colors.bg)}>
+          <Icon className={cn("size-3.5", colors.text)} strokeWidth={1.7} />
+        </span>
       </div>
-    </section>
+      <div className="font-display text-2xl font-bold tabular-nums text-text-primary sm:text-3xl">
+        {value}
+      </div>
+      <div className="mt-1 text-xs text-text-tertiary">{detail}</div>
+    </div>
   );
+
+  return href ? <Link href={href}>{inner}</Link> : inner;
 }
 
-function FeaturedMatchCard({
+function FeaturedActionCard({
   match,
   locale,
 }: {
-  match: Awaited<ReturnType<typeof listMatches>>[number];
+  match: MatchListItem;
   locale: Locale;
 }) {
-  const kickoff = new Date(match.kickoff_at);
-  const isLive = match.status === "live";
-  const kickoffStr = kickoff.toLocaleString(
-    locale === "fr" ? "fr-FR" : "en-US",
-    {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      hour: "2-digit",
-      minute: "2-digit",
-      timeZone: "Europe/Paris",
-    },
-  );
-
   const homeName = match.home_team
     ? locale === "fr"
       ? match.home_team.name_fr
@@ -360,179 +479,69 @@ function FeaturedMatchCard({
       ? match.away_team.name_fr
       : match.away_team.name_en
     : match.away_placeholder ?? "?";
-
-  const stageLabel =
-    match.stage === "group" && match.group_label
-      ? `${locale === "fr" ? "Groupe" : "Group"} ${match.group_label}`
-      : stageName(match.stage, locale);
-
-  return (
-    <section
-      className={cn(
-        "relative overflow-hidden rounded-[14px] border bg-gradient-to-br p-5 backdrop-blur-xl sm:p-6",
-        isLive
-          ? "border-violet-500/40 from-violet-500/[0.12] via-violet-500/[0.04] to-transparent shadow-glow-violet"
-          : "border-white/[0.1] from-primary-500/[0.08] via-transparent to-gold-500/[0.05]",
-      )}
-    >
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <span
-            className={cn(
-              "rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider",
-              isLive
-                ? "bg-violet-500/20 text-violet-300 ring-1 ring-violet-500/30"
-                : "bg-primary-500/15 text-primary-400 ring-1 ring-primary-500/30",
-            )}
-          >
-            {isLive
-              ? locale === "fr"
-                ? "En direct"
-                : "Live now"
-              : locale === "fr"
-                ? "Prochain match"
-                : "Next match"}
-          </span>
-          <span className="text-xs font-medium text-text-tertiary">
-            {stageLabel}
-          </span>
-        </div>
-        <span className="font-mono text-xs tabular-nums text-text-secondary">
-          {kickoffStr}
-        </span>
-      </div>
-
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 sm:gap-8">
-        <TeamSide
-          team={match.home_team}
-          placeholder={match.home_placeholder}
-          score={match.home_score}
-          showScore={isLive || match.status === "finished"}
-          locale={locale}
-          align="left"
-          name={homeName}
-        />
-        <div className="text-center">
-          <div className="font-display text-2xl font-bold text-text-tertiary sm:text-3xl">
-            VS
-          </div>
-        </div>
-        <TeamSide
-          team={match.away_team}
-          placeholder={match.away_placeholder}
-          score={match.away_score}
-          showScore={isLive || match.status === "finished"}
-          locale={locale}
-          align="right"
-          name={awayName}
-        />
-      </div>
-
-      {!isLive && match.status === "scheduled" && (
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.08] pt-4">
-          <p className="text-xs text-text-secondary">
-            {locale === "fr"
-              ? "Place ton pronostic en 1 clic — choisis le vainqueur."
-              : "One-click bet — pick the winner."}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href={`/matches/${match.id}`}
-              className="rounded-[8px] border border-white/[0.12] bg-white/[0.05] px-4 py-2 text-sm font-semibold text-text-secondary transition hover:border-white/[0.2] hover:text-text-primary"
-            >
-              {locale === "fr" ? "Détail" : "Details"}
-            </Link>
-            <div className="min-w-[200px] flex-1 sm:flex-none">
-              <QuickBetButton
-                match={match}
-                locale={locale}
-                variant="block"
-              />
-            </div>
-          </div>
-        </div>
-      )}
-    </section>
+  const kickoff = new Date(match.kickoff_at).toLocaleString(
+    locale === "fr" ? "fr-FR" : "en-US",
+    {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "Europe/Paris",
+    },
   );
-}
-
-function TeamSide({
-  team,
-  score,
-  showScore,
-  align,
-  name,
-}: {
-  team: { iso_code: string | null } | null;
-  placeholder: string | null;
-  score: number | null;
-  showScore: boolean;
-  locale: Locale;
-  align: "left" | "right";
-  name: string;
-}) {
   return (
-    <div
-      className={cn(
-        "flex min-w-0 items-center gap-3 sm:gap-4",
-        align === "right" && "flex-row-reverse",
-      )}
-    >
-      <Flag isoCode={team?.iso_code ?? null} size="2xl" />
-      <div className={cn("min-w-0", align === "right" && "text-right")}>
-        <div className="truncate font-display text-lg font-semibold tracking-tight text-text-primary sm:text-2xl">
-          {name}
+    <div className="rounded-[12px] border border-primary-500/25 bg-gradient-to-br from-primary-500/[0.1] via-gold-500/[0.04] to-transparent p-5 backdrop-blur-xl sm:p-6">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-primary-400">
+          {locale === "fr" ? "Prochain coup d'envoi" : "Next kickoff"}
+        </p>
+        <p className="font-mono text-xs tabular-nums text-text-secondary">
+          {kickoff}
+        </p>
+      </div>
+      <h2 className="mt-2 font-display text-2xl font-semibold tracking-tight text-text-primary sm:text-3xl">
+        {homeName} <span className="text-text-tertiary">vs</span> {awayName}
+      </h2>
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <div className="min-w-[200px] flex-1 sm:flex-none">
+          <QuickBetButton
+            match={{
+              id: match.id,
+              kickoff_at: match.kickoff_at,
+              status: match.status,
+              home_team: match.home_team
+                ? {
+                    iso_code: match.home_team.iso_code ?? null,
+                    name_fr: match.home_team.name_fr,
+                    name_en: match.home_team.name_en,
+                    flag_emoji: match.home_team.flag_emoji ?? null,
+                  }
+                : null,
+              away_team: match.away_team
+                ? {
+                    iso_code: match.away_team.iso_code ?? null,
+                    name_fr: match.away_team.name_fr,
+                    name_en: match.away_team.name_en,
+                    flag_emoji: match.away_team.flag_emoji ?? null,
+                  }
+                : null,
+              home_placeholder: match.home_placeholder,
+              away_placeholder: match.away_placeholder,
+            }}
+            locale={locale}
+            variant="block"
+          />
         </div>
-        {showScore && (
-          <div className="mt-1 font-display text-3xl font-bold tabular-nums text-primary-400 sm:text-4xl">
-            {score ?? "—"}
-          </div>
-        )}
+        <Link
+          href={`/matches/${match.id}`}
+          className="rounded-[8px] border border-white/[0.12] bg-white/[0.04] px-4 py-3 text-sm font-semibold text-text-secondary transition hover:border-white/[0.2] hover:text-text-primary"
+        >
+          {locale === "fr" ? "Voir le match" : "Match detail"}
+        </Link>
       </div>
     </div>
   );
-}
-
-function StatCard({
-  icon: Icon,
-  label,
-  value,
-  unit,
-  accent,
-  href,
-}: {
-  icon: LucideIcon;
-  label: string;
-  value: string;
-  unit: string;
-  accent: "primary" | "gold" | "violet" | "error";
-  href?: string;
-}) {
-  const colors = {
-    primary: { ring: "bg-primary-500/12 ring-primary-500/30", text: "text-primary-400" },
-    gold: { ring: "bg-gold-500/12 ring-gold-500/30", text: "text-gold-400" },
-    violet: { ring: "bg-violet-500/12 ring-violet-500/30", text: "text-violet-400" },
-    error: { ring: "bg-error/12 ring-error/30", text: "text-error" },
-  }[accent];
-
-  const inner = (
-    <div className="group relative overflow-hidden rounded-[10px] border border-white/[0.08] bg-surface-1/[0.55] p-4 backdrop-blur-xl transition hover:border-white/[0.16] hover:bg-surface-1/[0.7]">
-      <div className="mb-3 flex items-center justify-between">
-        <div className={cn("rounded-md p-1.5 ring-1", colors.ring)}>
-          <Icon className={cn("size-4", colors.text)} strokeWidth={1.5} />
-        </div>
-        <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
-          {label}
-        </span>
-      </div>
-      <div className="font-display text-3xl font-bold tabular-nums text-text-primary">
-        {value}
-      </div>
-      <div className="mt-1 text-xs text-text-tertiary">{unit}</div>
-    </div>
-  );
-
-  return href ? <Link href={href}>{inner}</Link> : inner;
 }
 
 function SectionHeader({
@@ -572,100 +581,71 @@ function EmptyPanel({ text }: { text: string }) {
   );
 }
 
-function EmptyLeaguePanel({ locale }: { locale: Locale }) {
-  return (
-    <div className="rounded-[10px] border border-dashed border-white/[0.1] bg-surface-1/[0.4] p-5 text-center backdrop-blur-xl">
-      <p className="text-sm text-text-secondary">
-        {locale === "fr"
-          ? "Tu n'es dans aucune ligue."
-          : "You're not in any league yet."}
-      </p>
-      <Link
-        href="/leagues/new"
-        className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-primary-500/15 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-primary-400 ring-1 ring-primary-500/30 transition hover:bg-primary-500/25"
-      >
-        {locale === "fr" ? "Créer une ligue" : "Create a league"}
-        <ArrowRight className="size-3.5" strokeWidth={2} />
-      </Link>
-    </div>
-  );
-}
-
-function OnboardingCard({
-  locale,
-  balanceTokens,
-}: {
-  locale: Locale;
-  balanceTokens: number;
-}) {
-  return (
-    <section className="overflow-hidden rounded-[14px] border border-gold-500/25 bg-gradient-to-br from-gold-500/[0.12] via-primary-500/[0.06] to-transparent p-5 backdrop-blur-xl sm:p-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <div className="rounded-[10px] bg-gold-500/15 p-2.5 ring-1 ring-gold-500/30">
-            <Sparkles className="size-5 text-gold-400" strokeWidth={1.5} />
-          </div>
-          <div>
-            <h2 className="font-display text-lg font-semibold text-text-primary">
-              {locale === "fr"
-                ? "Premier pronostic à placer"
-                : "Place your first bet"}
-            </h2>
-            <p className="mt-1 max-w-xl text-sm leading-6 text-text-secondary">
-              {locale === "fr"
-                ? `Tu as ${balanceTokens.toLocaleString("fr-FR")} jetons. Choisis un match à venir et clique sur "Pronostiquer" pour parier en moins de 10 secondes.`
-                : `You have ${balanceTokens.toLocaleString("en-US")} tokens. Pick a match and tap "Quick bet" to place your bet in under 10 seconds.`}
-            </p>
-          </div>
-        </div>
-        <Link
-          href="/matches"
-          className="inline-flex items-center gap-1.5 rounded-[8px] bg-primary-500 px-4 py-2.5 text-sm font-bold text-abyss shadow-glow-primary transition hover:bg-primary-400"
-        >
-          <Zap className="size-4" strokeWidth={2.5} />
-          {locale === "fr" ? "Voir les matchs" : "Browse matches"}
-        </Link>
-      </div>
-    </section>
-  );
-}
-
 /* -------------------------------------------------------------------------- */
 /*  Utilities                                                                 */
 /* -------------------------------------------------------------------------- */
 
-function greet(locale: Locale, name: string): string {
-  const hour = new Date().getHours();
-  const period =
-    locale === "fr"
-      ? hour < 6 || hour >= 22
-        ? "Bonne nuit"
-        : hour < 12
-          ? "Salut"
-          : hour < 18
-            ? "Bon après-midi"
-            : "Bonsoir"
-      : hour < 6 || hour >= 22
-        ? "Good night"
-        : hour < 12
-          ? "Good morning"
-          : hour < 18
-            ? "Good afternoon"
-            : "Good evening";
-  return name ? `${period}, ${name}.` : `${period}.`;
+function clampRing(value: number): number {
+  return Math.max(0, Math.min(value, 100));
+}
+
+function ticketLabel(match: MatchListItem, idx: number, locale: Locale): string {
+  if (match.status === "live") return locale === "fr" ? "Live" : "Live";
+  if (idx === 0) return locale === "fr" ? "Match d'ouverture" : "Opening match";
+  if (idx === 1) return locale === "fr" ? "Affiche premium" : "Premium fixture";
+  if (idx === 2) return locale === "fr" ? "Duel tactique" : "Tactical duel";
+  if (match.stage === "final") return locale === "fr" ? "Finale gold" : "Gold final";
+  return locale === "fr" ? "Prochain match" : "Upcoming match";
 }
 
 function stageName(stage: string, locale: Locale): string {
   const labels: Record<string, { fr: string; en: string }> = {
-    r32: { fr: "1/16ᵉ de finale", en: "Round of 32" },
-    r16: { fr: "8ᵉ de finale", en: "Round of 16" },
-    qf: { fr: "1/4 de finale", en: "Quarter-final" },
-    sf: { fr: "1/2 finale", en: "Semi-final" },
-    third_place: { fr: "Match 3ᵉ place", en: "3rd place playoff" },
+    r32: { fr: "1/16ᵉ", en: "R32" },
+    r16: { fr: "8ᵉ", en: "R16" },
+    qf: { fr: "Quart", en: "QF" },
+    sf: { fr: "Demi", en: "SF" },
+    third_place: { fr: "3ᵉ place", en: "3rd place" },
     final: { fr: "Finale", en: "Final" },
-    group: { fr: "Phase de groupes", en: "Group stage" },
+    group: { fr: "Groupes", en: "Group" },
   };
   return labels[stage]?.[locale] ?? stage;
+}
+
+function buildBracketPreview(
+  matches: MatchListItem[],
+  _locale: Locale,
+): BracketCell[][] {
+  const r32 = matches.filter((m) => m.stage === "r32").slice(0, 4);
+  const r16 = matches.filter((m) => m.stage === "r16").slice(0, 4);
+  const qf = matches.filter((m) => m.stage === "qf").slice(0, 2);
+
+  function teamCode(team: { iso_code: string | null } | null, placeholder: string | null): string | null {
+    if (team?.iso_code) return team.iso_code.toUpperCase();
+    if (placeholder) return placeholder.slice(0, 8);
+    return null;
+  }
+
+  function fillStage(
+    stageKey: BracketCell["stageKey"],
+    list: MatchListItem[],
+    count: number,
+  ): BracketCell[] {
+    const cells: BracketCell[] = list.map((m) => ({
+      stageKey,
+      homeCode: teamCode(m.home_team, m.home_placeholder),
+      awayCode: teamCode(m.away_team, m.away_placeholder),
+    }));
+    while (cells.length < count) {
+      cells.push({ stageKey, homeCode: null, awayCode: null });
+    }
+    return cells;
+  }
+
+  return [
+    fillStage("r32", r32, 4),
+    fillStage("r16", r16, 4),
+    fillStage("qf", qf, 2),
+  ];
 }
 
 function betLabel(
