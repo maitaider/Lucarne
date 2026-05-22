@@ -1,7 +1,8 @@
 "use client";
 
 import { useOptimistic, useState, useTransition } from "react";
-import { toggleReaction, type ReactionKind } from "@/lib/social/actions";
+import { toggleReaction } from "@/lib/social/actions";
+import type { ReactionKind } from "@/lib/social/constants";
 import { useToast } from "@/components/ui/toast-provider";
 import { cn } from "@/lib/utils";
 

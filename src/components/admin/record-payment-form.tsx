@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "@/i18n/navigation";
-import { recordPayment, PAYMENT_METHODS } from "@/lib/admin/actions";
+import { recordPayment } from "@/lib/admin/actions";
+import { PAYMENT_METHODS } from "@/lib/admin/constants";
 import { useToast } from "@/components/ui/toast-provider";
 import { Loader2, Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils";

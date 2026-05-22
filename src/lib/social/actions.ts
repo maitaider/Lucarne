@@ -3,23 +3,7 @@
 import { z } from "zod";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-
-export type ReactionKind =
-  | "fire"
-  | "clap"
-  | "laugh"
-  | "think"
-  | "shock"
-  | "skull";
-
-const REACTIONS: ReactionKind[] = [
-  "fire",
-  "clap",
-  "laugh",
-  "think",
-  "shock",
-  "skull",
-];
+import type { ReactionKind } from "./constants";
 
 const toggleReactionSchema = z.object({
   target_type: z.enum(["bet", "comment"]),
@@ -194,5 +178,3 @@ export async function deleteComment(
   revalidatePath("/", "layout");
   return { ok: true };
 }
-
-export { REACTIONS };

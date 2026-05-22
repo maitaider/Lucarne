@@ -3,16 +3,7 @@
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-
-const PAYMENT_METHODS = [
-  "cash",
-  "transfer",
-  "paypal",
-  "revolut",
-  "lydia",
-  "wise",
-  "other",
-] as const;
+import { PAYMENT_METHODS } from "./constants";
 
 const recordPaymentSchema = z.object({
   user_id: z.string().uuid(),
@@ -161,8 +152,6 @@ export async function updateAppSettings(
   revalidatePath("/how-it-works");
   return { ok: true };
 }
-
-export { PAYMENT_METHODS };
 
 const markPaymentSchema = z.object({
   bet_id: z.string().uuid(),

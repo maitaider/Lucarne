@@ -1,6 +1,6 @@
 import "server-only";
 import { getSupabaseServer } from "@/lib/supabase/server";
-import type { ReactionKind } from "./actions";
+import type { ReactionKind } from "./constants";
 
 export type CommentRow = {
   id: string;
