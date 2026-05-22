@@ -84,7 +84,7 @@ export function Cockpit({
         className="pointer-events-none absolute left-12 right-12 top-0 h-px bg-gradient-to-r from-transparent via-white/45 to-transparent"
       />
       <div className="grid gap-3 md:grid-cols-[2.75rem_1fr]">
-        <ConsoleRail tab={tab} setTab={setTab} />
+        <ConsoleRail tab={tab} setTab={setTab} locale={locale} />
         <div className="rounded-[10px] border border-black/30 bg-abyss/[0.7] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
           <ConsoleHeader locale={locale} events={events} />
           <div className="mt-3 grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
@@ -247,61 +247,123 @@ function formatTickerTime(iso: string, locale: Locale): string {
 function ConsoleRail({
   tab,
   setTab,
+  locale,
 }: {
   tab: CockpitTab;
   setTab: (t: CockpitTab) => void;
+  locale: Locale;
 }) {
   const items: {
+    key: string;
     Icon: typeof OrbitBallMark;
-    target?: CockpitTab;
+    target: CockpitTab | "matches" | "leagues";
     tone: string;
+    activeTone: string;
+    labelFr: string;
+    labelEn: string;
   }[] = [
-    { Icon: OrbitBallMark, tone: "text-text-tertiary" },
     {
+      key: "ball",
+      Icon: OrbitBallMark,
+      target: "matches",
+      tone: "text-text-secondary",
+      activeTone: "text-primary-300",
+      labelFr: "Calendrier des matchs",
+      labelEn: "Match calendar",
+    },
+    {
+      key: "stadium",
       Icon: StadiumBeamMark,
       target: "activity",
-      tone: "text-violet-300",
+      tone: "text-text-secondary",
+      activeTone: "text-violet-300",
+      labelFr: "Activité live",
+      labelEn: "Live activity",
     },
     {
+      key: "terminal",
       Icon: TerminalGridMark,
       target: "standings",
-      tone: "text-primary-300",
+      tone: "text-text-secondary",
+      activeTone: "text-primary-300",
+      labelFr: "Classement",
+      labelEn: "Leaderboard",
     },
-    { Icon: WorldTrophyMark, target: "bracket", tone: "text-gold-300" },
+    {
+      key: "trophy",
+      Icon: WorldTrophyMark,
+      target: "bracket",
+      tone: "text-text-secondary",
+      activeTone: "text-gold-300",
+      labelFr: "Organigramme",
+      labelEn: "Bracket",
+    },
   ];
+
   return (
-    <div className="hidden flex-col items-center gap-3 rounded-[8px] border border-white/[0.08] bg-abyss/[0.5] py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] md:flex">
-      {items.map(({ Icon, target, tone }, idx) => {
-        const active = target ? tab === target : false;
-        const button = (
-          <span
+    <div className="hidden flex-col items-center gap-2 rounded-[8px] border border-white/[0.08] bg-abyss/[0.5] py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] md:flex">
+      {items.map(({ key, Icon, target, tone, activeTone, labelFr, labelEn }) => {
+        const active = target === tab;
+        const label = locale === "fr" ? labelFr : labelEn;
+
+        // External nav for matches/leagues, tab switch for cockpit views
+        if (target === "matches" || target === "leagues") {
+          return (
+            <Link
+              key={key}
+              href={`/${target}`}
+              aria-label={label}
+              title={label}
+              className={cn(
+                "group relative flex size-9 cursor-pointer items-center justify-center rounded-[8px] border border-white/[0.08] bg-white/[0.035] transition hover:border-white/[0.2] hover:bg-white/[0.08]",
+                tone,
+                "hover:text-text-primary",
+              )}
+            >
+              <Icon className="size-5" />
+              <RailTooltip label={label} />
+            </Link>
+          );
+        }
+
+        return (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setTab(target)}
+            aria-label={label}
+            title={label}
+            aria-pressed={active}
             className={cn(
-              "flex size-9 items-center justify-center rounded-[8px] border transition",
+              "group relative flex size-9 cursor-pointer items-center justify-center rounded-[8px] border transition",
               active
-                ? "border-primary-500/40 bg-primary-500/[0.13] shadow-glow-primary"
-                : "border-white/[0.08] bg-white/[0.035] hover:bg-white/[0.06]",
-              tone,
+                ? "border-primary-500/50 bg-primary-500/[0.16] shadow-glow-primary"
+                : "border-white/[0.08] bg-white/[0.035] hover:border-white/[0.2] hover:bg-white/[0.08]",
+              active ? activeTone : tone,
+              "hover:text-text-primary",
             )}
           >
             <Icon className="size-5" />
-          </span>
+            <RailTooltip label={label} />
+          </button>
         );
-        if (target) {
-          return (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => setTab(target)}
-              aria-label={target}
-            >
-              {button}
-            </button>
-          );
-        }
-        return <span key={idx}>{button}</span>;
       })}
-      <span className="mt-2 h-16 w-1 rounded-full bg-gradient-to-b from-primary-400 via-gold-400 to-violet-400" />
+      <span
+        aria-hidden
+        className="mt-1 h-12 w-1 rounded-full bg-gradient-to-b from-primary-400 via-gold-400 to-violet-400"
+      />
     </div>
+  );
+}
+
+function RailTooltip({ label }: { label: string }) {
+  return (
+    <span
+      className="pointer-events-none absolute left-full top-1/2 ml-2 -translate-y-1/2 whitespace-nowrap rounded-md border border-white/[0.1] bg-abyss/95 px-2 py-1 text-[10px] font-semibold text-text-primary opacity-0 shadow-lg transition group-hover:opacity-100"
+      role="tooltip"
+    >
+      {label}
+    </span>
   );
 }
 
