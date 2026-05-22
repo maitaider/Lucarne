@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { getSupabaseBrowser } from "@/lib/supabase/client";
+import { callRedeemInvitation } from "@/lib/supabase/rpc";
 import { Loader2 } from "lucide-react";
 
 export function SignupForm() {
@@ -46,7 +47,7 @@ export function SignupForm() {
     }
 
     // After signup, redeem invitation code server-side
-    const { error: rpcError } = await supabase.rpc("redeem_invitation", {
+    const { error: rpcError } = await callRedeemInvitation(supabase, {
       p_code: code,
     });
 

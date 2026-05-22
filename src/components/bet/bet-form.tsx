@@ -1,0 +1,300 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { useRouter } from "@/i18n/navigation";
+import { Loader2, Coins, CheckCircle2 } from "lucide-react";
+import { placeBet } from "@/lib/bets/place-bet";
+import {
+  betMultipliers,
+  estimatePayout,
+  type PlaceBetForm,
+} from "@/lib/bets/types";
+import type { Locale } from "@/i18n/routing";
+import { cn } from "@/lib/utils";
+
+type BetType = "match_winner" | "exact_score";
+
+export function BetForm({
+  matchId,
+  homeName,
+  awayName,
+  locale,
+}: {
+  matchId: string;
+  homeName: string;
+  awayName: string;
+  kickoffAt: string;
+  locale: Locale;
+}) {
+  const router = useRouter();
+  const [betType, setBetType] = useState<BetType>("match_winner");
+  const [winner, setWinner] = useState<"home" | "draw" | "away">("home");
+  const [homeScore, setHomeScore] = useState(1);
+  const [awayScore, setAwayScore] = useState(0);
+  const [stake, setStake] = useState(50);
+  const [isPending, startTransition] = useTransition();
+  const [result, setResult] = useState<
+    { kind: "success"; betId: string } | { kind: "error"; message: string } | null
+  >(null);
+
+  function buildPayload(): PlaceBetForm["bet"] {
+    if (betType === "match_winner") {
+      return {
+        bet_type: "match_winner",
+        match_id: matchId,
+        payload: { winner },
+      };
+    }
+    return {
+      bet_type: "exact_score",
+      match_id: matchId,
+      payload: { home: homeScore, away: awayScore },
+    };
+  }
+
+  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setResult(null);
+    const stakeCents = Math.round(stake * 100);
+
+    startTransition(async () => {
+      const res = await placeBet({
+        match_id: matchId,
+        league_id: null,
+        bet: buildPayload(),
+        stake_cents: stakeCents,
+        client_request_id: crypto.randomUUID(),
+      });
+      if (res.ok) {
+        setResult({ kind: "success", betId: res.betId });
+        router.refresh();
+      } else {
+        setResult({ kind: "error", message: res.message });
+      }
+    });
+  }
+
+  const potential = estimatePayout(betType, stake);
+
+  return (
+    <form
+      onSubmit={onSubmit}
+      className="rounded-2xl border border-border-subtle bg-surface-1/60 p-6 backdrop-blur"
+    >
+      {/* Bet type toggle */}
+      <div className="mb-6 flex gap-2">
+        <BetTypeButton
+          active={betType === "match_winner"}
+          onClick={() => setBetType("match_winner")}
+          label={locale === "fr" ? "Vainqueur (1N2)" : "Match winner"}
+          multiplier={betMultipliers.match_winner}
+        />
+        <BetTypeButton
+          active={betType === "exact_score"}
+          onClick={() => setBetType("exact_score")}
+          label={locale === "fr" ? "Score exact" : "Exact score"}
+          multiplier={betMultipliers.exact_score}
+        />
+      </div>
+
+      {betType === "match_winner" ? (
+        <div className="mb-6 grid grid-cols-3 gap-2">
+          <ChoiceButton
+            active={winner === "home"}
+            onClick={() => setWinner("home")}
+            primary={homeName}
+            secondary={locale === "fr" ? "Domicile" : "Home"}
+          />
+          <ChoiceButton
+            active={winner === "draw"}
+            onClick={() => setWinner("draw")}
+            primary={locale === "fr" ? "Nul" : "Draw"}
+            secondary="—"
+          />
+          <ChoiceButton
+            active={winner === "away"}
+            onClick={() => setWinner("away")}
+            primary={awayName}
+            secondary={locale === "fr" ? "Extérieur" : "Away"}
+          />
+        </div>
+      ) : (
+        <div className="mb-6 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+          <ScoreInput
+            label={homeName}
+            value={homeScore}
+            onChange={setHomeScore}
+          />
+          <span className="font-display text-2xl text-text-tertiary">·</span>
+          <ScoreInput
+            label={awayName}
+            value={awayScore}
+            onChange={setAwayScore}
+            align="right"
+          />
+        </div>
+      )}
+
+      {/* Stake */}
+      <div className="mb-6">
+        <label className="mb-2 flex items-baseline justify-between text-sm">
+          <span className="font-medium text-text-secondary">
+            {locale === "fr" ? "Ta mise" : "Your stake"}
+          </span>
+          <span className="text-xs text-text-tertiary">10 — 1 000</span>
+        </label>
+        <div className="flex items-center gap-3">
+          <Coins className="size-4 text-gold-500" />
+          <input
+            type="range"
+            min="10"
+            max="1000"
+            step="10"
+            value={stake}
+            onChange={(e) => setStake(Number(e.target.value))}
+            className="flex-1 accent-primary-500"
+          />
+          <span className="w-20 text-right font-display text-xl font-semibold tabular-nums text-text-primary">
+            {stake}
+          </span>
+        </div>
+      </div>
+
+      {/* Payout preview */}
+      <div className="mb-6 rounded-lg bg-surface-2 px-4 py-3">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-text-secondary">
+            {locale === "fr" ? "Gain potentiel" : "Potential payout"}
+          </span>
+          <span className="font-display text-2xl font-semibold tabular-nums text-primary-500">
+            {potential.toLocaleString()}
+            <span className="ml-1 text-xs text-text-secondary">jetons</span>
+          </span>
+        </div>
+      </div>
+
+      {result?.kind === "success" && (
+        <div className="mb-4 flex items-start gap-3 rounded-lg border border-primary-500/30 bg-primary-500/10 px-4 py-3 text-sm text-primary-400">
+          <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
+          <span>
+            {locale === "fr"
+              ? "Pari placé ! Statut : en attente de validation admin."
+              : "Bet placed! Status: pending admin validation."}
+          </span>
+        </div>
+      )}
+      {result?.kind === "error" && (
+        <div className="mb-4 rounded-lg border border-error/30 bg-error/10 px-4 py-3 text-sm text-error">
+          {result.message}
+        </div>
+      )}
+
+      <button
+        type="submit"
+        disabled={isPending}
+        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary-500 px-4 py-3 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400 disabled:opacity-60"
+      >
+        {isPending && <Loader2 className="size-4 animate-spin" />}
+        {locale === "fr" ? "Valider le pari" : "Confirm bet"}
+      </button>
+    </form>
+  );
+}
+
+function BetTypeButton({
+  active,
+  onClick,
+  label,
+  multiplier,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  multiplier: number;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex flex-1 flex-col items-center rounded-xl border px-4 py-3 text-sm font-semibold transition",
+        active
+          ? "border-primary-500/40 bg-primary-500/10 text-primary-400"
+          : "border-border-subtle bg-surface-2/50 text-text-secondary hover:border-border-strong",
+      )}
+    >
+      <span>{label}</span>
+      <span className="mt-0.5 font-mono text-[10px] uppercase tracking-wider opacity-70">
+        ×{multiplier}
+      </span>
+    </button>
+  );
+}
+
+function ChoiceButton({
+  active,
+  onClick,
+  primary,
+  secondary,
+}: {
+  active: boolean;
+  onClick: () => void;
+  primary: string;
+  secondary: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "rounded-xl border px-3 py-4 text-center transition",
+        active
+          ? "border-primary-500/40 bg-primary-500/10 ring-1 ring-primary-500/20"
+          : "border-border-subtle bg-surface-2/50 hover:border-border-strong",
+      )}
+    >
+      <div
+        className={cn(
+          "truncate text-sm font-semibold",
+          active ? "text-text-primary" : "text-text-secondary",
+        )}
+      >
+        {primary}
+      </div>
+      <div className="mt-0.5 text-[10px] uppercase tracking-wider text-text-tertiary">
+        {secondary}
+      </div>
+    </button>
+  );
+}
+
+function ScoreInput({
+  label,
+  value,
+  onChange,
+  align = "left",
+}: {
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+  align?: "left" | "right";
+}) {
+  return (
+    <div className={align === "right" ? "text-right" : "text-left"}>
+      <div className="mb-2 truncate text-xs font-medium uppercase tracking-wider text-text-tertiary">
+        {label}
+      </div>
+      <select
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="w-full rounded-lg border border-border-subtle bg-surface-2 px-3 py-3 text-center font-display text-3xl font-semibold tabular-nums text-text-primary outline-none transition focus:border-primary-500"
+      >
+        {Array.from({ length: 10 }, (_, i) => (
+          <option key={i} value={i}>
+            {i}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
