@@ -8,7 +8,10 @@ import {
 import { LeaderboardPodium } from "@/components/leaderboard/podium";
 import { StandingsTable } from "@/components/leaderboard/standings-table";
 import { LeagueActivityFeed } from "@/components/social/league-activity-feed";
+import { LeagueFeedBoard } from "@/components/social/league-feed-board";
 import { listLeagueFeed } from "@/lib/social/feed";
+import { listLeaguePosts } from "@/lib/social/league-feed";
+import { getCurrentUser } from "@/lib/profile/queries";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import {
   Crown,
@@ -35,9 +38,11 @@ export default async function LeagueDetailPage({
   const league = await getLeagueBySlug(slug);
   if (!league) notFound();
 
-  const [standings, activities] = await Promise.all([
+  const [standings, activities, posts, currentUser] = await Promise.all([
     getLeagueStandings(league.id),
     listLeagueFeed(league.id),
+    listLeaguePosts(league.id, 50),
+    getCurrentUser(),
   ]);
 
   // Identify current user for highlight
@@ -146,7 +151,19 @@ export default async function LeagueDetailPage({
         </>
       )}
 
-      <LeagueActivityFeed activities={activities} locale={L} />
+      <section className="mt-8 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+        <LeagueFeedBoard
+          leagueId={league.id}
+          initialPosts={posts}
+          currentUserId={currentUserId}
+          isAdmin={
+            currentUser?.role === "admin" ||
+            currentUser?.role === "super_admin"
+          }
+          locale={L}
+        />
+        <LeagueActivityFeed activities={activities} locale={L} />
+      </section>
     </main>
   );
 }

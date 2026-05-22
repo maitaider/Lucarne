@@ -1,5 +1,6 @@
 import { setRequestLocale } from "next-intl/server";
 import { listMyLeagues } from "@/lib/leagues/queries";
+import { isAdmin } from "@/lib/admin/queries";
 import { Link } from "@/i18n/navigation";
 import {
   ArrowRight,
@@ -22,7 +23,7 @@ export default async function LeaguesPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const L = locale as Locale;
-  const leagues = await listMyLeagues();
+  const [leagues, admin] = await Promise.all([listMyLeagues(), isAdmin()]);
   const privateCount = leagues.filter((league) => league.visibility === "private").length;
   const memberCount = leagues.reduce((sum, league) => sum + league.member_count, 0);
   const premiumCount = leagues.filter((league) => league.allows_real_money).length;
@@ -44,13 +45,15 @@ export default async function LeaguesPage({
               : `${leagues.length} league${leagues.length > 1 ? "s" : ""} to follow private standings, invite your circle, and play the World Cup with a dedicated board.`}
           </p>
         </div>
-        <Link
-          href="/leagues/new"
-          className="inline-flex items-center gap-1.5 rounded-[8px] bg-primary-500 px-4 py-2.5 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400"
-        >
-          <Plus className="size-4" />
-          {locale === "fr" ? "Nouvelle ligue" : "New league"}
-        </Link>
+        {admin && (
+          <Link
+            href="/leagues/new"
+            className="inline-flex items-center gap-1.5 rounded-[8px] bg-primary-500 px-4 py-2.5 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400"
+          >
+            <Plus className="size-4" />
+            {locale === "fr" ? "Nouvelle ligue" : "New league"}
+          </Link>
+        )}
       </header>
 
       <LeagueConsole

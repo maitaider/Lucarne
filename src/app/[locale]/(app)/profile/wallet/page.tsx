@@ -1,5 +1,8 @@
 import { setRequestLocale } from "next-intl/server";
 import { getMyBalance, listMyTransactions } from "@/lib/wallet/queries";
+import { getAppSettings } from "@/lib/admin/economy";
+import { isStripeConfigured } from "@/lib/stripe/server";
+import { BuyTokensCard } from "@/components/wallet/buy-tokens-card";
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -8,6 +11,7 @@ import {
   Trophy,
   type LucideIcon,
 } from "lucide-react";
+import type { Locale } from "@/i18n/routing";
 
 export default async function WalletPage({
   params,
@@ -17,10 +21,13 @@ export default async function WalletPage({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const [balance, transactions] = await Promise.all([
+  const [balance, transactions, settings] = await Promise.all([
     getMyBalance(),
     listMyTransactions(),
+    getAppSettings(),
   ]);
+  const stripeReady = isStripeConfigured();
+  const L = locale as Locale;
   const credits = transactions.filter((tx) => tx.direction === "credit").length;
   const debits = transactions.filter((tx) => tx.direction === "debit").length;
   const balanceTokens = Math.floor(balance / 100);
@@ -89,6 +96,16 @@ export default async function WalletPage({
             : "Sum of unsettled stakes + winnings available."}
         </p>
       </section>
+
+      {/* Buy tokens (Stripe) */}
+      <div className="mb-10">
+        <BuyTokensCard
+          tokenPriceCents={settings.token_price_cents}
+          currency={settings.currency}
+          stripeReady={stripeReady}
+          locale={L}
+        />
+      </div>
 
       {/* Transactions */}
       <section>
