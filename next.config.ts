@@ -6,6 +6,7 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   images: {
+    qualities: [75, 86, 95],
     remotePatterns: [
       // Supabase Storage (placeholder — update after project creation)
       {
