@@ -1,6 +1,32 @@
 import "server-only";
 import { getSupabaseServer } from "@/lib/supabase/server";
 
+type StandingRow = {
+  user_id: string | null;
+  username: string | null;
+  display_name: string | null;
+  avatar_url: string | null;
+  total_points: number | null;
+  wins: number | null;
+  losses: number | null;
+  bets_count: number | null;
+  rank: number | null;
+};
+
+function toStanding(r: StandingRow): StandingEntry {
+  return {
+    user_id: r.user_id ?? "",
+    username: r.username ?? "",
+    display_name: r.display_name,
+    avatar_url: r.avatar_url,
+    total_points: r.total_points ?? 0,
+    wins: r.wins ?? 0,
+    losses: r.losses ?? 0,
+    bets_count: r.bets_count ?? 0,
+    rank: r.rank ?? 0,
+  };
+}
+
 export type LeagueListItem = {
   id: string;
   name: string;
@@ -57,19 +83,7 @@ export async function listMyLeagues(): Promise<LeagueListItem[]> {
     return [];
   }
 
-  type Row = {
-    id: string;
-    name: string;
-    slug: string;
-    description: string | null;
-    visibility: string;
-    owner_id: string;
-    member_limit: number;
-    allows_real_money: boolean;
-    members: { count: number }[];
-  };
-  const rows = (data ?? []) as unknown as Row[];
-  return rows.map((l) => ({
+  return (data ?? []).map((l) => ({
     id: l.id,
     name: l.name,
     slug: l.slug,
@@ -102,7 +116,23 @@ export async function getLeagueBySlug(slug: string): Promise<LeagueWithMembers |
     .select("*, members:league_members(user_id, role, joined_at, status)")
     .eq("slug", slug)
     .maybeSingle();
-  return data as unknown as LeagueWithMembers | null;
+  if (!data) return null;
+  return {
+    id: data.id,
+    name: data.name,
+    slug: data.slug,
+    description: data.description,
+    visibility: data.visibility,
+    owner_id: data.owner_id,
+    member_limit: data.member_limit,
+    allows_real_money: data.allows_real_money,
+    members: data.members.map((m) => ({
+      user_id: m.user_id,
+      role: m.role,
+      joined_at: m.joined_at,
+      status: m.status,
+    })),
+  };
 }
 
 export async function getLeagueStandings(
@@ -119,7 +149,7 @@ export async function getLeagueStandings(
     console.error("[leagues:getLeagueStandings]", error);
     return [];
   }
-  return (data ?? []) as unknown as StandingEntry[];
+  return (data ?? []).map(toStanding);
 }
 
 export async function getGlobalStandings(limit = 100): Promise<StandingEntry[]> {
@@ -131,7 +161,7 @@ export async function getGlobalStandings(limit = 100): Promise<StandingEntry[]> 
     .order("rank", { ascending: true })
     .limit(limit);
   if (error) return [];
-  return (data ?? []) as unknown as StandingEntry[];
+  return (data ?? []).map(toStanding);
 }
 
 export async function listLeagueInvitations(leagueId: string): Promise<Invitation[]> {

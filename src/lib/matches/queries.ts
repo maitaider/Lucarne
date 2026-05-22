@@ -1,6 +1,46 @@
 import "server-only";
 import { getSupabaseServer } from "@/lib/supabase/server";
 
+// supabase-js types one-to-one embeds as arrays in some inference paths; pick first.
+function pickOne<T>(v: T | T[] | null | undefined): T | null {
+  if (!v) return null;
+  return Array.isArray(v) ? (v[0] ?? null) : v;
+}
+
+type MatchRow = {
+  id: string;
+  match_number: number | null;
+  stage: string;
+  group_label: string | null;
+  kickoff_at: string;
+  status: string;
+  home_score: number | null;
+  away_score: number | null;
+  home_placeholder: string | null;
+  away_placeholder: string | null;
+  home_team: TeamSnippet | TeamSnippet[] | null;
+  away_team: TeamSnippet | TeamSnippet[] | null;
+  venue: VenueSnippet | VenueSnippet[] | null;
+};
+
+function toMatchListItem(row: MatchRow): MatchListItem {
+  return {
+    id: row.id,
+    match_number: row.match_number,
+    stage: row.stage as MatchStage,
+    group_label: row.group_label,
+    kickoff_at: row.kickoff_at,
+    status: row.status as MatchStatus,
+    home_score: row.home_score,
+    away_score: row.away_score,
+    home_placeholder: row.home_placeholder,
+    away_placeholder: row.away_placeholder,
+    home_team: pickOne(row.home_team),
+    away_team: pickOne(row.away_team),
+    venue: pickOne(row.venue),
+  };
+}
+
 export type MatchStage =
   | "group"
   | "r32"
@@ -14,7 +54,7 @@ export type MatchStatus = "scheduled" | "live" | "finished" | "postponed" | "can
 
 export type MatchListItem = {
   id: string;
-  match_number: number;
+  match_number: number | null;
   stage: MatchStage;
   group_label: string | null;
   kickoff_at: string;
@@ -65,8 +105,8 @@ export async function listMatches(opts?: {
       `
       id, match_number, stage, group_label, kickoff_at, status,
       home_score, away_score, home_placeholder, away_placeholder,
-      home_team:home_team_id(id, fifa_code, name_fr, name_en, flag_emoji, logo_url),
-      away_team:away_team_id(id, fifa_code, name_fr, name_en, flag_emoji, logo_url),
+      home_team:teams!matches_home_team_id_fkey(id, fifa_code, name_fr, name_en, flag_emoji, logo_url),
+      away_team:teams!matches_away_team_id_fkey(id, fifa_code, name_fr, name_en, flag_emoji, logo_url),
       venue:venue_id(id, name, city_fr, city_en)
     `,
     )
@@ -82,7 +122,7 @@ export async function listMatches(opts?: {
     console.error("[matches:listMatches]", error);
     return [];
   }
-  return (data ?? []) as unknown as MatchListItem[];
+  return (data ?? []).map(toMatchListItem);
 }
 
 export async function getMatchById(id: string): Promise<MatchListItem | null> {
@@ -96,8 +136,8 @@ export async function getMatchById(id: string): Promise<MatchListItem | null> {
       `
       id, match_number, stage, group_label, kickoff_at, status,
       home_score, away_score, home_placeholder, away_placeholder,
-      home_team:home_team_id(id, fifa_code, name_fr, name_en, flag_emoji, logo_url),
-      away_team:away_team_id(id, fifa_code, name_fr, name_en, flag_emoji, logo_url),
+      home_team:teams!matches_home_team_id_fkey(id, fifa_code, name_fr, name_en, flag_emoji, logo_url),
+      away_team:teams!matches_away_team_id_fkey(id, fifa_code, name_fr, name_en, flag_emoji, logo_url),
       venue:venue_id(id, name, city_fr, city_en)
     `,
     )
@@ -108,7 +148,7 @@ export async function getMatchById(id: string): Promise<MatchListItem | null> {
     console.error("[matches:getMatchById]", error);
     return null;
   }
-  return data as unknown as MatchListItem | null;
+  return data ? toMatchListItem(data) : null;
 }
 
 /** Group an array of matches by ISO date (YYYY-MM-DD in app timezone). */

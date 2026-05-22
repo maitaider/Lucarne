@@ -24,7 +24,7 @@ export async function getMyBalance(): Promise<number> {
     .select("balance_cents")
     .eq("id", user.id)
     .maybeSingle();
-  return (data as { balance_cents?: number } | null)?.balance_cents ?? 0;
+  return data?.balance_cents ?? 0;
 }
 
 export async function listMyTransactions(limit = 50): Promise<Transaction[]> {

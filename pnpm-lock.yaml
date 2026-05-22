@@ -102,6 +102,9 @@ importers:
       happy-dom:
         specifier: ^20.9.0
         version: 20.9.0
+      picomatch:
+        specifier: ^4.0.4
+        version: 4.0.4
       supabase:
         specifier: ^2.100.1
         version: 2.100.1

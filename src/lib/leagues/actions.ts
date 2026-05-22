@@ -30,18 +30,18 @@ export async function createLeague(
   }
 
   const supabase = await getSupabaseServer();
-  const { data, error } = await supabase.rpc("create_league" as never, {
+  const { data, error } = await supabase.rpc("create_league", {
     p_name: parsed.data.name,
     p_slug: parsed.data.slug,
-    p_description: parsed.data.description ?? null,
+    p_description: parsed.data.description,
     p_visibility: parsed.data.visibility,
     p_member_limit: parsed.data.member_limit,
     p_allows_real_money: parsed.data.allows_real_money,
-  } as never);
+  });
 
   if (error) return { ok: false, message: error.message };
   revalidatePath("/leagues");
-  return { ok: true, leagueId: data as unknown as string };
+  return { ok: true, leagueId: data };
 }
 
 export async function generateInvitation(
@@ -54,15 +54,15 @@ export async function generateInvitation(
   }
 
   const supabase = await getSupabaseServer();
-  const { data, error } = await supabase.rpc("generate_invitation" as never, {
+  const { data, error } = await supabase.rpc("generate_invitation", {
     p_league_id: leagueId,
     p_expires_days: expiresDays,
     p_max_uses: maxUses,
-  } as never);
+  });
 
   if (error) return { ok: false, message: error.message };
 
-  const row = (data as unknown as { code: string }[] | null)?.[0];
+  const row = data?.[0];
   if (!row) return { ok: false, message: "Aucune ligne retournée" };
 
   revalidatePath(`/leagues/${leagueId}/invite`);

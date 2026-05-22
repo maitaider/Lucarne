@@ -41,6 +41,21 @@ export async function listMyBets(): Promise<BetListItem[]> {
   } = await supabase.auth.getUser();
   if (!user) return [];
 
+  // Cross-schema embed (public.bets → ref.matches): runtime works via PostgREST FK,
+  // but supabase-js type generator can't follow it. We type the response shape locally.
+  type BetRow = {
+    id: string;
+    bet_type: string;
+    payload: unknown;
+    stake_cents: number;
+    status: BetStatus;
+    result: BetResult | null;
+    payout_cents: number;
+    points: number;
+    submitted_at: string;
+    match: BetListItem["match"];
+  };
+
   const { data, error } = await supabase
     .from("bets")
     .select(
@@ -54,11 +69,12 @@ export async function listMyBets(): Promise<BetListItem[]> {
     `,
     )
     .eq("user_id", user.id)
-    .order("submitted_at", { ascending: false });
+    .order("submitted_at", { ascending: false })
+    .overrideTypes<BetRow[]>();
 
   if (error) {
     console.error("[bets:listMyBets]", error);
     return [];
   }
-  return (data ?? []) as unknown as BetListItem[];
+  return data ?? [];
 }

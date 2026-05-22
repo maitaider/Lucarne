@@ -34,8 +34,7 @@ export async function isAdmin(): Promise<boolean> {
     .eq("id", user.id)
     .maybeSingle();
 
-  const role = (data as { role?: string } | null)?.role;
-  return role === "admin" || role === "super_admin";
+  return data?.role === "admin" || data?.role === "super_admin";
 }
 
 export async function listValidationQueue(): Promise<ValidationQueueItem[]> {
@@ -48,5 +47,24 @@ export async function listValidationQueue(): Promise<ValidationQueueItem[]> {
     console.error("[admin:listValidationQueue]", error);
     return [];
   }
-  return (data ?? []) as unknown as ValidationQueueItem[];
+  return (data ?? [])
+    .filter((r) => r.bet_id && r.user_id && r.request_at)
+    .map((r) => ({
+      bet_id: r.bet_id!,
+      user_id: r.user_id!,
+      username: r.username ?? "",
+      display_name: r.display_name,
+      bet_type: r.bet_type ?? "",
+      payload: r.payload,
+      stake_cents: r.stake_cents ?? 0,
+      bet_status: r.bet_status ?? "",
+      validation_status: r.validation_status,
+      submitted_amount_cents: r.submitted_amount_cents,
+      payment_method: r.payment_method,
+      payment_reference: r.payment_reference,
+      request_at: r.request_at!,
+      match_id: r.match_id,
+      kickoff_at: r.kickoff_at,
+      stage: r.stage,
+    }));
 }
