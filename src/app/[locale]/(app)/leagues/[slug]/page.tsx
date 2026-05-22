@@ -7,6 +7,8 @@ import {
 } from "@/lib/leagues/queries";
 import { LeaderboardPodium } from "@/components/leaderboard/podium";
 import { StandingsTable } from "@/components/leaderboard/standings-table";
+import { LeagueActivityFeed } from "@/components/social/league-activity-feed";
+import { listLeagueFeed } from "@/lib/social/feed";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import {
   Crown,
@@ -33,7 +35,10 @@ export default async function LeagueDetailPage({
   const league = await getLeagueBySlug(slug);
   if (!league) notFound();
 
-  const standings = await getLeagueStandings(league.id);
+  const [standings, activities] = await Promise.all([
+    getLeagueStandings(league.id),
+    listLeagueFeed(league.id),
+  ]);
 
   // Identify current user for highlight
   let currentUserId: string | null = null;
@@ -131,7 +136,7 @@ export default async function LeagueDetailPage({
               <LeaderboardPodium top3={standings.slice(0, 3)} />
             </section>
           )}
-          <section>
+          <section className="mb-8">
             <StandingsTable
               entries={standings}
               highlightUserId={currentUserId}
@@ -140,6 +145,8 @@ export default async function LeagueDetailPage({
           </section>
         </>
       )}
+
+      <LeagueActivityFeed activities={activities} locale={L} />
     </main>
   );
 }

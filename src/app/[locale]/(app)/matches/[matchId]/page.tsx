@@ -3,8 +3,11 @@ import { notFound } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { getMatchById, type MatchListItem } from "@/lib/matches/queries";
 import { getTeamByCode, type WorldCupTeam } from "@/data/world-cup-2026";
-import { ArrowLeft, MapPin, Clock, Calendar } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Calendar, MessageCircle } from "lucide-react";
 import { BetForm } from "@/components/bet/bet-form";
+import { CommentThread } from "@/components/social/comment-thread";
+import { listComments } from "@/lib/social/queries";
+import { getSupabaseServer } from "@/lib/supabase/server";
 import type { Locale } from "@/i18n/routing";
 import { TeamEmblem } from "@/components/team/team-emblem";
 
@@ -18,6 +21,18 @@ export default async function MatchDetailPage({
 
   const match = await getMatchById(matchId);
   if (!match) notFound();
+
+  const [comments, currentUserId] = await Promise.all([
+    listComments("match", matchId, 50),
+    (async () => {
+      if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return null;
+      const supabase = await getSupabaseServer();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      return user?.id ?? null;
+    })(),
+  ]);
 
   const kickoff = new Date(match.kickoff_at);
   const now = new Date();
@@ -122,6 +137,31 @@ export default async function MatchDetailPage({
             locale={locale as Locale}
           />
         )}
+      </section>
+
+      {/* Comments thread — social interaction zone */}
+      <section className="mt-10">
+        <header className="mb-4 flex items-center justify-between">
+          <h2 className="flex items-center gap-2 font-display text-xl font-semibold text-text-primary">
+            <MessageCircle className="size-5 text-primary-400" strokeWidth={1.7} />
+            {locale === "fr" ? "Discussion" : "Discussion"}
+            <span className="text-sm font-medium text-text-tertiary">
+              · {comments.length}
+            </span>
+          </h2>
+        </header>
+        <CommentThread
+          parentType="match"
+          parentId={match.id}
+          comments={comments}
+          currentUserId={currentUserId}
+          locale={locale as Locale}
+          emptyLabel={
+            locale === "fr"
+              ? "Sois le premier à donner ton pronostic en mots."
+              : "Be the first to weigh in on this match."
+          }
+        />
       </section>
     </main>
   );

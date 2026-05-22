@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   LogOut,
   Languages,
+  HelpCircle,
   User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -149,6 +150,12 @@ export function UserMenu({ user, locale }: Props) {
               href="/dashboard"
               icon={User}
               label={locale === "fr" ? "Mon dashboard" : "My dashboard"}
+              onClick={() => setOpen(false)}
+            />
+            <MenuItem
+              href="/how-it-works"
+              icon={HelpCircle}
+              label={locale === "fr" ? "Comment ça marche" : "How it works"}
               onClick={() => setOpen(false)}
             />
             {isAdmin && (
