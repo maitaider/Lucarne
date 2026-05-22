@@ -71,6 +71,7 @@ export type MatchListItem = {
 export type TeamSnippet = {
   id: string;
   fifa_code: string;
+  iso_code: string | null;
   name_fr: string;
   name_en: string;
   flag_emoji: string | null;
@@ -105,8 +106,8 @@ export async function listMatches(opts?: {
       `
       id, match_number, stage, group_label, kickoff_at, status,
       home_score, away_score, home_placeholder, away_placeholder,
-      home_team:teams!matches_home_team_id_fkey(id, fifa_code, name_fr, name_en, flag_emoji, logo_url),
-      away_team:teams!matches_away_team_id_fkey(id, fifa_code, name_fr, name_en, flag_emoji, logo_url),
+      home_team:teams!matches_home_team_id_fkey(id, fifa_code, iso_code, name_fr, name_en, flag_emoji, logo_url),
+      away_team:teams!matches_away_team_id_fkey(id, fifa_code, iso_code, name_fr, name_en, flag_emoji, logo_url),
       venue:venue_id(id, name, city_fr, city_en)
     `,
     )
@@ -136,8 +137,8 @@ export async function getMatchById(id: string): Promise<MatchListItem | null> {
       `
       id, match_number, stage, group_label, kickoff_at, status,
       home_score, away_score, home_placeholder, away_placeholder,
-      home_team:teams!matches_home_team_id_fkey(id, fifa_code, name_fr, name_en, flag_emoji, logo_url),
-      away_team:teams!matches_away_team_id_fkey(id, fifa_code, name_fr, name_en, flag_emoji, logo_url),
+      home_team:teams!matches_home_team_id_fkey(id, fifa_code, iso_code, name_fr, name_en, flag_emoji, logo_url),
+      away_team:teams!matches_away_team_id_fkey(id, fifa_code, iso_code, name_fr, name_en, flag_emoji, logo_url),
       venue:venue_id(id, name, city_fr, city_en)
     `,
     )

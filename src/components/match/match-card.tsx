@@ -1,8 +1,8 @@
 import type { MatchListItem } from "@/lib/matches/queries";
 import { Link } from "@/i18n/navigation";
+import { Flag } from "@/components/team/flag";
 import { cn } from "@/lib/utils";
-
-type Locale = "fr" | "en";
+import type { Locale } from "@/i18n/routing";
 
 export function MatchCard({
   match,
@@ -13,6 +13,7 @@ export function MatchCard({
 }) {
   const isLive = match.status === "live";
   const isFinished = match.status === "finished";
+  const isScheduled = match.status === "scheduled";
 
   const kickoff = new Date(match.kickoff_at);
   const timeStr = kickoff.toLocaleTimeString(locale === "fr" ? "fr-FR" : "en-US", {
@@ -26,33 +27,57 @@ export function MatchCard({
     timeZone: "Europe/Paris",
   });
 
+  const homeWon =
+    isFinished &&
+    match.home_score !== null &&
+    match.away_score !== null &&
+    match.home_score > match.away_score;
+  const awayWon =
+    isFinished &&
+    match.home_score !== null &&
+    match.away_score !== null &&
+    match.away_score > match.home_score;
+
   return (
     <Link
       href={`/matches/${match.id}`}
       className={cn(
-        "group relative block overflow-hidden rounded-xl border bg-surface-1/60 p-4 backdrop-blur transition",
-        "border-border-subtle hover:border-border-strong hover:bg-surface-2/60",
-        isLive && "border-violet-500/40 bg-violet-500/[0.04]",
+        "group relative block overflow-hidden rounded-2xl border bg-surface-1/50 p-4 backdrop-blur transition",
+        "border-border-subtle hover:-translate-y-0.5 hover:border-border-strong hover:bg-surface-2/60 hover:shadow-lg hover:shadow-black/20",
+        isLive && "border-violet-500/50 bg-gradient-to-br from-violet-500/[0.08] to-violet-500/[0.02] shadow-glow-violet",
       )}
     >
-      {/* Status badge */}
+      {/* subtle accent ribbon for live */}
+      {isLive && (
+        <span
+          aria-hidden
+          className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-400/60 to-transparent"
+        />
+      )}
+
+      {/* Header */}
       <div className="mb-3 flex items-center justify-between text-xs">
-        <div className="flex items-center gap-2 text-text-tertiary">
+        <div className="flex items-center gap-1.5 text-text-tertiary">
           <StageLabel stage={match.stage} group={match.group_label} locale={locale} />
           {match.venue && (
             <>
               <span aria-hidden>·</span>
-              <span>{locale === "fr" ? match.venue.city_fr : match.venue.city_en}</span>
+              <span className="truncate">
+                {locale === "fr" ? match.venue.city_fr : match.venue.city_en}
+              </span>
             </>
           )}
         </div>
         {isLive ? (
-          <span className="flex items-center gap-1.5 rounded-full bg-violet-500/15 px-2 py-0.5 font-medium text-violet-400">
-            <span className="size-1.5 animate-pulse rounded-full bg-violet-400" />
+          <span className="flex items-center gap-1.5 rounded-full bg-violet-500/15 px-2 py-0.5 font-bold uppercase tracking-wider text-violet-300">
+            <span className="relative flex size-1.5">
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-violet-400 opacity-75" />
+              <span className="relative inline-flex size-1.5 rounded-full bg-violet-400" />
+            </span>
             LIVE
           </span>
         ) : isFinished ? (
-          <span className="rounded-full bg-surface-3 px-2 py-0.5 font-medium text-text-tertiary">
+          <span className="rounded-full bg-surface-3 px-2 py-0.5 font-medium uppercase tracking-wider text-text-tertiary">
             {locale === "fr" ? "Terminé" : "Final"}
           </span>
         ) : (
@@ -63,59 +88,78 @@ export function MatchCard({
       </div>
 
       {/* Teams */}
-      <div className="space-y-2.5">
-        <TeamRow
-          name={teamLabel(match.home_team, match.home_placeholder, locale)}
-          flag={match.home_team?.flag_emoji ?? null}
+      <div className="space-y-2">
+        <TeamLine
+          team={match.home_team}
+          placeholder={match.home_placeholder}
           score={match.home_score}
-          highlight={
-            isFinished &&
-            match.home_score !== null &&
-            match.away_score !== null &&
-            match.home_score > match.away_score
-          }
           showScore={isLive || isFinished}
+          highlight={homeWon}
+          locale={locale}
         />
-        <TeamRow
-          name={teamLabel(match.away_team, match.away_placeholder, locale)}
-          flag={match.away_team?.flag_emoji ?? null}
+        <TeamLine
+          team={match.away_team}
+          placeholder={match.away_placeholder}
           score={match.away_score}
-          highlight={
-            isFinished &&
-            match.home_score !== null &&
-            match.away_score !== null &&
-            match.away_score > match.home_score
-          }
           showScore={isLive || isFinished}
+          highlight={awayWon}
+          locale={locale}
         />
       </div>
+
+      {/* Bet CTA bottom strip (scheduled only) */}
+      {isScheduled && (
+        <div className="mt-3 -mx-4 -mb-4 border-t border-border-subtle/60 bg-surface-2/30 px-4 py-2 text-[11px] font-medium text-text-tertiary transition group-hover:bg-primary-500/[0.06] group-hover:text-primary-400">
+          {locale === "fr" ? "Placer un pari →" : "Place a bet →"}
+        </div>
+      )}
     </Link>
   );
 }
 
-function TeamRow({
-  name,
-  flag,
+function TeamLine({
+  team,
+  placeholder,
   score,
-  highlight,
   showScore,
+  highlight,
+  locale,
 }: {
-  name: string;
-  flag: string | null;
+  team: {
+    iso_code?: string | null;
+    name_fr: string;
+    name_en: string;
+    flag_emoji: string | null;
+    fifa_code?: string;
+  } | null;
+  placeholder: string | null;
   score: number | null;
-  highlight: boolean;
   showScore: boolean;
+  highlight: boolean;
+  locale: Locale;
 }) {
+  const name = team
+    ? locale === "fr"
+      ? team.name_fr
+      : team.name_en
+    : placeholder ?? "—";
+
   return (
     <div className="flex items-center justify-between">
-      <div className="flex items-center gap-2.5">
-        <span className="text-xl leading-none" aria-hidden>
-          {flag ?? "🏳️"}
-        </span>
+      <div className="flex min-w-0 items-center gap-3">
+        <Flag
+          isoCode={team?.iso_code ?? null}
+          emoji={team?.flag_emoji}
+          size="lg"
+        />
         <span
           className={cn(
-            "text-sm font-medium",
-            highlight ? "text-text-primary" : "text-text-secondary",
+            "truncate text-sm",
+            highlight
+              ? "font-bold text-text-primary"
+              : team
+                ? "font-semibold text-text-secondary"
+                : "font-medium text-text-tertiary",
           )}
         >
           {name}
@@ -124,8 +168,8 @@ function TeamRow({
       {showScore && (
         <span
           className={cn(
-            "font-display text-xl font-semibold tabular-nums",
-            highlight ? "text-primary-500" : "text-text-secondary",
+            "ml-2 font-display text-2xl font-semibold tabular-nums",
+            highlight ? "text-primary-400" : "text-text-secondary",
           )}
         >
           {score ?? "—"}
@@ -146,31 +190,22 @@ function StageLabel({
 }) {
   if (stage === "group" && group) {
     return (
-      <span className="font-medium uppercase tracking-wider">
+      <span className="font-semibold uppercase tracking-wider">
         {locale === "fr" ? "Groupe" : "Group"} {group}
       </span>
     );
   }
   const labels: Record<string, { fr: string; en: string }> = {
-    r32: { fr: "1/16e", en: "Round of 32" },
-    r16: { fr: "8e de finale", en: "Round of 16" },
-    qf: { fr: "1/4 finale", en: "Quarter-final" },
-    sf: { fr: "1/2 finale", en: "Semi-final" },
-    third_place: { fr: "3e place", en: "Third place" },
+    r32: { fr: "1/16e", en: "R32" },
+    r16: { fr: "8e finale", en: "R16" },
+    qf: { fr: "1/4 finale", en: "QF" },
+    sf: { fr: "1/2 finale", en: "SF" },
+    third_place: { fr: "3e place", en: "3rd place" },
     final: { fr: "Finale", en: "Final" },
   };
   return (
-    <span className="font-medium uppercase tracking-wider">
+    <span className="font-semibold uppercase tracking-wider">
       {labels[stage]?.[locale] ?? stage}
     </span>
   );
-}
-
-function teamLabel(
-  team: { name_fr: string; name_en: string } | null,
-  placeholder: string | null,
-  locale: Locale,
-): string {
-  if (team) return locale === "fr" ? team.name_fr : team.name_en;
-  return placeholder ?? "—";
 }

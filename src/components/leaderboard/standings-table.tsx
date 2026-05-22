@@ -1,4 +1,5 @@
 import type { StandingEntry } from "@/lib/leagues/queries";
+import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function StandingsTable({
@@ -10,70 +11,136 @@ export function StandingsTable({
   highlightUserId?: string | null;
   locale: "fr" | "en";
 }) {
+  const maxPoints = Math.max(...entries.map((e) => e.total_points), 1);
+
   return (
-    <div className="overflow-hidden rounded-xl border border-border-subtle bg-surface-1/40 backdrop-blur">
+    <div className="overflow-hidden rounded-2xl border border-border-subtle bg-surface-1/40 backdrop-blur">
       <table className="w-full">
-        <thead className="border-b border-border-subtle bg-surface-2/50 text-left text-xs uppercase tracking-wider text-text-tertiary">
-          <tr>
-            <th className="px-4 py-3 font-medium">#</th>
-            <th className="px-2 py-3 font-medium">{locale === "fr" ? "Joueur" : "Player"}</th>
-            <th className="px-2 py-3 text-right font-medium tabular-nums">
-              {locale === "fr" ? "Points" : "Points"}
+        <thead className="border-b border-border-subtle bg-surface-2/50">
+          <tr className="text-[10px] uppercase tracking-wider text-text-tertiary">
+            <th className="px-4 py-3 text-left font-bold">#</th>
+            <th className="py-3 text-left font-bold">
+              {locale === "fr" ? "Joueur" : "Player"}
             </th>
-            <th className="hidden px-2 py-3 text-right font-medium tabular-nums sm:table-cell">
-              {locale === "fr" ? "V" : "W"}
+            <th className="hidden py-3 pr-3 text-center font-bold sm:table-cell">
+              {locale === "fr" ? "V/N/D" : "W/D/L"}
             </th>
-            <th className="hidden px-2 py-3 text-right font-medium tabular-nums sm:table-cell">
-              {locale === "fr" ? "D" : "L"}
-            </th>
-            <th className="hidden px-4 py-3 text-right font-medium tabular-nums sm:table-cell">
+            <th className="hidden py-3 pr-3 text-center font-bold md:table-cell">
               {locale === "fr" ? "Paris" : "Bets"}
             </th>
+            <th className="hidden py-3 pr-3 text-left font-bold lg:table-cell">
+              {locale === "fr" ? "Forme" : "Form"}
+            </th>
+            <th className="px-4 py-3 text-right font-bold">Pts</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-border-subtle">
-          {entries.map((e) => (
-            <tr
-              key={e.user_id}
-              className={cn(
-                "transition hover:bg-surface-2/30",
-                highlightUserId === e.user_id && "bg-primary-500/[0.05] ring-1 ring-inset ring-primary-500/20",
-              )}
-            >
-              <td className="px-4 py-3">
-                <RankBadge rank={e.rank} />
-              </td>
-              <td className="px-2 py-3">
-                <div className="flex items-center gap-2">
-                  <div className="flex size-7 items-center justify-center rounded-full bg-surface-3 text-xs font-semibold text-text-secondary">
-                    {e.username.slice(0, 2).toUpperCase()}
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-text-primary">
-                      @{e.username}
+        <tbody className="divide-y divide-border-subtle/60">
+          {entries.map((e) => {
+            const isMe = highlightUserId === e.user_id;
+            const winRate = e.bets_count > 0 ? e.wins / e.bets_count : 0;
+            const initials = (e.display_name ?? e.username)
+              .split(/\s+/)
+              .map((s) => s[0])
+              .join("")
+              .slice(0, 2)
+              .toUpperCase();
+            const barWidth = (e.total_points / maxPoints) * 100;
+            const draws = Math.max(e.bets_count - e.wins - e.losses, 0);
+            return (
+              <tr
+                key={e.user_id}
+                className={cn(
+                  "group transition hover:bg-surface-2/40",
+                  isMe &&
+                    "bg-primary-500/[0.06] ring-1 ring-inset ring-primary-500/30",
+                )}
+              >
+                <td className="w-12 px-4 py-3">
+                  <RankBadge rank={e.rank} />
+                </td>
+                <td className="py-3">
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className={cn(
+                        "flex size-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br font-mono text-[10px] font-bold uppercase ring-1",
+                        e.rank === 1
+                          ? "from-gold-500/30 to-gold-500/10 ring-gold-500/30 text-gold-100"
+                          : e.rank === 2
+                            ? "from-text-secondary/30 to-text-tertiary/10 ring-text-secondary/30 text-text-primary"
+                            : e.rank === 3
+                              ? "from-amber-700/30 to-amber-700/10 ring-amber-700/30 text-amber-100"
+                              : "from-primary-500/20 to-violet-500/15 ring-border-subtle text-text-primary",
+                      )}
+                    >
+                      {initials}
                     </div>
-                    {e.display_name && (
-                      <div className="text-xs text-text-tertiary">
-                        {e.display_name}
+                    <div className="min-w-0">
+                      <div
+                        className={cn(
+                          "truncate text-sm font-semibold",
+                          isMe ? "text-primary-400" : "text-text-primary",
+                        )}
+                      >
+                        @{e.username}
+                        {isMe && (
+                          <span className="ml-1.5 rounded-full bg-primary-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary-400">
+                            {locale === "fr" ? "Toi" : "You"}
+                          </span>
+                        )}
                       </div>
-                    )}
+                      {e.display_name && (
+                        <div className="truncate text-xs text-text-tertiary">
+                          {e.display_name}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </td>
-              <td className="px-2 py-3 text-right font-display font-semibold tabular-nums text-text-primary">
-                {e.total_points}
-              </td>
-              <td className="hidden px-2 py-3 text-right font-mono tabular-nums text-primary-500 sm:table-cell">
-                {e.wins}
-              </td>
-              <td className="hidden px-2 py-3 text-right font-mono tabular-nums text-text-tertiary sm:table-cell">
-                {e.losses}
-              </td>
-              <td className="hidden px-4 py-3 text-right font-mono tabular-nums text-text-secondary sm:table-cell">
-                {e.bets_count}
-              </td>
-            </tr>
-          ))}
+                </td>
+                <td className="hidden py-3 pr-3 sm:table-cell">
+                  <div className="flex items-center justify-center gap-1 font-mono text-xs tabular-nums">
+                    <span className="text-primary-400">{e.wins}</span>
+                    <span className="text-text-tertiary">·</span>
+                    <span className="text-text-tertiary">{draws}</span>
+                    <span className="text-text-tertiary">·</span>
+                    <span className="text-error/70">{e.losses}</span>
+                  </div>
+                </td>
+                <td className="hidden py-3 pr-3 text-center md:table-cell">
+                  <span className="font-mono text-xs tabular-nums text-text-secondary">
+                    {e.bets_count}
+                  </span>
+                </td>
+                <td className="hidden w-32 py-3 pr-3 lg:table-cell">
+                  <div className="flex items-center gap-2">
+                    <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-surface-3">
+                      <div
+                        className={cn(
+                          "h-full rounded-full transition-[width]",
+                          winRate >= 0.5
+                            ? "bg-primary-500"
+                            : winRate >= 0.3
+                              ? "bg-gold-500"
+                              : "bg-text-tertiary",
+                        )}
+                        style={{ width: `${Math.max(barWidth, 4)}%` }}
+                      />
+                    </div>
+                    <FormIcon wins={e.wins} losses={e.losses} />
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-right">
+                  <span
+                    className={cn(
+                      "font-display text-base font-bold tabular-nums",
+                      e.rank === 1 ? "text-gold-400" : "text-text-primary",
+                    )}
+                  >
+                    {e.total_points}
+                  </span>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
@@ -81,25 +148,46 @@ export function StandingsTable({
 }
 
 function RankBadge({ rank }: { rank: number }) {
-  if (rank === 1)
+  if (rank === 1) {
     return (
-      <span className="font-display text-lg font-bold tabular-nums text-gold-400">
-        1
-      </span>
+      <div className="flex size-8 items-center justify-center rounded-lg bg-gold-500/15 ring-1 ring-gold-500/30">
+        <span className="font-display text-base font-extrabold tabular-nums text-gold-400">
+          1
+        </span>
+      </div>
     );
-  if (rank === 2)
+  }
+  if (rank === 2) {
     return (
-      <span className="font-display text-base font-semibold tabular-nums text-text-secondary">
-        2
-      </span>
+      <div className="flex size-8 items-center justify-center rounded-lg bg-surface-3 ring-1 ring-border-strong">
+        <span className="font-display text-base font-bold tabular-nums text-text-secondary">
+          2
+        </span>
+      </div>
     );
-  if (rank === 3)
+  }
+  if (rank === 3) {
     return (
-      <span className="font-display text-base font-semibold tabular-nums text-amber-600">
-        3
-      </span>
+      <div className="flex size-8 items-center justify-center rounded-lg bg-amber-700/15 ring-1 ring-amber-700/30">
+        <span className="font-display text-base font-bold tabular-nums text-amber-500">
+          3
+        </span>
+      </div>
     );
+  }
   return (
-    <span className="font-mono text-sm tabular-nums text-text-tertiary">{rank}</span>
+    <span className="font-mono text-sm tabular-nums text-text-tertiary">
+      #{rank}
+    </span>
   );
+}
+
+function FormIcon({ wins, losses }: { wins: number; losses: number }) {
+  if (wins > losses) {
+    return <TrendingUp className="size-3.5 text-primary-400" strokeWidth={2} />;
+  }
+  if (losses > wins) {
+    return <TrendingDown className="size-3.5 text-error/70" strokeWidth={2} />;
+  }
+  return <Minus className="size-3.5 text-text-tertiary" strokeWidth={2} />;
 }

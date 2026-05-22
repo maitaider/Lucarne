@@ -27,8 +27,8 @@ export type BetListItem = {
     stage: string;
     kickoff_at: string;
     status: string;
-    home_team: { fifa_code: string; name_fr: string; name_en: string; flag_emoji: string | null } | null;
-    away_team: { fifa_code: string; name_fr: string; name_en: string; flag_emoji: string | null } | null;
+    home_team: { fifa_code: string; iso_code: string | null; name_fr: string; name_en: string; flag_emoji: string | null } | null;
+    away_team: { fifa_code: string; iso_code: string | null; name_fr: string; name_en: string; flag_emoji: string | null } | null;
   } | null;
 };
 
@@ -63,8 +63,8 @@ export async function listMyBets(): Promise<BetListItem[]> {
       id, bet_type, payload, stake_cents, status, result, payout_cents, points, submitted_at,
       match:match_id(
         id, stage, kickoff_at, status,
-        home_team:home_team_id(fifa_code, name_fr, name_en, flag_emoji),
-        away_team:away_team_id(fifa_code, name_fr, name_en, flag_emoji)
+        home_team:home_team_id(fifa_code, iso_code, name_fr, name_en, flag_emoji),
+        away_team:away_team_id(fifa_code, iso_code, name_fr, name_en, flag_emoji)
       )
     `,
     )
