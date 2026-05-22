@@ -18,19 +18,24 @@ export const exactScorePayloadSchema = z.object({
   away: z.number().int().min(0).max(9),
 });
 
+// total_goals: { total: 0-15 }
+export const totalGoalsPayloadSchema = z.object({
+  total: z.number().int().min(0).max(15),
+});
+
 // first_scorer: { player_name: string, team_id: uuid }
 export const firstScorerPayloadSchema = z.object({
   player_name: z.string().min(2).max(80),
   team_id: z.string().uuid(),
 });
 
-// anytime_scorer: { players: [{ name, team_id }] }
+// anytime_scorer: { players: [{ name, team_id? }] } — team_id optional pour MVP
 export const anytimeScorerPayloadSchema = z.object({
   players: z
     .array(
       z.object({
         player_name: z.string().min(2).max(80),
-        team_id: z.string().uuid(),
+        team_id: z.string().uuid().optional(),
       }),
     )
     .min(1)
@@ -62,6 +67,11 @@ export const placeBetInputSchema = z.discriminatedUnion("bet_type", [
   z.object({
     bet_type: z.literal("match_winner"),
     payload: matchWinnerPayloadSchema,
+    match_id: z.string().uuid(),
+  }),
+  z.object({
+    bet_type: z.literal("total_goals"),
+    payload: totalGoalsPayloadSchema,
     match_id: z.string().uuid(),
   }),
   z.object({
@@ -105,11 +115,9 @@ export const placeBetFormSchema = z.object({
   match_id: z.string().uuid(),
   league_id: z.string().uuid().nullable(),
   bet: placeBetInputSchema,
-  stake_cents: z
-    .number()
-    .int()
-    .min(10, "Mise minimale: 10 jetons")
-    .max(100_000, "Mise maximale: 1 000 jetons"),
+  // Stake en jetons — 0 par défaut (pari en points seulement).
+  // Garde le slot pour évolutions futures (ex: ligues à mise libre).
+  stake_cents: z.number().int().min(0).max(100_000).default(0),
   client_request_id: z.string().uuid(),
 });
 
@@ -117,20 +125,50 @@ export type PlaceBetInput = z.infer<typeof placeBetInputSchema>;
 export type PlaceBetForm = z.infer<typeof placeBetFormSchema>;
 
 /**
- * Multipliers for potential payout preview (mirrors the SQL scoring profile).
- * Used for UI only — SQL is the source of truth for actual settlement.
+ * Points scoring scheme (mirrors public.app_settings.scoring_rules and
+ * the SQL compute_bet_points function — UI display only).
  */
+export const POINTS_SCHEME = {
+  match_winner: 3,
+  total_goals_exact: 5,
+  total_goals_close: 2,
+  exact_score: 5,
+  anytime_scorer_each: 4,
+  first_scorer: 8,
+} as const;
+
+/** Returns the maximum points a bet type can yield (for the "+N points" hint). */
+export function maxPointsFor(betType: string): number {
+  switch (betType) {
+    case "match_winner":
+      return POINTS_SCHEME.match_winner;
+    case "total_goals":
+      return POINTS_SCHEME.total_goals_exact;
+    case "exact_score":
+      return POINTS_SCHEME.exact_score;
+    case "anytime_scorer":
+      return POINTS_SCHEME.anytime_scorer_each * 4;
+    case "first_scorer":
+      return POINTS_SCHEME.first_scorer;
+    default:
+      return 0;
+  }
+}
+
+/** Legacy alias kept for backward-compat with old call sites. */
 export const betMultipliers: Record<string, number> = {
-  match_winner: 2,
-  exact_score: 8,
-  first_scorer: 6,
-  anytime_scorer: 3,
+  match_winner: POINTS_SCHEME.match_winner,
+  exact_score: POINTS_SCHEME.exact_score,
+  total_goals: POINTS_SCHEME.total_goals_exact,
+  first_scorer: POINTS_SCHEME.first_scorer,
+  anytime_scorer: POINTS_SCHEME.anytime_scorer_each,
   both_teams_score: 2,
-  over_under: 2.5,
+  over_under: 2,
   tournament_winner: 20,
   top_scorer: 15,
 };
 
-export function estimatePayout(betType: string, stake: number): number {
-  return Math.round((betMultipliers[betType] ?? 1) * stake);
+/** @deprecated — paris en points only. Use maxPointsFor() to display "+N pts". */
+export function estimatePayout(betType: string, _stake: number): number {
+  return maxPointsFor(betType);
 }

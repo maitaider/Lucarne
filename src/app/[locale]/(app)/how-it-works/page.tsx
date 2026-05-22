@@ -103,11 +103,11 @@ export default async function HowItWorksPage({
 
 
       <Section
-        title={L === "fr" ? "Parier en 4 étapes" : "Bet in 4 steps"}
+        title={L === "fr" ? "Comment ça marche" : "How it works"}
         subtitle={
           L === "fr"
-            ? "Tout fonctionne en jetons virtuels. Les paiements IRL sont gérés à part avec ton groupe."
-            : "Everything runs on virtual tokens. Real payments are settled IRL with your group."
+            ? "Tu payes ton buy-in (Stripe ou admin). Les paris sont gratuits — ils rapportent des points. À la fin du tournoi, top 3 du classement partage la cagnotte."
+            : "Pay your buy-in (Stripe or admin). Bets are free — they reward points. End of tournament: top 3 split the pot."
         }
       >
         <ol className="grid gap-4 md:grid-cols-2">
@@ -139,39 +139,37 @@ export default async function HowItWorksPage({
             icon={Zap}
             tone="violet"
             title={
-              L === "fr" ? "Pronostique en 1 clic" : "Quick-bet in one tap"
+              L === "fr" ? "Pronostique en 3 onglets" : "3-tab quick bet"
             }
             description={
               L === "fr"
-                ? "Clique sur 'Pronostiquer' sur la fiche match. Choisis vainqueur (1, N ou 2), ajuste la mise au slider, valide. C'est fini."
-                : "Tap 'Quick bet' on a match card. Pick a winner (1, X or 2), drag the stake slider, confirm. Done."
+                ? "Sur n'importe quelle fiche match, 3 onglets : Vainqueur (1N2, +3 pts) · Total de buts (+5 pts si exact, +2 si à ±1) · Buteurs (+4 pts par joueur correct, jusqu'à 4). Aucune mise."
+                : "On any match card, 3 tabs: Winner (1X2, +3 pts) · Total goals (+5 exact, +2 if within 1) · Scorers (+4 pts per correct player, up to 4). No stake."
             }
             tipLabel={L === "fr" ? "Détail" : "Detail"}
             tip={
               L === "fr"
-                ? "La mise va de 10 à 1 000 jetons. Le gain potentiel s'affiche en temps réel."
-                : "Stakes range from 10 to 1,000 tokens. Potential payout updates live."
+                ? "Tu peux changer ton pronostic jusqu'à 1 heure avant le coup d'envoi."
+                : "You can change your prediction up to 1 hour before kickoff."
             }
-            badge={L === "fr" ? "Recommandé" : "Recommended"}
+            badge={L === "fr" ? "Gratuit" : "Free"}
           />
 
           <StepCard
             step={3}
             icon={ShieldCheck}
             tone="gold"
-            title={
-              L === "fr" ? "Le pari est validé" : "Your bet gets validated"
-            }
+            title={L === "fr" ? "Paie ton buy-in" : "Pay your buy-in"}
             description={
               L === "fr"
-                ? "L'admin marque ton paiement IRL puis valide. Ton ticket passe à l'état 'Validé' et compte pour le tournoi."
-                : "Admin marks your IRL payment then validates. Ticket moves to 'Validated' and counts for the tournament."
+                ? "Stripe sur ton wallet (carte) ou l'admin enregistre ton paiement (cash, virement). Tout l'argent collecté forme la cagnotte finale."
+                : "Stripe in your wallet (card) or admin records your payment (cash, transfer). All collected money becomes the final pot."
             }
-            tipLabel={L === "fr" ? "Sécurité" : "Safety"}
+            tipLabel={L === "fr" ? "Important" : "Important"}
             tip={
               L === "fr"
-                ? "Aucun pari n'est annulable une fois validé. Buffer 60 secondes avant kickoff."
-                : "Bets cannot be cancelled once validated. 60-second buffer before kickoff."
+                ? "Tu peux parier sans buy-in pour t'amuser, mais seuls les contributeurs touchent la cagnotte."
+                : "You can bet without buy-in for fun, but only contributors share the pot."
             }
           />
 
@@ -180,18 +178,20 @@ export default async function HowItWorksPage({
             icon={Trophy}
             tone="primary"
             title={
-              L === "fr" ? "Récupère tes gains" : "Collect your winnings"
+              L === "fr"
+                ? "Top 3 partage la cagnotte"
+                : "Top 3 share the pot"
             }
             description={
               L === "fr"
-                ? "Au coup de sifflet final, les paris se résolvent automatiquement. Les jetons gagnés tombent direct sur ton solde."
-                : "At the final whistle, bets settle automatically. Tokens land on your balance instantly."
+                ? "À la fin du Mondial, les points cumulés déterminent le classement. 1er, 2e, 3e se partagent l'intégralité de l'argent collecté selon la répartition admin (par défaut : 50% / 30% / 20%)."
+                : "At the end of the Cup, accumulated points decide the ranking. 1st, 2nd, 3rd split the entire pot following the admin distribution (default: 50% / 30% / 20%)."
             }
-            tipLabel={L === "fr" ? "Bonus" : "Bonus"}
+            tipLabel={L === "fr" ? "Barème points" : "Points scale"}
             tip={
               L === "fr"
-                ? "Vainqueur ×2 · Score exact ×8 · Buteur ×6"
-                : "Match winner ×2 · Exact score ×8 · Scorer ×6"
+                ? "Vainqueur +3 · Total buts +5 (exact) / +2 (±1) · Buteur +4 par joueur trouvé"
+                : "Winner +3 · Total goals +5 (exact) / +2 (±1) · Scorer +4 per correct player"
             }
           />
         </ol>

@@ -2,13 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "@/i18n/navigation";
-import { Loader2, Coins, CheckCircle2 } from "lucide-react";
+import { Loader2, CheckCircle2, Zap } from "lucide-react";
 import { placeBet } from "@/lib/bets/place-bet";
-import {
-  betMultipliers,
-  estimatePayout,
-  type PlaceBetForm,
-} from "@/lib/bets/types";
+import { POINTS_SCHEME, type PlaceBetForm } from "@/lib/bets/types";
 import type { Locale } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
 
@@ -31,7 +27,6 @@ export function BetForm({
   const [winner, setWinner] = useState<"home" | "draw" | "away">("home");
   const [homeScore, setHomeScore] = useState(1);
   const [awayScore, setAwayScore] = useState(0);
-  const [stake, setStake] = useState(50);
   const [isPending, startTransition] = useTransition();
   const [result, setResult] = useState<
     { kind: "success"; betId: string } | { kind: "error"; message: string } | null
@@ -55,14 +50,13 @@ export function BetForm({
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setResult(null);
-    const stakeCents = Math.round(stake * 100);
 
     startTransition(async () => {
       const res = await placeBet({
         match_id: matchId,
         league_id: null,
         bet: buildPayload(),
-        stake_cents: stakeCents,
+        stake_cents: 0,
         client_request_id: crypto.randomUUID(),
       });
       if (res.ok) {
@@ -74,7 +68,10 @@ export function BetForm({
     });
   }
 
-  const potential = estimatePayout(betType, stake);
+  const potentialPoints =
+    betType === "match_winner"
+      ? POINTS_SCHEME.match_winner
+      : POINTS_SCHEME.exact_score;
 
   return (
     <form
@@ -87,13 +84,13 @@ export function BetForm({
           active={betType === "match_winner"}
           onClick={() => setBetType("match_winner")}
           label={locale === "fr" ? "Vainqueur (1N2)" : "Match winner"}
-          multiplier={betMultipliers.match_winner}
+          multiplier={POINTS_SCHEME.match_winner}
         />
         <BetTypeButton
           active={betType === "exact_score"}
           onClick={() => setBetType("exact_score")}
           label={locale === "fr" ? "Score exact" : "Exact score"}
-          multiplier={betMultipliers.exact_score}
+          multiplier={POINTS_SCHEME.exact_score}
         />
       </div>
 
@@ -135,42 +132,25 @@ export function BetForm({
         </div>
       )}
 
-      {/* Stake */}
-      <div className="mb-6">
-        <label className="mb-2 flex items-baseline justify-between text-sm">
-          <span className="font-medium text-text-secondary">
-            {locale === "fr" ? "Ta mise" : "Your stake"}
-          </span>
-          <span className="text-xs text-text-tertiary">10 — 1 000</span>
-        </label>
-        <div className="flex items-center gap-3">
-          <Coins className="size-4 text-gold-500" />
-          <input
-            type="range"
-            min="10"
-            max="1000"
-            step="10"
-            value={stake}
-            onChange={(e) => setStake(Number(e.target.value))}
-            className="flex-1 accent-primary-500"
-          />
-          <span className="w-20 text-right font-display text-xl font-semibold tabular-nums text-text-primary">
-            {stake}
-          </span>
-        </div>
-      </div>
-
-      {/* Payout preview */}
+      {/* Points preview (no stake — bets are free, points-only) */}
       <div className="mb-6 rounded-[8px] border border-primary-500/[0.14] bg-primary-500/[0.07] px-4 py-3">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-text-secondary">
-            {locale === "fr" ? "Gain potentiel" : "Potential payout"}
+          <span className="flex items-center gap-1.5 text-text-secondary">
+            <Zap className="size-4 text-primary-400" strokeWidth={2} />
+            {locale === "fr" ? "Points si correct" : "Points if correct"}
           </span>
-          <span className="font-display text-2xl font-semibold tabular-nums text-primary-500">
-            {potential.toLocaleString()}
-            <span className="ml-1 text-xs text-text-secondary">jetons</span>
+          <span className="font-display text-2xl font-semibold tabular-nums text-primary-400">
+            +{potentialPoints}
+            <span className="ml-1 text-xs text-text-secondary">
+              {locale === "fr" ? "pts" : "pts"}
+            </span>
           </span>
         </div>
+        <p className="mt-1 text-[10px] text-text-tertiary">
+          {locale === "fr"
+            ? "Modifiable jusqu'à 1 h avant le coup d'envoi. Pas de mise — top 3 partage la cagnotte."
+            : "Editable up to 1h before kickoff. No stake — top 3 split the pot."}
+        </p>
       </div>
 
       {result?.kind === "success" && (
@@ -225,7 +205,7 @@ function BetTypeButton({
     >
       <span>{label}</span>
       <span className="mt-0.5 font-mono text-[10px] uppercase tracking-wider opacity-70">
-        ×{multiplier}
+        +{multiplier} pts
       </span>
     </button>
   );
