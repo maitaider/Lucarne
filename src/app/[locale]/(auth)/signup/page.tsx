@@ -13,7 +13,7 @@ export default async function SignupPage({
 
   return (
     <>
-      <h1 className="mb-2 font-display text-2xl font-semibold tracking-tight text-text-primary">
+      <h1 className="mb-2 font-display text-2xl font-semibold text-text-primary">
         {t("signupTitle")}
       </h1>
       <p className="mb-8 text-sm text-text-secondary">

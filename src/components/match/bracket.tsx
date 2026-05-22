@@ -1,5 +1,5 @@
 import type { MatchListItem } from "@/lib/matches/queries";
-import { Flag } from "@/components/team/flag";
+import { TeamEmblem } from "@/components/team/team-emblem";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
@@ -128,7 +128,7 @@ function EmptyStage({ stage, locale }: { stage: Stage; locale: Locale }) {
       {Array.from({ length: count[stage] }).map((_, i) => (
         <div
           key={i}
-          className="rounded-lg border border-dashed border-border-subtle bg-surface-1/30 py-3 text-center"
+          className="rounded-[8px] border border-dashed border-white/[0.1] bg-surface-1/[0.46] py-3 text-center"
         >
           <span className="text-[10px] uppercase tracking-wider text-text-tertiary">
             {locale === "fr" ? "À venir" : "TBD"}
@@ -165,8 +165,8 @@ function BracketCard({
     <Link
       href={`/matches/${match.id}`}
       className={cn(
-        "group relative block overflow-hidden rounded-lg border bg-surface-1/60 transition",
-        "border-border-subtle hover:border-border-strong hover:bg-surface-2/60",
+        "group relative block overflow-hidden rounded-[8px] border bg-surface-1/[0.68] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur transition",
+        "border-white/[0.08] hover:border-primary-500/35 hover:bg-surface-2/[0.78]",
         isLive && "border-violet-500/50 shadow-glow-violet",
         stage === "final" && "border-gold-500/30 bg-gradient-to-br from-gold-500/[0.06] to-transparent",
       )}
@@ -179,7 +179,7 @@ function BracketCard({
         winner={homeWon}
         locale={locale}
       />
-      <div className="h-px bg-border-subtle/60" />
+      <div className="h-px bg-white/[0.08]" />
       <BracketTeamRow
         team={match.away_team}
         placeholder={match.away_placeholder}
@@ -234,11 +234,7 @@ function BracketTeamRow({
         winner && "bg-primary-500/[0.05]",
       )}
     >
-      <Flag
-        isoCode={team?.iso_code ?? null}
-        emoji={team?.flag_emoji}
-        size="sm"
-      />
+      <TeamEmblem code={team?.fifa_code} name={name} size="sm" />
       <span
         className={cn(
           "flex-1 truncate text-xs",

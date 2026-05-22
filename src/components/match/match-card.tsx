@@ -1,6 +1,7 @@
 import type { MatchListItem } from "@/lib/matches/queries";
 import { Link } from "@/i18n/navigation";
-import { Flag } from "@/components/team/flag";
+import { TeamEmblem } from "@/components/team/team-emblem";
+import { QuickBetButton } from "@/components/bet/quick-bet-button";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
 
@@ -42,8 +43,8 @@ export function MatchCard({
     <Link
       href={`/matches/${match.id}`}
       className={cn(
-        "group relative block overflow-hidden rounded-2xl border bg-surface-1/50 p-4 backdrop-blur transition",
-        "border-border-subtle hover:-translate-y-0.5 hover:border-border-strong hover:bg-surface-2/60 hover:shadow-lg hover:shadow-black/20",
+        "group relative block overflow-hidden rounded-[8px] border bg-surface-1/[0.68] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl transition",
+        "border-white/[0.08] hover:-translate-y-0.5 hover:border-primary-500/35 hover:bg-surface-2/[0.78] hover:shadow-[0_20px_60px_rgba(0,0,0,0.26)]",
         isLive && "border-violet-500/50 bg-gradient-to-br from-violet-500/[0.08] to-violet-500/[0.02] shadow-glow-violet",
       )}
     >
@@ -77,7 +78,7 @@ export function MatchCard({
             LIVE
           </span>
         ) : isFinished ? (
-          <span className="rounded-full bg-surface-3 px-2 py-0.5 font-medium uppercase tracking-wider text-text-tertiary">
+          <span className="rounded-[6px] bg-white/[0.05] px-2 py-0.5 font-medium uppercase tracking-wider text-text-tertiary">
             {locale === "fr" ? "Terminé" : "Final"}
           </span>
         ) : (
@@ -107,11 +108,9 @@ export function MatchCard({
         />
       </div>
 
-      {/* Bet CTA bottom strip (scheduled only) */}
+      {/* Bet CTA bottom strip (scheduled only, opens QuickBet sheet) */}
       {isScheduled && (
-        <div className="mt-3 -mx-4 -mb-4 border-t border-border-subtle/60 bg-surface-2/30 px-4 py-2 text-[11px] font-medium text-text-tertiary transition group-hover:bg-primary-500/[0.06] group-hover:text-primary-400">
-          {locale === "fr" ? "Placer un pari →" : "Place a bet →"}
-        </div>
+        <QuickBetButton match={match} locale={locale} variant="strip" />
       )}
     </Link>
   );
@@ -147,11 +146,7 @@ function TeamLine({
   return (
     <div className="flex items-center justify-between">
       <div className="flex min-w-0 items-center gap-3">
-        <Flag
-          isoCode={team?.iso_code ?? null}
-          emoji={team?.flag_emoji}
-          size="lg"
-        />
+        <TeamEmblem code={team?.fifa_code} name={name} size="md" />
         <span
           className={cn(
             "truncate text-sm",

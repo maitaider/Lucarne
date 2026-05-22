@@ -26,10 +26,10 @@ export function NavLinks({ locale }: { locale: Locale }) {
             key={item.href}
             href={item.href}
             className={cn(
-              "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm transition",
+              "flex items-center gap-1.5 rounded-[8px] border px-3 py-1.5 text-sm transition",
               isActive
-                ? "bg-surface-2/80 text-text-primary"
-                : "text-text-secondary hover:bg-surface-1/60 hover:text-text-primary",
+                ? "border-primary-500/30 bg-primary-500/[0.12] text-primary-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+                : "border-transparent text-text-secondary hover:border-white/[0.08] hover:bg-white/[0.05] hover:text-text-primary",
             )}
           >
             <Icon className="size-4" strokeWidth={1.5} />

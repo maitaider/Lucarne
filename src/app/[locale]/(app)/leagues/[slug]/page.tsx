@@ -8,7 +8,18 @@ import {
 import { LeaderboardPodium } from "@/components/leaderboard/podium";
 import { StandingsTable } from "@/components/leaderboard/standings-table";
 import { getSupabaseServer } from "@/lib/supabase/server";
-import { Users, Lock, Globe, Settings, UserPlus } from "lucide-react";
+import {
+  Crown,
+  Globe,
+  Lock,
+  Settings,
+  ShieldCheck,
+  Trophy,
+  UserPlus,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
+import type { Locale } from "@/i18n/routing";
 
 export default async function LeagueDetailPage({
   params,
@@ -17,6 +28,7 @@ export default async function LeagueDetailPage({
 }) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
+  const L = locale as Locale;
 
   const league = await getLeagueBySlug(slug);
   if (!league) notFound();
@@ -33,39 +45,39 @@ export default async function LeagueDetailPage({
     currentUserId = user?.id ?? null;
   }
   const isOwner = currentUserId === league.owner_id;
+  const totalBets = standings.reduce((sum, entry) => sum + entry.bets_count, 0);
+  const totalWins = standings.reduce((sum, entry) => sum + entry.wins, 0);
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-10 lg:px-8">
-      <header className="mb-8">
-        <div className="mb-2 flex items-center gap-2 text-xs text-text-tertiary">
+    <main className="mx-auto max-w-6xl px-6 py-10 lg:px-8">
+      <header className="mb-4 rounded-[8px] border border-white/[0.1] bg-surface-1/[0.68] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-xl">
+        <div className="mb-3 inline-flex items-center gap-2 rounded-[8px] border border-gold-500/30 bg-gold-500/[0.1] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-gold-400 shadow-glow-gold">
           {league.visibility === "private" ? <Lock className="size-3" /> : <Globe className="size-3" />}
-          <span className="uppercase tracking-wider">
-            {league.visibility === "private"
-              ? locale === "fr" ? "Ligue privée" : "Private league"
-              : locale === "fr" ? "Ligue publique" : "Public league"}
-          </span>
+          {league.visibility === "private"
+            ? locale === "fr" ? "Ligue privée" : "Private league"
+            : locale === "fr" ? "Ligue publique" : "Public league"}
         </div>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="font-display text-3xl font-semibold tracking-tight text-text-primary sm:text-4xl">
+            <h1 className="font-display text-3xl font-semibold text-text-primary sm:text-4xl">
               {league.name}
             </h1>
             {league.description && (
-              <p className="mt-2 max-w-2xl text-text-secondary">{league.description}</p>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-text-secondary">{league.description}</p>
             )}
           </div>
           {isOwner && (
             <div className="flex gap-2">
               <Link
                 href={`/leagues/${slug}/invite`}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-primary-500/15 px-3 py-1.5 text-xs font-semibold text-primary-400 ring-1 ring-primary-500/20 transition hover:bg-primary-500/25"
+                className="inline-flex items-center gap-1.5 rounded-[8px] bg-primary-500/15 px-3 py-1.5 text-xs font-semibold text-primary-400 ring-1 ring-primary-500/20 transition hover:bg-primary-500/25"
               >
                 <UserPlus className="size-3.5" />
                 {locale === "fr" ? "Inviter" : "Invite"}
               </Link>
               <Link
                 href={`/leagues/${slug}/settings`}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-border-subtle bg-surface-1/60 px-3 py-1.5 text-xs font-semibold text-text-secondary transition hover:border-border-strong"
+                className="inline-flex items-center gap-1.5 rounded-[8px] border border-white/[0.08] bg-white/[0.05] px-3 py-1.5 text-xs font-semibold text-text-secondary shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition hover:border-primary-500/35"
               >
                 <Settings className="size-3.5" />
                 {locale === "fr" ? "Réglages" : "Settings"}
@@ -79,14 +91,39 @@ export default async function LeagueDetailPage({
         </div>
       </header>
 
+      <section className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <LeagueDetailMetric
+          icon={Users}
+          label={locale === "fr" ? "Membres" : "Members"}
+          value={`${league.members.length}/${league.member_limit}`}
+          detail={locale === "fr" ? "dans le salon" : "in room"}
+          accent="primary"
+        />
+        <LeagueDetailMetric
+          icon={Trophy}
+          label={locale === "fr" ? "Classés" : "Ranked"}
+          value={standings.length}
+          detail={locale === "fr" ? "joueurs" : "players"}
+          accent="gold"
+        />
+        <LeagueDetailMetric
+          icon={ShieldCheck}
+          label={locale === "fr" ? "Paris" : "Bets"}
+          value={totalBets}
+          detail={locale === "fr" ? "résolus" : "settled"}
+          accent="violet"
+        />
+        <LeagueDetailMetric
+          icon={Crown}
+          label={locale === "fr" ? "Victoires" : "Wins"}
+          value={totalWins}
+          detail={locale === "fr" ? "bons tickets" : "correct tickets"}
+          accent="primary"
+        />
+      </section>
+
       {standings.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border-strong bg-surface-1/40 p-10 text-center backdrop-blur">
-          <p className="text-text-secondary">
-            {locale === "fr"
-              ? "Aucun pari validé pour l'instant. Le classement apparaîtra dès qu'un membre place et fait valider un pari."
-              : "No validated bets yet. The leaderboard will populate as members place and validate bets."}
-          </p>
-        </div>
+        <LeagueStandingsEmpty locale={L} isOwner={isOwner} slug={slug} />
       ) : (
         <>
           {standings.length >= 1 && (
@@ -104,5 +141,83 @@ export default async function LeagueDetailPage({
         </>
       )}
     </main>
+  );
+}
+
+function LeagueDetailMetric({
+  icon: Icon,
+  label,
+  value,
+  detail,
+  accent,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: string | number;
+  detail: string;
+  accent: "primary" | "gold" | "violet";
+}) {
+  const color = {
+    primary: "border-primary-500/25 bg-primary-500/[0.09] text-primary-400",
+    gold: "border-gold-500/30 bg-gold-500/[0.09] text-gold-400",
+    violet: "border-violet-500/25 bg-violet-500/[0.09] text-violet-400",
+  }[accent];
+
+  return (
+    <div className="rounded-[8px] border border-white/[0.08] bg-surface-1/[0.64] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
+      <div className="mb-3 flex items-center justify-between">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
+          {label}
+        </span>
+        <span className={`rounded-[8px] border p-1.5 ${color}`}>
+          <Icon className="size-3.5" strokeWidth={1.7} />
+        </span>
+      </div>
+      <div className="font-display text-2xl font-semibold tabular-nums text-text-primary">
+        {value}
+      </div>
+      <div className="mt-1 text-xs text-text-tertiary">{detail}</div>
+    </div>
+  );
+}
+
+function LeagueStandingsEmpty({
+  locale,
+  isOwner,
+  slug,
+}: {
+  locale: Locale;
+  isOwner: boolean;
+  slug: string;
+}) {
+  return (
+    <div className="rounded-[8px] border border-dashed border-white/[0.14] bg-surface-1/[0.62] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex items-start gap-3">
+          <span className="rounded-[8px] bg-gold-500/15 p-2.5 text-gold-400 ring-1 ring-gold-500/30">
+            <Trophy className="size-5" strokeWidth={1.6} />
+          </span>
+          <div>
+            <h2 className="font-display text-lg font-semibold text-text-primary">
+              {locale === "fr" ? "Le board de ligue est prêt" : "The league board is ready"}
+            </h2>
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-text-secondary">
+              {locale === "fr"
+                ? "Les premiers paris validés alimenteront le podium, la table de classement et les statistiques de forme."
+                : "First validated bets will populate the podium, standings table, and form stats."}
+            </p>
+          </div>
+        </div>
+        {isOwner && (
+          <Link
+            href={`/leagues/${slug}/invite`}
+            className="inline-flex items-center justify-center gap-1.5 rounded-[8px] bg-primary-500 px-4 py-2 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400"
+          >
+            <UserPlus className="size-4" strokeWidth={2} />
+            {locale === "fr" ? "Inviter" : "Invite"}
+          </Link>
+        )}
+      </div>
+    </div>
   );
 }

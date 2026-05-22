@@ -1,5 +1,4 @@
-import { setRequestLocale, getTranslations } from "next-intl/server";
-import { Link } from "@/i18n/navigation";
+import { setRequestLocale } from "next-intl/server";
 import { LandingHero } from "@/components/marketing/landing-hero";
 import { LandingFeatures } from "@/components/marketing/landing-features";
 import { LandingFooter } from "@/components/marketing/landing-footer";

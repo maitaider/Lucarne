@@ -28,19 +28,21 @@ export default async function InvitePage({
         {league.name}
       </Link>
 
-      <h1 className="mb-2 font-display text-3xl font-semibold tracking-tight text-text-primary">
-        {locale === "fr" ? "Inviter des amis" : "Invite friends"}
-      </h1>
-      <p className="mb-8 text-text-secondary">
-        {locale === "fr"
-          ? "Génère un code d'invitation à partager. Chaque code peut être utilisé un nombre limité de fois."
-          : "Generate an invitation code to share. Each code can be used a limited number of times."}
-      </p>
+      <header className="mb-8 rounded-[8px] border border-white/[0.1] bg-surface-1/[0.66] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-xl">
+        <h1 className="mb-2 font-display text-3xl font-semibold text-text-primary">
+          {locale === "fr" ? "Inviter des amis" : "Invite friends"}
+        </h1>
+        <p className="text-text-secondary">
+          {locale === "fr"
+            ? "Génère un code d'invitation à partager. Chaque code peut être utilisé un nombre limité de fois."
+            : "Generate an invitation code to share. Each code can be used a limited number of times."}
+        </p>
+      </header>
 
       <InviteGenerator leagueId={league.id} locale={locale === "fr" ? "fr" : "en"} />
 
       <section className="mt-10">
-        <h2 className="mb-4 font-display text-lg font-semibold tracking-tight text-text-secondary">
+        <h2 className="mb-4 font-display text-lg font-semibold text-text-secondary">
           {locale === "fr" ? "Codes actifs" : "Active codes"}
           <span className="ml-2 font-mono text-sm text-text-tertiary">
             {invitations.length}
@@ -51,7 +53,7 @@ export default async function InvitePage({
             {locale === "fr" ? "Aucun code actif." : "No active codes."}
           </p>
         ) : (
-          <ul className="divide-y divide-border-subtle rounded-xl border border-border-subtle bg-surface-1/40 backdrop-blur">
+          <ul className="divide-y divide-border-subtle rounded-[8px] border border-white/[0.08] bg-surface-1/[0.62] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur">
             {invitations.map((inv) => (
               <li key={inv.id} className="flex items-center justify-between px-5 py-3">
                 <code className="font-mono text-sm uppercase tracking-wider text-primary-400">

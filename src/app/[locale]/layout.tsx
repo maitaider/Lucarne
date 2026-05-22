@@ -25,14 +25,36 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://lucarne.app"),
   title: {
     default: "Lucarne",
     template: "%s · Lucarne",
   },
   description:
-    "Pronostique la Coupe du Monde 2026 avec tes amis. Paris, ligues privées, classements.",
+    "Plateforme privée de pronostics pour la Coupe du Monde 2026 : ligues sur invitation, mises entre amis, validations admin et classements.",
   applicationName: "Lucarne",
   authors: [{ name: "Lucarne" }],
+  openGraph: {
+    title: "Lucarne · Pronostics privés pour le Mondial 2026",
+    description:
+      "Organise une ligue de pronostics privée avec mises, validations et classements pour tout le Mondial 2026.",
+    type: "website",
+    images: [
+      {
+        url: "/marketing/lucarne-hero-stadium.jpg",
+        width: 1672,
+        height: 941,
+        alt: "Interface Lucarne dans un stade de football nocturne.",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Lucarne · Pronostics privés pour le Mondial 2026",
+    description:
+      "Ligues privées, mises entre amis, validations admin et classements pour le Mondial 2026.",
+    images: ["/marketing/lucarne-hero-stadium.jpg"],
+  },
   appleWebApp: {
     title: "Lucarne",
     statusBarStyle: "black-translucent",

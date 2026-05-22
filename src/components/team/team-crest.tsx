@@ -16,8 +16,8 @@ const nameClass: Record<Size, string> = {
   xs: "text-[10px] font-medium",
   sm: "text-xs font-medium",
   md: "text-sm font-semibold",
-  lg: "text-base font-semibold tracking-tight",
-  xl: "font-display text-xl font-semibold tracking-tight",
+  lg: "text-base font-semibold",
+  xl: "font-display text-xl font-semibold",
 };
 
 export type TeamSummary = {
@@ -78,7 +78,6 @@ export function TeamCrest({
     >
       <Flag
         isoCode={team.iso_code ?? null}
-        emoji={team.flag_emoji ?? null}
         size={flagSize[size]}
       />
       <div className={cn("min-w-0", reversed && "text-right")}>

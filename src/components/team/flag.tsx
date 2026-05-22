@@ -13,19 +13,17 @@ const sizeMap: Record<Size, { w: number; h: number; cdn: "16x12" | "20x15" | "24
 
 /**
  * Country flag rendered from flagcdn.com (PNG, retina). Falls back to a
- * unicode flag emoji when iso_code is missing.
+ * neutral broadcast tile when iso_code is missing.
  *
  * iso_code must be a 2-letter ISO 3166-1 alpha-2 code (lowercase).
  */
 export function Flag({
   isoCode,
-  emoji,
   size = "md",
   className,
   rounded = true,
 }: {
   isoCode: string | null;
-  emoji?: string | null;
   size?: Size;
   className?: string;
   rounded?: boolean;
@@ -37,13 +35,12 @@ export function Flag({
       <span
         aria-hidden
         className={cn(
-          "inline-flex items-center justify-center leading-none",
+          "inline-flex shrink-0 items-center justify-center overflow-hidden bg-gradient-to-br from-surface-3 to-abyss shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] ring-1 ring-white/[0.1]",
+          rounded ? "rounded-[3px]" : "",
           className,
         )}
-        style={{ width: w, height: h, fontSize: Math.round(h * 0.95) }}
-      >
-        {emoji ?? "🏳️"}
-      </span>
+        style={{ width: w, height: h }}
+      />
     );
   }
 

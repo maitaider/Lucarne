@@ -15,12 +15,12 @@ export default async function AdminLayout({
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-8 lg:px-8">
-      <header className="mb-6 flex items-center gap-3">
+      <header className="mb-6 flex items-center gap-3 rounded-[8px] border border-white/[0.1] bg-surface-1/[0.66] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-xl">
         <div className="flex size-9 items-center justify-center rounded-lg bg-gold-500/15 text-gold-400 ring-1 ring-gold-500/20">
           <ShieldCheck className="size-5" strokeWidth={1.5} />
         </div>
         <div>
-          <h1 className="font-display text-xl font-semibold tracking-tight text-text-primary">
+          <h1 className="font-display text-xl font-semibold text-text-primary">
             Admin
           </h1>
           <p className="text-xs text-text-tertiary">
@@ -31,7 +31,7 @@ export default async function AdminLayout({
         </div>
       </header>
 
-      <nav className="mb-8 flex flex-wrap gap-2 border-b border-border-subtle pb-4">
+      <nav className="mb-8 flex flex-wrap gap-2 border-b border-white/[0.08] pb-4">
         <AdminLink href="/admin/validations" icon={ClipboardList} label="Validations" />
         <AdminLink href="/admin/matches" icon={Trophy} label="Matchs" />
         <AdminLink href="/admin/audit" icon={FileText} label="Audit" />
@@ -54,7 +54,7 @@ function AdminLink({
   return (
     <Link
       href={href}
-      className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-text-secondary transition hover:bg-surface-2 hover:text-text-primary"
+      className="inline-flex items-center gap-1.5 rounded-[8px] border border-transparent px-3 py-1.5 text-sm font-medium text-text-secondary transition hover:border-white/[0.08] hover:bg-white/[0.05] hover:text-text-primary"
     >
       <Icon className="size-4" />
       {label}

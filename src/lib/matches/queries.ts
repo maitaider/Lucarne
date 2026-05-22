@@ -1,4 +1,8 @@
 import "server-only";
+import {
+  getStaticWorldCupMatchById,
+  getStaticWorldCupMatches,
+} from "@/data/world-cup-2026";
 import { getSupabaseServer } from "@/lib/supabase/server";
 
 // supabase-js types one-to-one embeds as arrays in some inference paths; pick first.
@@ -95,7 +99,9 @@ export async function listMatches(opts?: {
   fromDate?: string;
   toDate?: string;
 }): Promise<MatchListItem[]> {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return [];
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    return filterMatches(getStaticWorldCupMatches(), opts);
+  }
 
   const supabase = await getSupabaseServer();
 
@@ -127,7 +133,7 @@ export async function listMatches(opts?: {
 }
 
 export async function getMatchById(id: string): Promise<MatchListItem | null> {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return null;
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return getStaticWorldCupMatchById(id);
 
   const supabase = await getSupabaseServer();
   const { data, error } = await supabase
@@ -150,6 +156,24 @@ export async function getMatchById(id: string): Promise<MatchListItem | null> {
     return null;
   }
   return data ? toMatchListItem(data) : null;
+}
+
+function filterMatches(
+  matches: MatchListItem[],
+  opts?: {
+    stage?: MatchStage | "all";
+    groupLabel?: string;
+    fromDate?: string;
+    toDate?: string;
+  },
+): MatchListItem[] {
+  return matches.filter((match) => {
+    if (opts?.stage && opts.stage !== "all" && match.stage !== opts.stage) return false;
+    if (opts?.groupLabel && match.group_label !== opts.groupLabel) return false;
+    if (opts?.fromDate && match.kickoff_at < opts.fromDate) return false;
+    if (opts?.toDate && match.kickoff_at > opts.toDate) return false;
+    return true;
+  });
 }
 
 /** Group an array of matches by ISO date (YYYY-MM-DD in app timezone). */

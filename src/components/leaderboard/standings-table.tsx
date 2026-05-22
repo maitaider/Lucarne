@@ -14,9 +14,9 @@ export function StandingsTable({
   const maxPoints = Math.max(...entries.map((e) => e.total_points), 1);
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-border-subtle bg-surface-1/40 backdrop-blur">
+    <div className="overflow-hidden rounded-[8px] border border-white/[0.08] bg-surface-1/[0.64] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
       <table className="w-full">
-        <thead className="border-b border-border-subtle bg-surface-2/50">
+        <thead className="border-b border-white/[0.08] bg-white/[0.045]">
           <tr className="text-[10px] uppercase tracking-wider text-text-tertiary">
             <th className="px-4 py-3 text-left font-bold">#</th>
             <th className="py-3 text-left font-bold">
@@ -34,7 +34,7 @@ export function StandingsTable({
             <th className="px-4 py-3 text-right font-bold">Pts</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-border-subtle/60">
+        <tbody className="divide-y divide-white/[0.06]">
           {entries.map((e) => {
             const isMe = highlightUserId === e.user_id;
             const winRate = e.bets_count > 0 ? e.wins / e.bets_count : 0;
@@ -50,7 +50,7 @@ export function StandingsTable({
               <tr
                 key={e.user_id}
                 className={cn(
-                  "group transition hover:bg-surface-2/40",
+                  "group transition hover:bg-white/[0.045]",
                   isMe &&
                     "bg-primary-500/[0.06] ring-1 ring-inset ring-primary-500/30",
                 )}

@@ -13,7 +13,7 @@ export default async function LoginPage({
 
   return (
     <>
-      <h1 className="mb-2 font-display text-2xl font-semibold tracking-tight text-text-primary">
+      <h1 className="mb-2 font-display text-2xl font-semibold text-text-primary">
         {t("loginTitle")}
       </h1>
       <p className="mb-8 text-sm text-text-secondary">

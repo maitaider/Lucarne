@@ -1,6 +1,6 @@
 import { getTranslations, getLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { LucarneMark } from "@/components/brand/lucarne-mark";
+import { LucarneLogo } from "@/components/brand/lucarne-mark";
 
 export async function LandingFooter() {
   const t = await getTranslations("landing");
@@ -9,13 +9,14 @@ export async function LandingFooter() {
   const otherLocale = locale === "fr" ? "en" : "fr";
 
   return (
-    <footer className="border-t border-border-subtle py-12">
+    <footer className="border-t border-border-subtle bg-base py-12">
       <div className="mx-auto flex max-w-6xl flex-col items-start gap-6 px-6 sm:flex-row sm:items-center sm:justify-between lg:px-8">
-        <div className="flex items-center gap-2">
-          <LucarneMark className="h-5 w-5 text-primary-500" />
-          <span className="font-display text-sm font-semibold text-text-primary">
-            {tCommon("appName")}
-          </span>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <LucarneLogo
+            label={tCommon("appName")}
+            markClassName="size-6"
+            textClassName="text-sm"
+          />
           <span className="text-sm text-text-tertiary">
             © {new Date().getFullYear()} · {t("footerRights")}
           </span>
@@ -36,7 +37,7 @@ export async function LandingFooter() {
           <Link
             href="/"
             locale={otherLocale}
-            className="rounded-md border border-border-subtle px-3 py-1.5 text-xs font-medium text-text-secondary transition hover:border-border-strong hover:text-text-primary"
+            className="rounded-[8px] border border-border-subtle px-3 py-1.5 text-xs font-medium text-text-secondary transition hover:border-primary-500/35 hover:text-text-primary"
           >
             {t("footerLanguage")}
           </Link>

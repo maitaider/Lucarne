@@ -3,7 +3,6 @@
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { redirect } from "@/i18n/navigation";
 
 const createLeagueSchema = z.object({
   name: z.string().min(2).max(50),

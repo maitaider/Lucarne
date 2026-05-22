@@ -1,5 +1,5 @@
 import type { GroupTable } from "@/lib/matches/group-standings";
-import { Flag } from "@/components/team/flag";
+import { TeamEmblem } from "@/components/team/team-emblem";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
 
@@ -11,13 +11,13 @@ export function GroupTableCard({
   locale: Locale;
 }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-border-subtle bg-surface-1/40 backdrop-blur">
-      <header className="flex items-center justify-between border-b border-border-subtle bg-surface-2/60 px-4 py-2.5">
+    <div className="overflow-hidden rounded-[8px] border border-white/[0.08] bg-surface-1/[0.64] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
+      <header className="flex items-center justify-between border-b border-white/[0.08] bg-white/[0.045] px-4 py-2.5">
         <div className="flex items-center gap-2">
           <span className="inline-flex size-7 items-center justify-center rounded-md bg-gradient-to-br from-primary-500/20 to-violet-500/20 font-display text-sm font-bold text-text-primary ring-1 ring-border-subtle">
             {group.group_label}
           </span>
-          <span className="font-display text-sm font-semibold tracking-tight text-text-primary">
+          <span className="font-display text-sm font-semibold text-text-primary">
             {locale === "fr" ? "Groupe" : "Group"} {group.group_label}
           </span>
         </div>
@@ -50,7 +50,7 @@ export function GroupTableCard({
               <tr
                 key={s.team.id}
                 className={cn(
-                  "border-t border-border-subtle/40 transition hover:bg-surface-2/40",
+                  "border-t border-white/[0.055] transition hover:bg-white/[0.045]",
                   qualified && "bg-primary-500/[0.04]",
                 )}
               >
@@ -70,11 +70,7 @@ export function GroupTableCard({
                 </td>
                 <td className="py-2.5">
                   <div className="flex items-center gap-2">
-                    <Flag
-                      isoCode={s.team.iso_code ?? null}
-                      emoji={s.team.flag_emoji}
-                      size="sm"
-                    />
+                    <TeamEmblem code={s.team.fifa_code} name={s.team.name_fr} size="sm" />
                     <span
                       className={cn(
                         "truncate text-sm font-medium",
@@ -117,7 +113,7 @@ export function GroupTableCard({
       </table>
 
       {/* Legend */}
-      <footer className="flex items-center gap-3 border-t border-border-subtle bg-surface-2/30 px-3 py-1.5 text-[10px] text-text-tertiary">
+      <footer className="flex items-center gap-3 border-t border-white/[0.08] bg-white/[0.035] px-3 py-1.5 text-[10px] text-text-tertiary">
         <span className="flex items-center gap-1">
           <span className="size-1.5 rounded-full bg-primary-400" />
           {locale === "fr" ? "Qualifié" : "Qualified"}

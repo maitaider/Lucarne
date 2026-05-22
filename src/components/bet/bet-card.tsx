@@ -3,6 +3,7 @@ import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { CheckCircle2, Clock, X, Coins, Trophy } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
+import { TeamEmblem } from "@/components/team/team-emblem";
 
 /**
  * Signature component: BetCard
@@ -34,7 +35,7 @@ export function BetCard({
   return (
     <article
       className={cn(
-        "relative overflow-hidden rounded-xl border border-border-subtle bg-surface-1/60 p-5 backdrop-blur transition hover:bg-surface-2/60",
+        "relative overflow-hidden rounded-[8px] border border-white/[0.08] bg-surface-1/[0.72] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl transition hover:border-primary-500/35 hover:bg-surface-2/[0.78]",
       )}
     >
       {/* Status colored left bar */}
@@ -56,17 +57,21 @@ export function BetCard({
           {bet.match && (
             <Link
               href={`/matches/${bet.match.id}`}
-              className="mt-3 block font-display text-base font-semibold tracking-tight text-text-primary hover:text-primary-400"
+              className="mt-3 flex flex-wrap items-center gap-2 font-display text-base font-semibold text-text-primary hover:text-primary-400"
             >
-              <span className="mr-1.5" aria-hidden>
-                {bet.match.home_team?.flag_emoji ?? "🏳️"}
-              </span>
-              {homeName}
+              <TeamEmblem
+                code={bet.match.home_team?.fifa_code}
+                name={homeName}
+                size="sm"
+              />
+              <span>{homeName}</span>
               <span className="mx-2 text-text-tertiary">vs</span>
-              {awayName}
-              <span className="ml-1.5" aria-hidden>
-                {bet.match.away_team?.flag_emoji ?? "🏳️"}
-              </span>
+              <TeamEmblem
+                code={bet.match.away_team?.fifa_code}
+                name={awayName}
+                size="sm"
+              />
+              <span>{awayName}</span>
             </Link>
           )}
 
@@ -124,7 +129,7 @@ function BetTypeBadge({ type, locale }: { type: string; locale: Locale }) {
     top_scorer: { fr: "Top scorer", en: "Top scorer" },
   };
   return (
-    <span className="rounded-full bg-surface-3 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-text-secondary">
+    <span className="rounded-[6px] bg-white/[0.055] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-text-secondary">
       {labels[type]?.[locale] ?? type}
     </span>
   );
@@ -173,7 +178,7 @@ function StatusPill({
   }
   // pending_payment / paid → en attente admin
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-surface-3 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
+      <span className="inline-flex items-center gap-1 rounded-[6px] bg-white/[0.055] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
       <Clock className="size-3" />
       {locale === "fr" ? "En attente" : "Pending"}
     </span>

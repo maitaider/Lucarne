@@ -79,7 +79,7 @@ export function BetForm({
   return (
     <form
       onSubmit={onSubmit}
-      className="rounded-2xl border border-border-subtle bg-surface-1/60 p-6 backdrop-blur"
+      className="rounded-[8px] border border-white/[0.08] bg-surface-1/[0.72] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl"
     >
       {/* Bet type toggle */}
       <div className="mb-6 flex gap-2">
@@ -161,7 +161,7 @@ export function BetForm({
       </div>
 
       {/* Payout preview */}
-      <div className="mb-6 rounded-lg bg-surface-2 px-4 py-3">
+      <div className="mb-6 rounded-[8px] border border-primary-500/[0.14] bg-primary-500/[0.07] px-4 py-3">
         <div className="flex items-center justify-between text-sm">
           <span className="text-text-secondary">
             {locale === "fr" ? "Gain potentiel" : "Potential payout"}
@@ -192,7 +192,7 @@ export function BetForm({
       <button
         type="submit"
         disabled={isPending}
-        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary-500 px-4 py-3 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400 disabled:opacity-60"
+        className="inline-flex w-full items-center justify-center gap-2 rounded-[8px] bg-primary-500 px-4 py-3 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400 disabled:opacity-60"
       >
         {isPending && <Loader2 className="size-4 animate-spin" />}
         {locale === "fr" ? "Valider le pari" : "Confirm bet"}
@@ -217,10 +217,10 @@ function BetTypeButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "flex flex-1 flex-col items-center rounded-xl border px-4 py-3 text-sm font-semibold transition",
+        "flex flex-1 flex-col items-center rounded-[8px] border px-4 py-3 text-sm font-semibold transition",
         active
           ? "border-primary-500/40 bg-primary-500/10 text-primary-400"
-          : "border-border-subtle bg-surface-2/50 text-text-secondary hover:border-border-strong",
+          : "border-white/[0.08] bg-white/[0.045] text-text-secondary hover:border-primary-500/35",
       )}
     >
       <span>{label}</span>
@@ -247,10 +247,10 @@ function ChoiceButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "rounded-xl border px-3 py-4 text-center transition",
+        "rounded-[8px] border px-3 py-4 text-center transition",
         active
           ? "border-primary-500/40 bg-primary-500/10 ring-1 ring-primary-500/20"
-          : "border-border-subtle bg-surface-2/50 hover:border-border-strong",
+          : "border-white/[0.08] bg-white/[0.045] hover:border-primary-500/35",
       )}
     >
       <div
@@ -287,7 +287,7 @@ function ScoreInput({
       <select
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full rounded-lg border border-border-subtle bg-surface-2 px-3 py-3 text-center font-display text-3xl font-semibold tabular-nums text-text-primary outline-none transition focus:border-primary-500"
+        className="w-full rounded-[8px] border border-white/[0.1] bg-abyss/[0.48] px-3 py-3 text-center font-display text-3xl font-semibold tabular-nums text-text-primary outline-none transition focus:border-primary-500"
       >
         {Array.from({ length: 10 }, (_, i) => (
           <option key={i} value={i}>

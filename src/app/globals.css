@@ -7,15 +7,15 @@
 
 @theme {
   /* Backgrounds & surfaces */
-  --color-abyss: #08090c;
-  --color-base: #0e1014;
-  --color-surface-1: #161922;
-  --color-surface-2: #1f2330;
-  --color-surface-3: #2a2f3f;
+  --color-abyss: #050605;
+  --color-base: #0c0f0c;
+  --color-surface-1: #11160f;
+  --color-surface-2: #192119;
+  --color-surface-3: #253024;
 
   /* Borders */
-  --color-border-subtle: #262b38;
-  --color-border-strong: #3a4055;
+  --color-border-subtle: #2b362a;
+  --color-border-strong: #4c5a47;
 
   /* Primary — pelouse irradiée */
   --color-primary-400: #3fe599;
@@ -55,16 +55,16 @@
   /* Radii */
   --radius-xs: 4px;
   --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 20px;
-  --radius-2xl: 28px;
+  --radius-md: 8px;
+  --radius-lg: 8px;
+  --radius-xl: 8px;
+  --radius-2xl: 8px;
   --radius-full: 9999px;
 
   /* Shadows */
-  --shadow-glow-primary: 0 0 24px var(--color-primary-glow);
-  --shadow-glow-gold: 0 0 24px var(--color-gold-glow);
-  --shadow-glow-violet: 0 0 24px var(--color-violet-glow);
+  --shadow-glow-primary: 0 0 28px var(--color-primary-glow);
+  --shadow-glow-gold: 0 0 28px var(--color-gold-glow);
+  --shadow-glow-violet: 0 0 28px var(--color-violet-glow);
 
   /* Animation easings */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -91,18 +91,27 @@ html {
 
 body {
   background: radial-gradient(
-      ellipse 80% 50% at 50% -10%,
-      var(--color-violet-glow),
+      ellipse 70% 42% at 18% -8%,
+      rgba(34, 217, 130, 0.14),
       transparent 70%
+    ),
+    radial-gradient(
+      ellipse 62% 42% at 90% 0%,
+      rgba(124, 92, 255, 0.13),
+      transparent 68%
     ),
     var(--color-base);
   min-height: 100dvh;
 }
 
+main {
+  position: relative;
+}
+
 /* Typography utilities */
 .font-display {
   font-family: var(--font-display);
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 
 .tabular-nums {

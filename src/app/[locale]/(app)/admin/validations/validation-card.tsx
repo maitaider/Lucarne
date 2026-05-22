@@ -75,7 +75,7 @@ export function ValidationCard({
   }
 
   return (
-    <article className="overflow-hidden rounded-xl border border-border-subtle bg-surface-1/60 backdrop-blur">
+    <article className="overflow-hidden rounded-[8px] border border-white/[0.08] bg-surface-1/[0.72] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur">
       <div className="grid gap-4 p-5 sm:grid-cols-[1fr_auto]">
         <div>
           <div className="mb-2 flex items-center gap-2 text-xs">
@@ -131,7 +131,7 @@ export function ValidationCard({
                 value={paymentMethod}
                 onChange={(e) => setPaymentMethod(e.target.value)}
                 disabled={isPending}
-                className="w-full rounded-md border border-border-subtle bg-surface-2 px-2 py-1.5 text-xs text-text-primary"
+                className="w-full rounded-md border border-white/[0.1] bg-abyss/[0.48] px-2 py-1.5 text-xs text-text-primary"
               >
                 <option value="cash">Cash</option>
                 <option value="revolut">Revolut</option>
@@ -177,7 +177,7 @@ export function ValidationCard({
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder={locale === "fr" ? "Raison (min 10 car.)" : "Reason (min 10 chars)"}
-                className="w-full resize-none rounded-md border border-border-subtle bg-surface-2 px-2 py-1.5 text-xs text-text-primary"
+                className="w-full resize-none rounded-md border border-white/[0.1] bg-abyss/[0.48] px-2 py-1.5 text-xs text-text-primary"
                 rows={2}
               />
               <div className="flex gap-1">
@@ -190,7 +190,7 @@ export function ValidationCard({
                 </button>
                 <button
                   onClick={() => setRejecting(false)}
-                  className="rounded-md border border-border-subtle px-2 py-1 text-[10px] text-text-tertiary"
+                  className="rounded-[6px] border border-white/[0.1] px-2 py-1 text-[10px] text-text-tertiary"
                 >
                   {locale === "fr" ? "Annuler" : "Cancel"}
                 </button>

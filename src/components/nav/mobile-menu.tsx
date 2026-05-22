@@ -18,10 +18,6 @@ export function MobileMenu({ locale }: { locale: Locale }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
-
-  useEffect(() => {
     if (!open) return;
     function onEscape(e: KeyboardEvent) {
       if (e.key === "Escape") setOpen(false);
@@ -40,7 +36,7 @@ export function MobileMenu({ locale }: { locale: Locale }) {
         type="button"
         onClick={() => setOpen(true)}
         aria-label={locale === "fr" ? "Ouvrir le menu" : "Open menu"}
-        className="flex size-9 items-center justify-center rounded-full border border-border-subtle bg-surface-1/60 text-text-secondary transition hover:border-border-strong hover:text-text-primary md:hidden"
+        className="flex size-9 items-center justify-center rounded-[8px] border border-white/[0.12] bg-white/[0.06] text-text-secondary transition hover:border-primary-500/35 hover:text-text-primary md:hidden"
       >
         <Menu className="size-4" strokeWidth={1.5} />
       </button>
@@ -56,11 +52,11 @@ export function MobileMenu({ locale }: { locale: Locale }) {
             type="button"
             aria-label="Close"
             onClick={() => setOpen(false)}
-            className="absolute inset-0 bg-abyss/80 backdrop-blur-sm"
+            className="absolute inset-0 bg-abyss/80 backdrop-blur-md"
           />
           {/* Drawer */}
-          <div className="absolute inset-y-0 right-0 flex w-[80%] max-w-[320px] flex-col border-l border-border-subtle bg-base shadow-2xl">
-            <div className="flex items-center justify-between border-b border-border-subtle px-5 py-3">
+          <div className="absolute inset-y-0 right-0 flex w-[80%] max-w-[320px] flex-col border-l border-white/[0.1] bg-surface-1/[0.96] shadow-2xl shadow-black/40 backdrop-blur-xl">
+            <div className="flex items-center justify-between border-b border-white/[0.08] px-5 py-3">
               <span className="font-display text-base font-semibold text-text-primary">
                 {locale === "fr" ? "Menu" : "Menu"}
               </span>
@@ -68,7 +64,7 @@ export function MobileMenu({ locale }: { locale: Locale }) {
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label={locale === "fr" ? "Fermer" : "Close"}
-                className="flex size-8 items-center justify-center rounded-full text-text-secondary hover:bg-surface-2/60 hover:text-text-primary"
+                className="flex size-8 items-center justify-center rounded-[8px] text-text-secondary hover:bg-white/[0.05] hover:text-text-primary"
               >
                 <X className="size-4" strokeWidth={1.5} />
               </button>
@@ -84,10 +80,10 @@ export function MobileMenu({ locale }: { locale: Locale }) {
                     href={item.href}
                     onClick={() => setOpen(false)}
                     className={cn(
-                      "flex items-center gap-3 rounded-lg px-3 py-3 text-sm transition",
+                      "flex items-center gap-3 rounded-[8px] px-3 py-3 text-sm transition",
                       isActive
-                        ? "bg-primary-500/10 text-primary-400"
-                        : "text-text-secondary hover:bg-surface-1/60 hover:text-text-primary",
+                        ? "bg-primary-500/[0.12] text-primary-400"
+                        : "text-text-secondary hover:bg-white/[0.05] hover:text-text-primary",
                     )}
                   >
                     <Icon className="size-4" strokeWidth={1.5} />

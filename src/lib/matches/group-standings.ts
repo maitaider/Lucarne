@@ -1,6 +1,7 @@
 import "server-only";
+import { getStaticWorldCupMatches } from "@/data/world-cup-2026";
 import { getSupabaseServer } from "@/lib/supabase/server";
-import type { TeamSnippet } from "@/lib/matches/queries";
+import type { MatchListItem, TeamSnippet } from "@/lib/matches/queries";
 
 export type GroupStanding = {
   team: TeamSnippet;
@@ -27,7 +28,9 @@ export type GroupTable = {
  * shows all 4 teams.
  */
 export async function getGroupStandings(): Promise<GroupTable[]> {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return [];
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    return computeGroupTables(getStaticWorldCupMatches().filter((match) => match.stage === "group"));
+  }
   const supabase = await getSupabaseServer();
 
   const { data: matches, error } = await supabase
@@ -48,6 +51,18 @@ export async function getGroupStandings(): Promise<GroupTable[]> {
     return [];
   }
 
+  return computeGroupTables(matches);
+}
+
+type GroupMatchLike = Pick<
+  MatchListItem,
+  "group_label" | "status" | "home_score" | "away_score"
+> & {
+  home_team: TeamSnippet | TeamSnippet[] | null;
+  away_team: TeamSnippet | TeamSnippet[] | null;
+};
+
+function computeGroupTables(matches: GroupMatchLike[]): GroupTable[] {
   // Bucket per group
   type Acc = Map<string, GroupStanding>;
   const groups = new Map<string, Acc>();

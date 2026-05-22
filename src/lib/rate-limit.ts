@@ -25,7 +25,7 @@ function getRedis() {
 
 function noopLimiter() {
   return {
-    limit: async (_id: string) => ({
+    limit: async () => ({
       success: true,
       limit: Infinity,
       remaining: Infinity,

@@ -21,9 +21,14 @@ export function Countdown({ targetIso }: { targetIso: string }) {
   const [parts, setParts] = useState<Parts | null>(null);
 
   useEffect(() => {
-    setParts(computeParts(target));
-    const id = setInterval(() => setParts(computeParts(target)), 1000);
-    return () => clearInterval(id);
+    const tick = () => setParts(computeParts(target));
+    const initialFrame = window.requestAnimationFrame(tick);
+    const id = window.setInterval(tick, 1000);
+
+    return () => {
+      window.cancelAnimationFrame(initialFrame);
+      window.clearInterval(id);
+    };
   }, [target]);
 
   const labels =
@@ -35,11 +40,14 @@ export function Countdown({ targetIso }: { targetIso: string }) {
   const display = parts ?? { days: 0, hours: 0, minutes: 0, seconds: 0 };
 
   return (
-    <div className="inline-flex flex-col gap-2 rounded-2xl border border-border-subtle bg-surface-1/40 px-5 py-4 backdrop-blur">
+    <div className="inline-flex max-w-full flex-col gap-2 rounded-[8px] border border-white/[0.14] bg-abyss/50 px-5 py-4 backdrop-blur">
       <div className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
         {labels.title}
       </div>
-      <div className="flex items-baseline gap-4 font-mono tabular-nums" suppressHydrationWarning>
+      <div
+        className="flex items-baseline gap-2 font-mono tabular-nums sm:gap-4"
+        suppressHydrationWarning
+      >
         <Unit value={display.days} label={labels.days} accent />
         <Sep />
         <Unit value={display.hours} label={labels.hours} />

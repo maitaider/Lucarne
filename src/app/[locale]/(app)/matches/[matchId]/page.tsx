@@ -2,9 +2,11 @@ import { setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { getMatchById, type MatchListItem } from "@/lib/matches/queries";
+import { getTeamByCode, type WorldCupTeam } from "@/data/world-cup-2026";
 import { ArrowLeft, MapPin, Clock, Calendar } from "lucide-react";
 import { BetForm } from "@/components/bet/bet-form";
 import type { Locale } from "@/i18n/routing";
+import { TeamEmblem } from "@/components/team/team-emblem";
 
 export default async function MatchDetailPage({
   params,
@@ -24,6 +26,12 @@ export default async function MatchDetailPage({
 
   const homeName = teamLabel(match.home_team, match.home_placeholder, locale as Locale);
   const awayName = teamLabel(match.away_team, match.away_placeholder, locale as Locale);
+  const homeTeamData = match.home_team?.fifa_code
+    ? getTeamByCode(match.home_team.fifa_code)
+    : null;
+  const awayTeamData = match.away_team?.fifa_code
+    ? getTeamByCode(match.away_team.fifa_code)
+    : null;
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-10 lg:px-8">
@@ -36,8 +44,8 @@ export default async function MatchDetailPage({
       </Link>
 
       {/* Match header */}
-      <section className="overflow-hidden rounded-2xl border border-border-subtle bg-surface-1/60 backdrop-blur">
-        <div className="border-b border-border-subtle bg-surface-2/50 px-6 py-3 text-xs text-text-tertiary">
+      <section className="overflow-hidden rounded-[8px] border border-white/[0.1] bg-surface-1/[0.72] shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_24px_70px_rgba(0,0,0,0.24)] backdrop-blur-xl">
+        <div className="border-b border-white/[0.08] bg-white/[0.045] px-6 py-3 text-xs text-text-tertiary">
           <StageHeader match={match} locale={locale as Locale} />
         </div>
 
@@ -57,7 +65,7 @@ export default async function MatchDetailPage({
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-4 border-t border-border-subtle bg-surface-2/30 px-6 py-3 text-xs text-text-secondary">
+        <div className="flex flex-wrap items-center gap-4 border-t border-white/[0.08] bg-white/[0.035] px-6 py-3 text-xs text-text-secondary">
           <span className="inline-flex items-center gap-1.5">
             <Calendar className="size-3.5" />
             {kickoff.toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US", {
@@ -87,13 +95,20 @@ export default async function MatchDetailPage({
         </div>
       </section>
 
+      {(homeTeamData || awayTeamData) && (
+        <section className="mt-8 grid gap-4 md:grid-cols-2">
+          {homeTeamData && <TeamWatchlist team={homeTeamData} locale={locale as Locale} />}
+          {awayTeamData && <TeamWatchlist team={awayTeamData} locale={locale as Locale} />}
+        </section>
+      )}
+
       {/* Bet form */}
       <section className="mt-8">
-        <h2 className="mb-4 font-display text-xl font-semibold tracking-tight text-text-primary">
+        <h2 className="mb-4 font-display text-xl font-semibold text-text-primary">
           {locale === "fr" ? "Place ton pari" : "Place your bet"}
         </h2>
         {isLocked ? (
-          <div className="rounded-xl border border-warning/30 bg-warning/10 px-5 py-4 text-sm text-warning">
+          <div className="rounded-[8px] border border-warning/30 bg-warning/10 px-5 py-4 text-sm text-warning">
             {locale === "fr"
               ? "Paris fermés — le match a commencé."
               : "Bets closed — kickoff has passed."}
@@ -109,6 +124,43 @@ export default async function MatchDetailPage({
         )}
       </section>
     </main>
+  );
+}
+
+function TeamWatchlist({ team, locale }: { team: WorldCupTeam; locale: Locale }) {
+  return (
+    <div className="rounded-[8px] border border-white/[0.08] bg-surface-1/[0.62] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
+      <div className="mb-4 flex items-center gap-3">
+        <TeamEmblem code={team.fifa_code} name={team.name_fr} size="lg" />
+        <div className="min-w-0">
+          <h2 className="truncate font-display text-lg font-semibold text-text-primary">
+            {locale === "fr" ? team.name_fr : team.name_en}
+          </h2>
+          <p className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">
+            {locale === "fr" ? "Joueurs à suivre" : "Players to watch"} · Groupe{" "}
+            {team.group_label}
+          </p>
+        </div>
+      </div>
+      <div className="grid gap-2">
+        {team.key_players.map((player, index) => (
+          <div
+            key={player}
+            className="grid grid-cols-[2rem_1fr] items-center gap-3 rounded-[8px] border border-white/[0.06] bg-white/[0.035] px-3 py-2"
+          >
+            <span className="flex size-7 items-center justify-center rounded-[7px] bg-gold-500/[0.1] font-mono text-xs font-bold text-gold-400 ring-1 ring-gold-500/25">
+              {index + 1}
+            </span>
+            <span className="truncate text-sm font-semibold text-text-primary">{player}</span>
+          </div>
+        ))}
+      </div>
+      <p className="mt-4 text-xs leading-5 text-text-tertiary">
+        {locale === "fr"
+          ? "Watchlist éditoriale; les listes finales FIFA sont attendues le 2 juin 2026."
+          : "Editorial watchlist; FIFA final rosters are due on June 2, 2026."}
+      </p>
+    </div>
   );
 }
 
@@ -137,11 +189,9 @@ function TeamBlock({
         align === "right" ? "flex flex-col items-end gap-3" : "flex flex-col items-start gap-3"
       }
     >
-      <span className="text-5xl leading-none" aria-hidden>
-        {team?.flag_emoji ?? "🏳️"}
-      </span>
+      <TeamEmblem code={team?.fifa_code} name={name} size="2xl" />
       <div className={align === "right" ? "text-right" : "text-left"}>
-        <div className="font-display text-xl font-semibold tracking-tight text-text-primary sm:text-2xl">
+        <div className="font-display text-xl font-semibold text-text-primary sm:text-2xl">
           {name}
         </div>
         {team?.fifa_code && (
