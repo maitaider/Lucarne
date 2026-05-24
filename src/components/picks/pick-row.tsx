@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { MatchListItem } from "@/lib/matches/shared";
-import { TeamEmblem } from "@/components/team/team-emblem";
+import { Flag } from "@/components/team/flag";
 import { POINTS_SCHEME } from "@/lib/bets/types";
 import { ChevronDown, Lock, Target, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -92,10 +92,9 @@ export function PickRow({
           >
             {homeName}
           </span>
-          <TeamEmblem
-            code={match.home_team?.fifa_code}
-            name={homeName}
-            size="sm"
+          <Flag
+            isoCode={match.home_team?.iso_code ?? null}
+            size="md"
           />
         </div>
 
@@ -129,10 +128,9 @@ export function PickRow({
 
         {/* Away team */}
         <div className="flex min-w-0 items-center gap-2">
-          <TeamEmblem
-            code={match.away_team?.fifa_code}
-            name={awayName}
-            size="sm"
+          <Flag
+            isoCode={match.away_team?.iso_code ?? null}
+            size="md"
           />
           <span
             className={cn(

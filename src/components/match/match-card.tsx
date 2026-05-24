@@ -1,6 +1,6 @@
 import type { MatchListItem } from "@/lib/matches/queries";
 import { Link } from "@/i18n/navigation";
-import { TeamEmblem } from "@/components/team/team-emblem";
+import { Flag } from "@/components/team/flag";
 import { QuickBetButton } from "@/components/bet/quick-bet-button";
 import { MyPickBadge } from "@/components/bet/my-pick-badge";
 import { picksToExisting } from "@/lib/bets/picks-to-existing";
@@ -167,7 +167,7 @@ function TeamLine({
   return (
     <div className="flex items-center justify-between">
       <div className="flex min-w-0 items-center gap-3">
-        <TeamEmblem code={team?.fifa_code} name={name} size="md" />
+        <Flag isoCode={team?.iso_code ?? null} size="lg" />
         <span
           className={cn(
             "truncate text-sm",
