@@ -5,6 +5,12 @@ import { Flag } from "@/components/team/flag";
 import { BuyInBanner } from "@/components/paywall/buy-in-banner";
 import { useToast } from "@/components/ui/toast-provider";
 import {
+  HowToCallout,
+  type HowToStep,
+} from "@/components/ui/how-to-callout";
+import { LockCountdown } from "@/components/ui/lock-countdown";
+import { Tooltip } from "@/components/ui/tooltip";
+import {
   pruneOrphanedKnockoutPicks,
   resolveMatch,
   type BracketMatchInfo,
@@ -15,10 +21,14 @@ import { upsertTournamentPrediction } from "@/lib/predictions/actions";
 import type { TournamentPrediction } from "@/lib/predictions/queries";
 import {
   ArrowDown,
+  ArrowRight,
   ArrowUp,
   CheckCircle2,
   ChevronRight,
   Crown,
+  HelpCircle,
+  ListOrdered,
+  MousePointerClick,
   Trophy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -205,6 +215,44 @@ export function BracketBuilder({
     return out;
   }, [knockoutSchedule]);
 
+  // 3-step explainer shown on first visit, dismissable.
+  const howToSteps: HowToStep[] =
+    locale === "fr"
+      ? [
+          {
+            icon: ListOrdered,
+            title: "1. Classe chaque groupe",
+            body: "Utilise les flèches ↑↓ sur les 12 cartes du dessous pour ranger les 4 équipes de chaque groupe de la 1ʳᵉ à la 4ᵉ place.",
+          },
+          {
+            icon: MousePointerClick,
+            title: "2. Fais avancer tes vainqueurs",
+            body: "Dans chaque tie de la phase finale, clique sur l'équipe que tu vois passer. Elle s'illumine en vert et avance d'un tour automatiquement.",
+          },
+          {
+            icon: Crown,
+            title: "3. Couronne ton champion",
+            body: "Ta finale donne automatiquement ton champion (banderole dorée en bas). Tout se sauvegarde tout seul, modifiable jusqu'au verrou.",
+          },
+        ]
+      : [
+          {
+            icon: ListOrdered,
+            title: "1. Rank every group",
+            body: "Use the ↑↓ arrows on the 12 cards below to order the 4 teams in each group from 1st to 4th.",
+          },
+          {
+            icon: MousePointerClick,
+            title: "2. Advance your winners",
+            body: "In each knockout tie, click the team you think wins. It turns green and moves to the next round automatically.",
+          },
+          {
+            icon: Crown,
+            title: "3. Crown your champion",
+            body: "Your final pick crowns your champion (gold banner at the bottom). Auto-saved, editable until the global lock.",
+          },
+        ];
+
   return (
     <div className="space-y-6">
       {!canBet && (
@@ -216,6 +264,21 @@ export function BracketBuilder({
           locale={locale}
         />
       )}
+
+      <HowToCallout
+        storageKey="howto:bracket:v1"
+        title={locale === "fr" ? "Comment ça marche" : "How it works"}
+        subtitle={
+          locale === "fr"
+            ? "Bâtis tout ton scénario du Mondial en 3 minutes. Verrouillé une seule fois au coup d'envoi du 1ᵉʳ match."
+            : "Build your whole World Cup scenario in 3 minutes. Locked once at the very first kickoff."
+        }
+        steps={howToSteps}
+        accent="gold"
+        showAgainLabel={
+          locale === "fr" ? "Revoir l'aide bracket" : "Show bracket help"
+        }
+      />
 
       {/* Sticky progress strip */}
       <section className="sticky top-[64px] z-30 rounded-[12px] border border-white/[0.1] bg-abyss/[0.85] p-3 shadow-[0_10px_30px_rgba(0,0,0,0.32)] backdrop-blur-xl sm:p-4">
@@ -246,12 +309,15 @@ export function BracketBuilder({
             </div>
           </div>
 
-          <ChampionPill
-            championId={championId}
-            teamById={teamById}
-            locale={locale}
-            saving={isPending}
-          />
+          <div className="flex items-center gap-2">
+            <LockCountdown targetAt={deadlineAt} locale={locale} />
+            <ChampionPill
+              championId={championId}
+              teamById={teamById}
+              locale={locale}
+              saving={isPending}
+            />
+          </div>
         </div>
 
         <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
@@ -264,12 +330,19 @@ export function BracketBuilder({
 
       {/* Groups */}
       <section>
-        <h2 className="mb-3 flex items-center gap-2 font-display text-lg font-semibold text-text-primary">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
-            1.
-          </span>
-          {locale === "fr" ? "Classe les groupes" : "Rank the groups"}
-        </h2>
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <h2 className="flex items-center gap-2 font-display text-lg font-semibold text-text-primary">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
+              1.
+            </span>
+            {locale === "fr" ? "Classe les groupes" : "Rank the groups"}
+          </h2>
+          <p className="hidden text-[11px] text-text-tertiary sm:block">
+            {locale === "fr"
+              ? "Flèches ↑↓ pour réordonner. Les 1ᵉʳ et 2ᵉ vont en R32."
+              : "Use ↑↓ to reorder. 1st + 2nd advance to R32."}
+          </p>
+        </div>
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {groupLetters.map((label) => (
             <GroupRanker
@@ -288,12 +361,19 @@ export function BracketBuilder({
 
       {/* Knockout */}
       <section>
-        <h2 className="mb-3 flex items-center gap-2 font-display text-lg font-semibold text-text-primary">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
-            2.
-          </span>
-          {locale === "fr" ? "Phase finale" : "Knockouts"}
-        </h2>
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <h2 className="flex items-center gap-2 font-display text-lg font-semibold text-text-primary">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
+              2.
+            </span>
+            {locale === "fr" ? "Phase finale" : "Knockouts"}
+          </h2>
+          <p className="hidden text-[11px] text-text-tertiary sm:block">
+            {locale === "fr"
+              ? "Clique l'équipe que tu vois passer. Changer une équipe au début refait la suite automatiquement."
+              : "Click the team you think wins. Changing an early pick re-runs the rest automatically."}
+          </p>
+        </div>
 
         <div className="grid gap-4 lg:grid-cols-2">
           {(
@@ -596,21 +676,31 @@ function KnockoutSlot({
           rightAligned && "justify-end",
         )}
       >
-        <select
-          value={thirdAssign[`${match.match_number}-${side}`] ?? ""}
-          onChange={(e) =>
-            onPickThirdPlace(match.match_number, side, e.target.value)
+        <Tooltip
+          content={
+            locale === "fr"
+              ? `Ce slot reçoit le 3ᵉ d'un des groupes ${candidateGroups.join(", ")}. Choisis lequel de tes 3ᵉ tu y mets.`
+              : `This slot takes one of the 3rd-placed teams from groups ${candidateGroups.join(", ")}. Pick which of your 3rds fills it.`
           }
-          disabled={!canEdit || options.length === 0}
-          className="max-w-[7.5rem] rounded-[6px] border border-white/[0.08] bg-abyss/[0.5] px-1.5 py-1 text-[10px] text-text-secondary outline-none focus:border-violet-500/40 disabled:opacity-50"
         >
-          <option value="">3{candidateGroups.join("")}</option>
-          {options.map((t) => (
-            <option key={t.id} value={t.id}>
-              {locale === "fr" ? t.name_fr : t.name_en}
+          <select
+            value={thirdAssign[`${match.match_number}-${side}`] ?? ""}
+            onChange={(e) =>
+              onPickThirdPlace(match.match_number, side, e.target.value)
+            }
+            disabled={!canEdit || options.length === 0}
+            className="max-w-[7.5rem] rounded-[6px] border border-violet-500/30 bg-abyss/[0.5] px-1.5 py-1 text-[10px] text-text-secondary outline-none focus:border-violet-500/50 disabled:opacity-50"
+          >
+            <option value="">
+              {locale === "fr" ? `3ᵉ ${candidateGroups.join("/")}` : `3rd ${candidateGroups.join("/")}`}
             </option>
-          ))}
-        </select>
+            {options.map((t) => (
+              <option key={t.id} value={t.id}>
+                {locale === "fr" ? t.name_fr : t.name_en}
+              </option>
+            ))}
+          </select>
+        </Tooltip>
       </div>
     );
   }

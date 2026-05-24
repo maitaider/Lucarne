@@ -9,9 +9,19 @@ import {
 import { placeBet } from "@/lib/bets/place-bet";
 import { useToast } from "@/components/ui/toast-provider";
 import { BuyInBanner } from "@/components/paywall/buy-in-banner";
+import {
+  HowToCallout,
+  type HowToStep,
+} from "@/components/ui/how-to-callout";
 import { PickRow } from "./pick-row";
 import type { PlayerOption } from "./player-combobox";
-import { CalendarClock, Filter, Target } from "lucide-react";
+import {
+  CalendarClock,
+  Filter,
+  MousePointerClick,
+  Plus,
+  Target,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
 
@@ -258,6 +268,33 @@ export function PicksBoard({
     return map;
   }, [players]);
 
+  const howToSteps: HowToStep[] =
+    locale === "fr"
+      ? [
+          {
+            icon: MousePointerClick,
+            title: "1. Choisis ton vainqueur",
+            body: "Sur chaque ligne de match, tap [1] (équipe à gauche), [N] (nul) ou [2] (équipe à droite). Le pari se sauvegarde tout seul.",
+          },
+          {
+            icon: Plus,
+            title: "2. Étoffe avec « + »",
+            body: "Le bouton + ouvre les pronos avancés : total de buts (+5 pts) et jusqu'à 4 buteurs (+4 pts chacun). Optionnel mais ça paie.",
+          },
+        ]
+      : [
+          {
+            icon: MousePointerClick,
+            title: "1. Pick your winner",
+            body: "On each match row, tap [1] (home), [N] (draw) or [2] (away). Auto-saved instantly.",
+          },
+          {
+            icon: Plus,
+            title: "2. Stack with «+»",
+            body: "The + button reveals advanced picks: total goals (+5 pts) and up to 4 scorers (+4 pts each). Optional but it pays.",
+          },
+        ];
+
   return (
     <div>
       {/* Buy-in paywall — shown at top when needed */}
@@ -270,6 +307,22 @@ export function PicksBoard({
           locale={locale}
         />
       )}
+
+      <HowToCallout
+        storageKey="howto:picks:v1"
+        title={locale === "fr" ? "Comment ça marche" : "How it works"}
+        subtitle={
+          locale === "fr"
+            ? "Affine tes pronos match par match pendant le tournoi. Chaque ligne est modifiable jusqu'à 1 h avant son coup d'envoi."
+            : "Refine your picks match by match during the tournament. Each row is editable up to 1 h before its kickoff."
+        }
+        steps={howToSteps}
+        accent="primary"
+        showAgainLabel={
+          locale === "fr" ? "Revoir l'aide pronos" : "Show picks help"
+        }
+      />
+
 
       {/* Progress + filter (sticky on scroll) */}
       <section className="sticky top-[64px] z-30 mb-4 rounded-[12px] border border-white/[0.1] bg-abyss/[0.85] p-3 shadow-[0_10px_30px_rgba(0,0,0,0.32),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl sm:p-4">
