@@ -7,7 +7,8 @@ import { POINTS_SCHEME } from "@/lib/bets/types";
 import { ChevronDown, Lock, Target, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
-import type { PickState, Winner } from "./picks-board";
+import type { PickState, ScorerPick, Winner } from "./picks-board";
+import { PlayerCombobox, type PlayerOption } from "./player-combobox";
 
 /**
  * One pick row = one match. Default surface shows only the three winner
@@ -19,6 +20,8 @@ export function PickRow({
   pick,
   canBet,
   locked,
+  homePlayers,
+  awayPlayers,
   onWinner,
   onTotalGoals,
   onScorers,
@@ -28,9 +31,11 @@ export function PickRow({
   pick: PickState;
   canBet: boolean;
   locked: boolean;
+  homePlayers: PlayerOption[];
+  awayPlayers: PlayerOption[];
   onWinner: (w: Winner) => void;
   onTotalGoals: (n: number) => void;
-  onScorers: (names: string[]) => void;
+  onScorers: (picks: ScorerPick[]) => void;
   locale: Locale;
 }) {
   const [expanded, setExpanded] = useState(false);
@@ -43,9 +48,7 @@ export function PickRow({
     { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" },
   );
 
-  const hasExtras =
-    pick.total_goals !== null ||
-    pick.scorers.some((s) => s.trim().length >= 2);
+  const hasExtras = pick.total_goals !== null || pick.scorers.length > 0;
 
   const disabled = !canBet || locked;
   const lockReason = (() => {
@@ -191,10 +194,12 @@ export function PickRow({
             onSelect={onTotalGoals}
             locale={locale}
           />
-          <ScorerInputs
+          <ScorerSlots
             value={pick.scorers}
             disabled={disabled}
             onChange={onScorers}
+            homePlayers={homePlayers}
+            awayPlayers={awayPlayers}
             homeName={homeName}
             awayName={awayName}
             locale={locale}
@@ -284,35 +289,55 @@ function TotalGoalsPicker({
   );
 }
 
-function ScorerInputs({
+function ScorerSlots({
   value,
   disabled,
   onChange,
+  homePlayers,
+  awayPlayers,
   homeName,
   awayName,
   locale,
 }: {
-  value: string[];
+  value: ScorerPick[];
   disabled: boolean;
-  onChange: (names: string[]) => void;
+  onChange: (picks: ScorerPick[]) => void;
+  homePlayers: PlayerOption[];
+  awayPlayers: PlayerOption[];
   homeName: string;
   awayName: string;
   locale: Locale;
 }) {
-  // Track local edits without bouncing them through the server on every
-  // keystroke — we only fire onChange when the input blurs (or Enter).
-  const [draft, setDraft] = useState<string[]>(value);
+  function setSlot(idx: number, player: PlayerOption | null) {
+    const next = [...value];
+    if (player) {
+      next[idx] = {
+        player_id: player.id,
+        player_name: player.display_name,
+      };
+    } else if (idx < next.length) {
+      next.splice(idx, 1);
+    }
+    // Dedupe by player_id, clamp to 4, drop empties.
+    const seen = new Set<string>();
+    const cleaned = next
+      .filter((p) => {
+        if (!p?.player_id) return false;
+        if (seen.has(p.player_id)) return false;
+        seen.add(p.player_id);
+        return true;
+      })
+      .slice(0, 4);
+    onChange(cleaned);
+  }
 
-  function commit(i: number, v: string) {
-    const next = [...draft];
-    next[i] = v;
-    setDraft(next);
-  }
-  function flush() {
-    // Only fire if something genuinely changed vs the parent state.
-    const changed = draft.some((s, i) => s !== value[i]);
-    if (changed) onChange(draft);
-  }
+  // Always render 4 slot widgets — filled + empty trailing.
+  const slots: Array<ScorerPick | null> = [null, null, null, null];
+  value.slice(0, 4).forEach((p, i) => {
+    slots[i] = p;
+  });
+
+  const noRoster = homePlayers.length === 0 && awayPlayers.length === 0;
 
   return (
     <div>
@@ -324,34 +349,37 @@ function ScorerInputs({
           {locale === "fr" ? "joueur" : "player"}
         </span>
       </div>
-      <div className="grid grid-cols-2 gap-1.5">
-        {[0, 1, 2, 3].map((i) => (
-          <input
-            key={i}
-            type="text"
-            value={draft[i] ?? ""}
-            onChange={(e) => commit(i, e.target.value)}
-            onBlur={flush}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                flush();
-                (e.target as HTMLInputElement).blur();
+      {noRoster ? (
+        <div className="rounded-[6px] border border-dashed border-white/[0.08] bg-white/[0.02] px-2 py-3 text-center text-[10px] text-text-tertiary">
+          {locale === "fr"
+            ? "Effectifs pas encore disponibles pour ce match."
+            : "Rosters not available for this match yet."}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-1.5">
+          {slots.map((p, i) => (
+            <PlayerCombobox
+              key={i}
+              selectedPlayerId={p?.player_id ?? null}
+              homeTeamPlayers={homePlayers}
+              awayTeamPlayers={awayPlayers}
+              homeTeamLabel={homeName}
+              awayTeamLabel={awayName}
+              disabled={disabled}
+              placeholder={
+                locale === "fr" ? `Buteur ${i + 1}` : `Scorer ${i + 1}`
               }
-            }}
-            disabled={disabled}
-            placeholder={
-              i < 2
-                ? truncate(homeName, 12)
-                : truncate(awayName, 12)
-            }
-            maxLength={60}
-            className={cn(
-              "w-full rounded-[6px] border border-white/[0.08] bg-abyss/[0.5] px-2 py-1.5 text-xs text-text-primary outline-none transition placeholder:text-text-tertiary focus:border-violet-500/50 disabled:cursor-not-allowed disabled:opacity-50",
-            )}
-          />
-        ))}
-      </div>
+              onChange={(player) => setSlot(i, player)}
+              locale={locale}
+            />
+          ))}
+        </div>
+      )}
+      <p className="mt-2 text-[10px] leading-4 text-text-tertiary">
+        {locale === "fr"
+          ? `+${POINTS_SCHEME.anytime_scorer_each} pts par buteur trouvé · 4 max`
+          : `+${POINTS_SCHEME.anytime_scorer_each} pts per correct scorer · 4 max`}
+      </p>
     </div>
   );
 }
@@ -365,6 +393,3 @@ function teamName(
   return placeholder ?? "—";
 }
 
-function truncate(s: string, n: number): string {
-  return s.length > n ? `${s.slice(0, n - 1)}…` : s;
-}

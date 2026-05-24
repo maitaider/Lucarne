@@ -3,6 +3,7 @@ import { setRequestLocale } from "next-intl/server";
 import { listMatches } from "@/lib/matches/queries";
 import { getMyPicksByMatch } from "@/lib/bets/my-picks";
 import { getMyBuyInStatus } from "@/lib/profile/buy-in";
+import { listPlayersForTeams } from "@/lib/players/queries";
 import { PicksBoard } from "@/components/picks/picks-board";
 import { Sparkles } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
@@ -21,6 +22,17 @@ export default async function PicksPage({
     getMyPicksByMatch(),
     getMyBuyInStatus(),
   ]);
+
+  // Gather every team id present on the board so we can fetch their rosters
+  // in a single round-trip and pass them down to the scorer combobox.
+  const teamIds = Array.from(
+    new Set(
+      allMatches.flatMap((m) => [m.home_team?.id, m.away_team?.id]).filter(
+        (id): id is string => typeof id === "string",
+      ),
+    ),
+  );
+  const allPlayers = await listPlayersForTeams(teamIds);
 
   // Serialize picks Map → plain object for the client boundary.
   const picksSnapshot: Record<
@@ -71,6 +83,7 @@ export default async function PicksPage({
       <PicksBoard
         matches={allMatches}
         initialPicks={picksSnapshot}
+        players={allPlayers}
         canBet={buyIn.can_bet}
         buyInAmountCents={buyIn.amount_cents}
         currency={buyIn.settings.currency}

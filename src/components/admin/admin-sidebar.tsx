@@ -5,6 +5,7 @@ import {
   Coins,
   LayoutDashboard,
   Settings,
+  Shirt,
   Users,
   Wallet,
   type LucideIcon,
@@ -22,7 +23,8 @@ const ITEMS: {
   { href: "/admin", icon: LayoutDashboard, fr: "Vue d'ensemble", en: "Overview" },
   { href: "/admin/payments", icon: Wallet, fr: "Paiements", en: "Payments" },
   { href: "/admin/economy", icon: Coins, fr: "Économie", en: "Economy" },
-  { href: "/admin/users", icon: Users, fr: "Joueurs", en: "Players" },
+  { href: "/admin/players", icon: Shirt, fr: "Effectifs", en: "Rosters" },
+  { href: "/admin/users", icon: Users, fr: "Usagers", en: "Users" },
   { href: "/admin/settings", icon: Settings, fr: "Réglages", en: "Settings" },
 ];
 

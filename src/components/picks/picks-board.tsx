@@ -10,16 +10,23 @@ import { placeBet } from "@/lib/bets/place-bet";
 import { useToast } from "@/components/ui/toast-provider";
 import { BuyInBanner } from "@/components/paywall/buy-in-banner";
 import { PickRow } from "./pick-row";
+import type { PlayerOption } from "./player-combobox";
 import { CalendarClock, Filter, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
 
 export type Winner = "home" | "draw" | "away";
 
+export type ScorerPick = {
+  player_id: string;
+  player_name: string;
+};
+
 export type PickState = {
   winner: Winner | null;
   total_goals: number | null;
-  scorers: string[]; // up to 4 names
+  /** Up to 4 selected scorers (player_id + cached display name). */
+  scorers: ScorerPick[];
 };
 
 type PicksMap = Record<string, PickState>;
@@ -30,7 +37,7 @@ type InitialPicks = Record<
 >;
 
 function emptyState(): PickState {
-  return { winner: null, total_goals: null, scorers: ["", "", "", ""] };
+  return { winner: null, total_goals: null, scorers: [] };
 }
 
 /**
@@ -56,11 +63,22 @@ function hydrate(initial: InitialPicks): PicksMap {
         r.bet_type === "anytime_scorer" &&
         Array.isArray(payload.players)
       ) {
-        const names = (payload.players as { player_name?: unknown }[])
-          .map((p) => String(p?.player_name ?? "").trim())
-          .filter((n) => n.length > 0)
+        const picks = (
+          payload.players as {
+            player_id?: unknown;
+            player_name?: unknown;
+          }[]
+        )
+          .map((p) => ({
+            player_id: String(p?.player_id ?? "").trim(),
+            player_name: String(p?.player_name ?? "").trim(),
+          }))
+          .filter(
+            (p): p is ScorerPick =>
+              p.player_id.length > 0 && p.player_name.length > 0,
+          )
           .slice(0, 4);
-        for (let i = 0; i < 4; i++) state.scorers[i] = names[i] ?? "";
+        state.scorers = picks;
       }
     }
     out[matchId] = state;
@@ -77,6 +95,7 @@ function isLockedNow(match: MatchListItem): boolean {
 export function PicksBoard({
   matches,
   initialPicks,
+  players,
   canBet,
   buyInAmountCents,
   currency,
@@ -86,6 +105,7 @@ export function PicksBoard({
 }: {
   matches: MatchListItem[];
   initialPicks: InitialPicks;
+  players: PlayerOption[];
   canBet: boolean;
   buyInAmountCents: number;
   currency: string;
@@ -143,7 +163,7 @@ export function PicksBoard({
     bet:
       | { kind: "winner"; winner: Winner }
       | { kind: "total_goals"; total: number }
-      | { kind: "scorers"; names: string[] },
+      | { kind: "scorers"; picks: ScorerPick[] },
   ) {
     const before = picks[matchId] ?? emptyState();
     const after = update(before);
@@ -173,11 +193,10 @@ export function PicksBoard({
         bet_type: "anytime_scorer" as const,
         match_id: matchId,
         payload: {
-          players: bet.names
-            .map((n) => n.trim())
-            .filter((n) => n.length >= 2)
-            .slice(0, 4)
-            .map((player_name) => ({ player_name })),
+          players: bet.picks.slice(0, 4).map((p) => ({
+            player_id: p.player_id,
+            player_name: p.player_name,
+          })),
         },
       };
     })();
@@ -211,13 +230,33 @@ export function PicksBoard({
       { kind: "total_goals", total: n },
     );
   }
-  function setScorers(matchId: string, names: string[]) {
+  function setScorers(matchId: string, picks: ScorerPick[]) {
     savePick(
       matchId,
-      (prev) => ({ ...prev, scorers: names }),
-      { kind: "scorers", names },
+      (prev) => ({ ...prev, scorers: picks }),
+      { kind: "scorers", picks },
     );
   }
+
+  // Index players by team_id for fast lookup in each row.
+  const playersByTeam = useMemo(() => {
+    const map = new Map<string, PlayerOption[]>();
+    for (const p of players) {
+      const arr = map.get(p.team_id) ?? [];
+      arr.push(p);
+      map.set(p.team_id, arr);
+    }
+    // Sort: shirt number asc (null last), then display name
+    for (const arr of map.values()) {
+      arr.sort((a, b) => {
+        const an = a.shirt_number ?? 999;
+        const bn = b.shirt_number ?? 999;
+        if (an !== bn) return an - bn;
+        return a.display_name.localeCompare(b.display_name);
+      });
+    }
+    return map;
+  }, [players]);
 
   return (
     <div>
@@ -288,9 +327,19 @@ export function PicksBoard({
                     pick={picks[m.id] ?? emptyState()}
                     canBet={canBet}
                     locked={isLockedNow(m)}
+                    homePlayers={
+                      m.home_team
+                        ? (playersByTeam.get(m.home_team.id) ?? [])
+                        : []
+                    }
+                    awayPlayers={
+                      m.away_team
+                        ? (playersByTeam.get(m.away_team.id) ?? [])
+                        : []
+                    }
                     onWinner={(w) => setWinner(m.id, w)}
                     onTotalGoals={(n) => setTotalGoals(m.id, n)}
-                    onScorers={(names) => setScorers(m.id, names)}
+                    onScorers={(picks) => setScorers(m.id, picks)}
                     locale={locale}
                   />
                 ))}
