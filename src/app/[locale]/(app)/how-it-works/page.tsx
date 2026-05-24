@@ -109,8 +109,8 @@ export default async function HowItWorksPage({
               : "Strategic step, one-shot. Rank the 12 groups 1st to 4th, drive your teams through every knockout round to your champion. Editable until the first kickoff — locked after that."
           }
           cta={{
-            href: "/bracket",
-            label: L === "fr" ? "Ouvrir le bracket" : "Open the bracket",
+            href: "/predict?tab=finale",
+            label: L === "fr" ? "Ouvrir la phase finale" : "Open knockouts",
           }}
           bullets={
             L === "fr"
@@ -138,8 +138,8 @@ export default async function HowItWorksPage({
               : "Tactical step, ongoing through the tournament. For each match: winner 1/N/2, total goals, up to 4 scorers. Editable up to 1 h before each kickoff. Tap = saved."
           }
           cta={{
-            href: "/picks",
-            label: L === "fr" ? "Ouvrir les pronos" : "Open picks",
+            href: "/predict?tab=groupes",
+            label: L === "fr" ? "Ouvrir mes pronos" : "Open my picks",
           }}
         />
 

@@ -631,7 +631,7 @@ function BracketLaunchCard({
   locale: Locale;
   canBet: boolean;
 }) {
-  const href = canBet ? "/bracket" : "/buy-in";
+  const href = canBet ? "/predict?tab=finale" : "/buy-in";
   return (
     <Link
       href={href}
@@ -648,21 +648,21 @@ function BracketLaunchCard({
           </span>
           <div className="min-w-0">
             <div className="text-[10px] font-bold uppercase tracking-wider text-gold-300">
-              {locale === "fr" ? "Étape 1 · stratégie" : "Step 1 · strategy"}
+              {locale === "fr" ? "Phase finale" : "Knockouts"}
             </div>
             <h2 className="font-display text-xl font-bold tracking-tight text-text-primary sm:text-2xl">
               {locale === "fr"
-                ? "Bâtis ton scénario du Mondial"
-                : "Build your World Cup scenario"}
+                ? "Bâtis ton arbre jusqu'au champion"
+                : "Build your bracket to the champion"}
             </h2>
             <p className="mt-1 max-w-md text-sm leading-6 text-text-secondary">
               {canBet
                 ? locale === "fr"
-                  ? "Classe chaque groupe, fais avancer tes équipes jusqu'au champion. Une fois pour toutes. Verrouillé 1 h avant le 1ᵉʳ match."
-                  : "Rank every group, drive your teams to the champion. One-shot. Locked 1 h before kickoff."
+                  ? "Avance chaque équipe de tour en tour, R32 → finale. Verrouillé 1 h avant le 1ᵉʳ match."
+                  : "Advance each team round by round, R32 → final. Locked 1 h before kickoff."
                 : locale === "fr"
-                  ? "Achète ta place pour débloquer le bracket."
-                  : "Buy your seat to unlock the bracket."}
+                  ? "Achète ta place pour débloquer la prédiction."
+                  : "Buy your seat to unlock the prediction."}
             </p>
           </div>
         </div>
@@ -699,7 +699,7 @@ function PicksLaunchCard({
 }) {
   const remaining = Math.max(openCount - picksDone, 0);
   const pct = openCount > 0 ? Math.round((picksDone / openCount) * 100) : 0;
-  const href = canBet ? "/picks" : "/buy-in";
+  const href = canBet ? "/predict?tab=groupes" : "/buy-in";
 
   return (
     <Link
@@ -717,12 +717,12 @@ function PicksLaunchCard({
           </span>
           <div className="min-w-0">
             <div className="text-[10px] font-bold uppercase tracking-wider text-primary-300">
-              {locale === "fr" ? "Étape 2 · tactique" : "Step 2 · tactical"}
+              {locale === "fr" ? "Phase de groupes" : "Group phase"}
             </div>
             <h2 className="font-display text-xl font-bold tracking-tight text-text-primary sm:text-2xl">
               {locale === "fr"
-                ? "Affine match par match"
-                : "Refine match by match"}
+                ? "Classe les groupes + pronos match"
+                : "Rank groups + per-match picks"}
             </h2>
             <p className="mt-1 max-w-md text-sm leading-6 text-text-secondary">
               {canBet

@@ -48,29 +48,19 @@ const NAV: Top[] = [
     icon: LayoutDashboard,
   },
   {
-    href: "/bracket",
+    href: "/predict",
     fr: "Tournoi",
     en: "Tournament",
     icon: Trophy,
     children: [
       {
-        href: "/bracket",
-        icon: Trophy,
-        fr: "Mon scénario",
-        en: "My scenario",
-        body: {
-          fr: "Classe les groupes + bâtis la phase finale",
-          en: "Rank groups + build the knockouts",
-        },
-      },
-      {
-        href: "/picks",
+        href: "/predict",
         icon: Sparkles,
-        fr: "Mes pronos",
-        en: "My picks",
+        fr: "Pronostique",
+        en: "Predict",
         body: {
-          fr: "Vainqueur, total de buts, buteurs par match",
-          en: "Winner, total goals, scorers per match",
+          fr: "Groupes + phase finale + pronos par match, en une page",
+          en: "Groups + bracket + per-match picks, one page",
         },
       },
       {

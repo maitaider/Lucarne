@@ -11,7 +11,6 @@ import {
   Radio,
   Receipt,
   Sparkles,
-  Trophy,
   Users,
   X,
   type LucideIcon,
@@ -38,8 +37,7 @@ const GROUPS: Array<{
     fr: "Tournoi",
     en: "Tournament",
     items: [
-      { href: "/bracket", icon: Trophy, fr: "Mon scénario", en: "My scenario" },
-      { href: "/picks", icon: Sparkles, fr: "Mes pronos", en: "My picks" },
+      { href: "/predict", icon: Sparkles, fr: "Pronostique", en: "Predict" },
       { href: "/matches", icon: CalendarDays, fr: "Calendrier", en: "Calendar" },
     ],
   },
