@@ -27,8 +27,13 @@ const ROOT = process.cwd();
 const DEV_DIR = join(ROOT, ".next", "dev");
 const SERVER_DIR = join(DEV_DIR, "server");
 
-// Pick mode from argv. Default: turbopack (most stable in 16.1.7).
-const mode = process.argv.includes("--webpack") ? "--webpack" : "--turbopack";
+// Pick mode from argv. Default: webpack.
+// Turbopack on Next 16.1.7 also loses per-page manifests and SSR runtime
+// chunks (`[turbopack]_runtime.js`) which a generic stubber can't cover —
+// the chunk content is route-specific. Webpack only loses the global
+// `prerender-manifest.json`, which we stub below. So webpack + this guard
+// is stable; turbopack + this guard is not.
+const mode = process.argv.includes("--turbopack") ? "--turbopack" : "--webpack";
 
 /** Stub generators keyed by the path relative to .next/dev */
 const STUBS = {
