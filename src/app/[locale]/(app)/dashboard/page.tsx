@@ -29,6 +29,7 @@ import {
   Link2,
   Receipt,
   Sparkles,
+  Trophy,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -325,7 +326,8 @@ export default async function DashboardPage({
         </div>
       </section>
 
-      {/* Picks hero — primary "where do I start" CTA */}
+      {/* "Where do I start" — two-step prediction journey: bracket first
+         (strategic, one-time), per-match picks second (tactical, ongoing). */}
       {(() => {
         const openCount = allMatches.filter(
           (m) =>
@@ -340,7 +342,8 @@ export default async function DashboardPage({
             ),
         ).length;
         return (
-          <section className="mt-8">
+          <section className="mt-8 grid gap-4 lg:grid-cols-2">
+            <BracketLaunchCard locale={L} canBet={buyIn.can_bet} />
             <PicksLaunchCard
               locale={L}
               canBet={buyIn.can_bet}
@@ -606,6 +609,68 @@ function FeaturedActionCard({
   );
 }
 
+function BracketLaunchCard({
+  locale,
+  canBet,
+}: {
+  locale: Locale;
+  canBet: boolean;
+}) {
+  const href = canBet ? "/bracket" : "/buy-in";
+  return (
+    <Link
+      href={href}
+      className="group relative block overflow-hidden rounded-[14px] border border-gold-500/40 bg-gradient-to-br from-gold-500/[0.18] via-primary-500/[0.06] to-transparent p-5 backdrop-blur-xl transition hover:border-gold-500/60 sm:p-6"
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-10 -top-10 size-44 rounded-full bg-gold-500/25 blur-3xl transition group-hover:scale-110"
+      />
+      <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-3 sm:items-center">
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-[10px] border border-gold-500/45 bg-gold-500/15 text-gold-300 shadow-glow-gold">
+            <Trophy className="size-6" strokeWidth={1.7} />
+          </span>
+          <div className="min-w-0">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-gold-300">
+              {locale === "fr" ? "Étape 1 · stratégie" : "Step 1 · strategy"}
+            </div>
+            <h2 className="font-display text-xl font-bold tracking-tight text-text-primary sm:text-2xl">
+              {locale === "fr"
+                ? "Bâtis ton scénario du Mondial"
+                : "Build your World Cup scenario"}
+            </h2>
+            <p className="mt-1 max-w-md text-sm leading-6 text-text-secondary">
+              {canBet
+                ? locale === "fr"
+                  ? "Classe chaque groupe, fais avancer tes équipes jusqu'au champion. Une fois pour toutes. Verrouillé 1 h avant le 1ᵉʳ match."
+                  : "Rank every group, drive your teams to the champion. One-shot. Locked 1 h before kickoff."
+                : locale === "fr"
+                  ? "Achète ta place pour débloquer le bracket."
+                  : "Buy your seat to unlock the bracket."}
+            </p>
+          </div>
+        </div>
+        <div className="shrink-0">
+          <span className="inline-flex items-center gap-2 rounded-[10px] bg-gold-500 px-5 py-3 text-sm font-bold text-abyss shadow-glow-gold transition group-hover:bg-gold-400">
+            {canBet
+              ? locale === "fr"
+                ? "Construire"
+                : "Build it"
+              : locale === "fr"
+                ? "Acheter ma place"
+                : "Buy my seat"}
+            <ArrowRight
+              className="size-4 transition group-hover:translate-x-0.5"
+              strokeWidth={2.5}
+            />
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 function PicksLaunchCard({
   locale,
   canBet,
@@ -636,13 +701,13 @@ function PicksLaunchCard({
             <Sparkles className="size-6" strokeWidth={1.7} />
           </span>
           <div className="min-w-0">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-gold-300">
-              {locale === "fr" ? "Par où commencer" : "Where to start"}
+            <div className="text-[10px] font-bold uppercase tracking-wider text-primary-300">
+              {locale === "fr" ? "Étape 2 · tactique" : "Step 2 · tactical"}
             </div>
             <h2 className="font-display text-xl font-bold tracking-tight text-text-primary sm:text-2xl">
               {locale === "fr"
-                ? "Pronostique toute la Coupe en une page"
-                : "Pick the whole World Cup on one page"}
+                ? "Affine match par match"
+                : "Refine match by match"}
             </h2>
             <p className="mt-1 max-w-md text-sm leading-6 text-text-secondary">
               {canBet

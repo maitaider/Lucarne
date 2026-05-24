@@ -6,6 +6,7 @@ import {
   CalendarDays,
   Receipt,
   Sparkles,
+  Trophy,
   Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -13,6 +14,7 @@ import type { Locale } from "@/i18n/routing";
 
 const items = [
   { href: "/dashboard", icon: LayoutDashboard, fr: "Dashboard", en: "Dashboard" },
+  { href: "/bracket", icon: Trophy, fr: "Bracket", en: "Bracket" },
   { href: "/picks", icon: Sparkles, fr: "Pronos", en: "Picks" },
   { href: "/matches", icon: CalendarDays, fr: "Matchs", en: "Matches" },
   { href: "/bets", icon: Receipt, fr: "Paris", en: "Bets" },
