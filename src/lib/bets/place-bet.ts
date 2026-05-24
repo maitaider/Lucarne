@@ -15,6 +15,7 @@ export type PlaceBetError =
   | "supabase_not_configured"
   | "rpc_error"
   | "kickoff_too_close"
+  | "buy_in_required"
   | "match_not_found"
   | "invalid_stake"
   | "not_a_league_member"
@@ -70,7 +71,9 @@ export async function placeBet(input: PlaceBetForm): Promise<PlaceBetResult> {
     // Map Postgres exceptions to typed errors
     const msg = error.message.toLowerCase();
     if (msg.includes("kickoff_too_close"))
-      return { ok: false, error: "kickoff_too_close", message: "Trop tard — coup d'envoi dans moins de 60s." };
+      return { ok: false, error: "kickoff_too_close", message: "Trop tard — coup d'envoi dans moins d'1 h." };
+    if (msg.includes("buy_in_required"))
+      return { ok: false, error: "buy_in_required", message: "Achète d'abord ta place pour parier." };
     if (msg.includes("match_not_found"))
       return { ok: false, error: "match_not_found", message: "Match introuvable." };
     if (msg.includes("invalid_stake"))

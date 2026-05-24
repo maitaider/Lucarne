@@ -2,12 +2,21 @@
 
 import { useEffect, useState } from "react";
 import { Link, usePathname } from "@/i18n/navigation";
-import { Menu, X, LayoutDashboard, CalendarDays, Receipt, Users } from "lucide-react";
+import {
+  Menu,
+  X,
+  LayoutDashboard,
+  CalendarDays,
+  Receipt,
+  Sparkles,
+  Users,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
 
 const items = [
   { href: "/dashboard", icon: LayoutDashboard, fr: "Dashboard", en: "Dashboard" },
+  { href: "/picks", icon: Sparkles, fr: "Pronos", en: "Picks" },
   { href: "/matches", icon: CalendarDays, fr: "Matchs", en: "Matches" },
   { href: "/bets", icon: Receipt, fr: "Mes paris", en: "My bets" },
   { href: "/leagues", icon: Users, fr: "Ligues", en: "Leagues" },

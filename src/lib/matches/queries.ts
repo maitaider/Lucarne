@@ -4,6 +4,13 @@ import {
   getStaticWorldCupMatches,
 } from "@/data/world-cup-2026";
 import { getSupabaseServer } from "@/lib/supabase/server";
+import type {
+  MatchListItem,
+  MatchStage,
+  MatchStatus,
+  TeamSnippet,
+  VenueSnippet,
+} from "./shared";
 
 // supabase-js types one-to-one embeds as arrays in some inference paths; pick first.
 function pickOne<T>(v: T | T[] | null | undefined): T | null {
@@ -45,49 +52,16 @@ function toMatchListItem(row: MatchRow): MatchListItem {
   };
 }
 
-export type MatchStage =
-  | "group"
-  | "r32"
-  | "r16"
-  | "qf"
-  | "sf"
-  | "third_place"
-  | "final";
-
-export type MatchStatus = "scheduled" | "live" | "finished" | "postponed" | "cancelled";
-
-export type MatchListItem = {
-  id: string;
-  match_number: number | null;
-  stage: MatchStage;
-  group_label: string | null;
-  kickoff_at: string;
-  status: MatchStatus;
-  home_score: number | null;
-  away_score: number | null;
-  home_placeholder: string | null;
-  away_placeholder: string | null;
-  home_team: TeamSnippet | null;
-  away_team: TeamSnippet | null;
-  venue: VenueSnippet | null;
-};
-
-export type TeamSnippet = {
-  id: string;
-  fifa_code: string;
-  iso_code: string | null;
-  name_fr: string;
-  name_en: string;
-  flag_emoji: string | null;
-  logo_url: string | null;
-};
-
-export type VenueSnippet = {
-  id: string;
-  name: string;
-  city_fr: string;
-  city_en: string;
-};
+// Types + pure helpers moved to ./shared.ts so they can be imported from
+// client components. Re-exported here for back-compat with existing callers.
+export type {
+  MatchStage,
+  MatchStatus,
+  MatchListItem,
+  TeamSnippet,
+  VenueSnippet,
+} from "./shared";
+export { groupMatchesByDate } from "./shared";
 
 /**
  * Fetch all matches with team + venue joins. Server-only.
@@ -176,24 +150,3 @@ function filterMatches(
   });
 }
 
-/** Group an array of matches by ISO date (YYYY-MM-DD in app timezone). */
-export function groupMatchesByDate(
-  matches: MatchListItem[],
-  timeZone = "Europe/Paris",
-): Map<string, MatchListItem[]> {
-  const groups = new Map<string, MatchListItem[]>();
-  const formatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-
-  for (const m of matches) {
-    const date = formatter.format(new Date(m.kickoff_at));
-    const list = groups.get(date) ?? [];
-    list.push(m);
-    groups.set(date, list);
-  }
-  return groups;
-}

@@ -270,15 +270,7 @@ export function computePrizePool(
   return { house_cents: houseCents, pool_cents: poolCents, payouts };
 }
 
-export function formatMoney(
-  cents: number,
-  currency: string = "CAD",
-  locale: string = "fr-CA",
-): string {
-  return new Intl.NumberFormat(locale, {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(cents / 100);
-}
+// formatMoney lives in lib/admin/money.ts so client components can use it
+// without dragging the server-only economy module into the bundle. Re-export
+// here for back-compat with existing server callers.
+export { formatMoney } from "./money";

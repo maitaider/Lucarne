@@ -1,5 +1,5 @@
 import { Link } from "@/i18n/navigation";
-import { formatMoney } from "@/lib/admin/economy";
+import { formatMoney } from "@/lib/admin/money";
 import { ArrowRight, CalendarClock, Ticket } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
 

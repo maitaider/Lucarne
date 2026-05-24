@@ -28,6 +28,7 @@ import {
   Crown,
   Link2,
   Receipt,
+  Sparkles,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -324,12 +325,38 @@ export default async function DashboardPage({
         </div>
       </section>
 
+      {/* Picks hero — primary "where do I start" CTA */}
+      {(() => {
+        const openCount = allMatches.filter(
+          (m) =>
+            m.status === "scheduled" &&
+            new Date(m.kickoff_at).getTime() - now > 60 * 60_000,
+        ).length;
+        const picksDone = Array.from(myPicksByMatch.entries()).filter(
+          ([, picks]) =>
+            picks.some(
+              (p) =>
+                p.bet_type === "match_winner" && p.status === "validated",
+            ),
+        ).length;
+        return (
+          <section className="mt-8">
+            <PicksLaunchCard
+              locale={L}
+              canBet={buyIn.can_bet}
+              openCount={openCount}
+              picksDone={picksDone}
+            />
+          </section>
+        );
+      })()}
+
       {/* Featured upcoming + my activity */}
-      <div className="mt-8 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+      <div className="mt-6 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
         <section>
           <SectionHeader
             icon={CalendarClock}
-            title={L === "fr" ? "Action rapide" : "Quick action"}
+            title={L === "fr" ? "Match en vedette" : "Featured match"}
             href="/matches"
             linkLabel={L === "fr" ? "Tous les matchs" : "All matches"}
           />
@@ -576,6 +603,97 @@ function FeaturedActionCard({
         </Link>
       </div>
     </div>
+  );
+}
+
+function PicksLaunchCard({
+  locale,
+  canBet,
+  openCount,
+  picksDone,
+}: {
+  locale: Locale;
+  canBet: boolean;
+  openCount: number;
+  picksDone: number;
+}) {
+  const remaining = Math.max(openCount - picksDone, 0);
+  const pct = openCount > 0 ? Math.round((picksDone / openCount) * 100) : 0;
+  const href = canBet ? "/picks" : "/buy-in";
+
+  return (
+    <Link
+      href={href}
+      className="group relative block overflow-hidden rounded-[14px] border border-gold-500/35 bg-gradient-to-br from-gold-500/[0.16] via-primary-500/[0.08] to-transparent p-5 backdrop-blur-xl transition hover:border-gold-500/55 sm:p-6"
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-10 -top-10 size-44 rounded-full bg-gold-500/20 blur-3xl transition group-hover:scale-110"
+      />
+      <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-3 sm:items-center">
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-[10px] border border-gold-500/40 bg-gold-500/15 text-gold-300 shadow-glow-gold">
+            <Sparkles className="size-6" strokeWidth={1.7} />
+          </span>
+          <div className="min-w-0">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-gold-300">
+              {locale === "fr" ? "Par où commencer" : "Where to start"}
+            </div>
+            <h2 className="font-display text-xl font-bold tracking-tight text-text-primary sm:text-2xl">
+              {locale === "fr"
+                ? "Pronostique toute la Coupe en une page"
+                : "Pick the whole World Cup on one page"}
+            </h2>
+            <p className="mt-1 max-w-md text-sm leading-6 text-text-secondary">
+              {canBet
+                ? remaining > 0
+                  ? locale === "fr"
+                    ? `Il te reste ${remaining} match${remaining > 1 ? "s" : ""} à pronostiquer. Un clic par match — tout est sauvegardé tout seul.`
+                    : `${remaining} match${remaining > 1 ? "es" : ""} left to pick. One tap each — auto-saved.`
+                  : locale === "fr"
+                    ? "Tu as pronostiqué tous les matchs ouverts. Affine tes pronos jusqu'à 1 h avant chaque coup d'envoi."
+                    : "Every open match is picked. Tune your calls up to 1 h before each kickoff."
+                : locale === "fr"
+                  ? "Achète ta place pour débloquer le board pronos sur les 104 matchs."
+                  : "Buy your seat to unlock the pick'em board for all 104 matches."}
+            </p>
+            {canBet && openCount > 0 && (
+              <div className="mt-3 max-w-md">
+                <div className="mb-1 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
+                  <span>
+                    {picksDone}/{openCount}{" "}
+                    {locale === "fr" ? "pronos" : "picks"}
+                  </span>
+                  <span>{pct}%</span>
+                </div>
+                <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-primary-500 via-primary-400 to-gold-400 transition-[width] duration-500"
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="shrink-0">
+          <span className="inline-flex items-center gap-2 rounded-[10px] bg-gold-500 px-5 py-3 text-sm font-bold text-abyss shadow-glow-gold transition group-hover:bg-gold-400">
+            {canBet
+              ? locale === "fr"
+                ? "Ouvrir le board"
+                : "Open board"
+              : locale === "fr"
+                ? "Acheter ma place"
+                : "Buy my seat"}
+            <ArrowRight
+              className="size-4 transition group-hover:translate-x-0.5"
+              strokeWidth={2.5}
+            />
+          </span>
+        </div>
+      </div>
+    </Link>
   );
 }
 
