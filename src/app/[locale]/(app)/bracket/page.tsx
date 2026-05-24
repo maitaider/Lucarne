@@ -84,7 +84,7 @@ export default async function BracketPage({
         <div className="relative max-w-2xl">
           <div className="mb-3 inline-flex items-center gap-1.5 rounded-[8px] border border-gold-500/35 bg-gold-500/[0.1] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-gold-300 shadow-glow-gold">
             <Trophy className="size-3.5" strokeWidth={1.7} />
-            {L === "fr" ? "Mon bracket" : "My bracket"}
+            {L === "fr" ? "Mon scénario" : "My scenario"}
           </div>
           <h1 className="font-display text-3xl font-semibold leading-tight text-text-primary sm:text-4xl">
             {L === "fr"

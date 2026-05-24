@@ -11,6 +11,7 @@ import { getMyPicksByMatch, type MyPick } from "@/lib/bets/my-picks";
 import { picksToExisting } from "@/lib/bets/picks-to-existing";
 import { getMyBuyInStatus } from "@/lib/profile/buy-in";
 import { BuyInBanner } from "@/components/paywall/buy-in-banner";
+import { LockCountdown } from "@/components/ui/lock-countdown";
 import {
   Cockpit,
   TrophyModeCard,
@@ -233,9 +234,23 @@ export default async function DashboardPage({
           {/* Left side — greeting + trophy mode + 4 stats */}
           <div className="flex flex-col gap-6">
             <div>
-              <div className="mb-3 inline-flex items-center gap-1.5 rounded-[8px] border border-gold-500/30 bg-gold-500/[0.1] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-gold-400 shadow-glow-gold">
-                <WorldTrophyMark className="size-3.5" />
-                {L === "fr" ? "Coupe du Monde 2026" : "FIFA World Cup 2026"}
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <div className="inline-flex items-center gap-1.5 rounded-[8px] border border-gold-500/30 bg-gold-500/[0.1] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-gold-400 shadow-glow-gold">
+                  <WorldTrophyMark className="size-3.5" />
+                  {L === "fr" ? "Coupe du Monde 2026" : "FIFA World Cup 2026"}
+                </div>
+                <LockCountdown
+                  targetAt={buyIn.settings.tournament_start_at}
+                  locale={L}
+                  prefix={{
+                    fr: "Coup d'envoi dans",
+                    en: "Kicks off in",
+                  }}
+                  pastLabel={{
+                    fr: "Tournoi en cours",
+                    en: "Tournament live",
+                  }}
+                />
               </div>
               <h1 className="font-display text-3xl font-semibold leading-tight text-text-primary sm:text-4xl lg:text-5xl">
                 {L === "fr" ? "Salut" : "Hey"}

@@ -17,18 +17,22 @@ import {
   type GroupStandings,
   type KnockoutWinners,
 } from "@/lib/predictions/resolve-bracket";
-import { upsertTournamentPrediction } from "@/lib/predictions/actions";
+import {
+  resetTournamentPrediction,
+  upsertTournamentPrediction,
+} from "@/lib/predictions/actions";
 import type { TournamentPrediction } from "@/lib/predictions/queries";
+import { useRouter } from "@/i18n/navigation";
 import {
   ArrowDown,
-  ArrowRight,
   ArrowUp,
   CheckCircle2,
   ChevronRight,
   Crown,
-  HelpCircle,
   ListOrdered,
   MousePointerClick,
+  RotateCcw,
+  Trash2,
   Trophy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -69,6 +73,7 @@ export function BracketBuilder({
   deadlinePassed: boolean;
   locale: Locale;
 }) {
+  const router = useRouter();
   const toast = useToast();
   const [isPending, startTransition] = useTransition();
 
@@ -185,6 +190,67 @@ export function BracketBuilder({
     });
   }
 
+  // Pre-compute match_numbers per stage so the reset action knows what
+  // to wipe.
+  const stageMatchNumbers = useMemo(() => {
+    const out: Record<string, number[]> = {};
+    for (const m of knockoutSchedule) {
+      (out[m.stage] ??= []).push(m.match_number);
+    }
+    return out;
+  }, [knockoutSchedule]);
+
+  function reset(
+    scope:
+      | "all"
+      | "groups"
+      | "r32"
+      | "r16"
+      | "qf"
+      | "sf"
+      | "third_place"
+      | "final",
+  ) {
+    if (!canEdit) return;
+    startTransition(async () => {
+      const res = await resetTournamentPrediction({
+        scope,
+        group_standings: groups,
+        knockout_winners: knockouts,
+        stage_match_numbers: stageMatchNumbers,
+      });
+      if (!res.ok) {
+        toast.error(res.message);
+        return;
+      }
+      // Apply locally so the UI updates immediately.
+      if (scope === "all" || scope === "groups") {
+        setGroups(hydrateGroups({}, groupTeams));
+        setKnockouts({});
+        setThirdAssign({});
+      } else {
+        const order = ["r32", "r16", "qf", "sf", "third_place", "final"];
+        const idx = order.indexOf(scope);
+        const toClear = order.slice(idx);
+        const nextK = { ...knockouts };
+        const nextAssign = { ...thirdAssign };
+        for (const stage of toClear) {
+          for (const n of stageMatchNumbers[stage] ?? []) {
+            delete nextK[String(n)];
+            delete nextAssign[`${n}-home`];
+            delete nextAssign[`${n}-away`];
+          }
+        }
+        setKnockouts(nextK);
+        setThirdAssign(nextAssign);
+      }
+      toast.success(
+        locale === "fr" ? "Réinitialisé" : "Reset done",
+      );
+      router.refresh();
+    });
+  }
+
   // Counters for the progress strip
   const groupsFilledCount = Object.values(groups).filter(
     (g) => g.length === 4,
@@ -276,7 +342,7 @@ export function BracketBuilder({
         steps={howToSteps}
         accent="gold"
         showAgainLabel={
-          locale === "fr" ? "Revoir l'aide bracket" : "Show bracket help"
+          locale === "fr" ? "Revoir l'aide scénario" : "Show scenario help"
         }
       />
 
@@ -337,11 +403,19 @@ export function BracketBuilder({
             </span>
             {locale === "fr" ? "Classe les groupes" : "Rank the groups"}
           </h2>
-          <p className="hidden text-[11px] text-text-tertiary sm:block">
-            {locale === "fr"
-              ? "Flèches ↑↓ pour réordonner. Les 1ᵉʳ et 2ᵉ vont en R32."
-              : "Use ↑↓ to reorder. 1st + 2nd advance to R32."}
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="hidden text-[11px] text-text-tertiary sm:block">
+              {locale === "fr"
+                ? "Flèches ↑↓ pour réordonner."
+                : "Use ↑↓ to reorder."}
+            </p>
+            <ResetButton
+              disabled={!canEdit || groupsFilledCount === 0}
+              onClick={() => reset("groups")}
+              locale={locale}
+              size="sm"
+            />
+          </div>
         </div>
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {groupLetters.map((label) => (
@@ -385,7 +459,12 @@ export function BracketBuilder({
               ["third_place", locale === "fr" ? "3ᵉ place" : "3rd place"],
               ["final", locale === "fr" ? "Finale" : "Final"],
             ] as const
-          ).map(([stage, label]) => (
+          ).map(([stage, label]) => {
+            const stageMatches = byStage[stage] ?? [];
+            const stagePicked = stageMatches.filter(
+              (m) => knockouts[String(m.match_number)],
+            ).length;
+            return (
             <article
               key={stage}
               className={cn(
@@ -393,14 +472,22 @@ export function BracketBuilder({
                 stage === "final" && "border-gold-500/40 bg-gold-500/[0.06]",
               )}
             >
-              <h3 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-text-tertiary">
-                {stage === "final" && (
-                  <Crown className="size-3.5 text-gold-300" strokeWidth={2} />
-                )}
-                {label}
-                <span className="rounded-full bg-white/[0.05] px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-text-tertiary">
-                  {byStage[stage]?.length ?? 0}
+              <h3 className="mb-3 flex items-center justify-between gap-2 text-xs font-bold uppercase tracking-wider text-text-tertiary">
+                <span className="flex items-center gap-2">
+                  {stage === "final" && (
+                    <Crown className="size-3.5 text-gold-300" strokeWidth={2} />
+                  )}
+                  {label}
+                  <span className="rounded-full bg-white/[0.05] px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-text-tertiary">
+                    {stagePicked}/{stageMatches.length}
+                  </span>
                 </span>
+                <ResetButton
+                  disabled={!canEdit || stagePicked === 0}
+                  onClick={() => reset(stage)}
+                  locale={locale}
+                  size="xs"
+                />
               </h3>
               <ul className="space-y-1.5">
                 {byStage[stage]?.map((m) => {
@@ -436,7 +523,8 @@ export function BracketBuilder({
                 })}
               </ul>
             </article>
-          ))}
+            );
+          })}
         </div>
       </section>
 
@@ -446,7 +534,77 @@ export function BracketBuilder({
         teamById={teamById}
         locale={locale}
       />
+
+      {/* Danger zone — full reset */}
+      {canEdit && (groupsFilledCount > 0 || knockoutPickedCount > 0) && (
+        <section className="mt-6 flex flex-col items-center gap-2 rounded-[12px] border border-error/25 bg-error/[0.04] p-4 text-center backdrop-blur-xl sm:flex-row sm:justify-between sm:text-left">
+          <div>
+            <div className="font-display text-sm font-semibold text-text-primary">
+              {locale === "fr"
+                ? "Tout effacer et repartir de zéro"
+                : "Wipe everything and start over"}
+            </div>
+            <p className="mt-0.5 text-xs leading-5 text-text-tertiary">
+              {locale === "fr"
+                ? "Efface tous tes pronostics (groupes + phase finale + champion). Tu pourras reconstruire à partir de zéro."
+                : "Clears every pick (groups + knockouts + champion). You'll be able to start fresh."}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (
+                confirm(
+                  locale === "fr"
+                    ? "Effacer tout ton scénario ? Action irréversible."
+                    : "Wipe your entire scenario? This can't be undone.",
+                )
+              )
+                reset("all");
+            }}
+            disabled={isPending}
+            className="inline-flex items-center gap-2 rounded-[8px] border border-error/40 bg-error/[0.1] px-4 py-2 text-xs font-bold uppercase tracking-wider text-error transition hover:bg-error/[0.18] disabled:opacity-50"
+          >
+            <Trash2 className="size-3.5" strokeWidth={2.5} />
+            {locale === "fr" ? "Tout effacer" : "Wipe all"}
+          </button>
+        </section>
+      )}
     </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Reset button (mini)                                                       */
+/* -------------------------------------------------------------------------- */
+function ResetButton({
+  onClick,
+  disabled,
+  locale,
+  size = "sm",
+}: {
+  onClick: () => void;
+  disabled: boolean;
+  locale: Locale;
+  size?: "xs" | "sm";
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      title={locale === "fr" ? "Réinitialiser cette section" : "Reset this section"}
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full border border-white/[0.08] bg-white/[0.04] font-bold uppercase tracking-wider text-text-tertiary transition hover:border-error/40 hover:bg-error/[0.1] hover:text-error disabled:cursor-not-allowed disabled:opacity-30",
+        size === "xs" ? "px-1.5 py-0.5 text-[9px]" : "px-2 py-1 text-[10px]",
+      )}
+    >
+      <RotateCcw
+        className={size === "xs" ? "size-2.5" : "size-3"}
+        strokeWidth={2.5}
+      />
+      {locale === "fr" ? "Réinit" : "Reset"}
+    </button>
   );
 }
 

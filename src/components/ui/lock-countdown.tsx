@@ -14,10 +14,16 @@ export function LockCountdown({
   targetAt,
   locale,
   className,
+  prefix,
+  pastLabel,
 }: {
   targetAt: string;
   locale: Locale;
   className?: string;
+  /** Optional override, e.g. "Coup d'envoi dans" / "Kicks off in". */
+  prefix?: { fr: string; en: string };
+  /** Optional label shown after the target has passed. */
+  pastLabel?: { fr: string; en: string };
 }) {
   const [now, setNow] = useState(() => Date.now());
 
@@ -38,7 +44,13 @@ export function LockCountdown({
         )}
       >
         <Lock className="size-3" strokeWidth={2.5} />
-        {locale === "fr" ? "Verrouillé" : "Locked"}
+        {pastLabel
+          ? locale === "fr"
+            ? pastLabel.fr
+            : pastLabel.en
+          : locale === "fr"
+            ? "Verrouillé"
+            : "Locked"}
       </span>
     );
   }
@@ -72,7 +84,11 @@ export function LockCountdown({
       )}
     >
       <Clock className="size-3" strokeWidth={2.5} />
-      {locale === "fr" ? `Verrouille dans ${label}` : `Locks in ${label}`}
+      {prefix
+        ? `${locale === "fr" ? prefix.fr : prefix.en} ${label}`
+        : locale === "fr"
+          ? `Verrouille dans ${label}`
+          : `Locks in ${label}`}
     </span>
   );
 }

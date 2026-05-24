@@ -102,7 +102,7 @@ export default async function HowItWorksPage({
           n={2}
           icon={Trophy}
           accent="gold"
-          title={L === "fr" ? "Bâtis ton scénario (Bracket)" : "Build your scenario (Bracket)"}
+          title={L === "fr" ? "Bâtis ton scénario du Mondial" : "Build your World Cup scenario"}
           body={
             L === "fr"
               ? "Étape stratégique, une seule fois. Classe les 12 groupes de la 1ʳᵉ à la 4ᵉ place, fais avancer tes équipes de tour en tour jusqu'à ton champion. Modifiable jusqu'au coup d'envoi du 1ᵉʳ match — après, plus de modif."
@@ -236,8 +236,8 @@ export default async function HowItWorksPage({
           title={L === "fr" ? "Deux types de verrou" : "Two kinds of lock"}
           body={
             L === "fr"
-              ? `Bracket : verrouillé une seule fois le ${lockLabel}. Pronos par match : chaque ligne se verrouille 1 h avant son propre coup d'envoi.`
-              : `Bracket: locked once on ${lockLabel}. Per-match picks: each row locks 1 h before its own kickoff.`
+              ? `Scénario : verrouillé une seule fois le ${lockLabel}. Pronos par match : chaque ligne se verrouille 1 h avant son propre coup d'envoi.`
+              : `Scenario: locked once on ${lockLabel}. Per-match picks: each row locks 1 h before its own kickoff.`
           }
         />
         <NoteCard
