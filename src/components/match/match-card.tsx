@@ -12,10 +12,13 @@ export function MatchCard({
   match,
   locale,
   myPicks,
+  canBet = true,
 }: {
   match: MatchListItem;
   locale: Locale;
   myPicks?: MyPick[];
+  /** When false, the bet-strip CTA becomes a paywall link to /buy-in. */
+  canBet?: boolean;
 }) {
   const isLive = match.status === "live";
   const isFinished = match.status === "finished";
@@ -124,11 +127,10 @@ export function MatchCard({
           locale={locale}
           variant="strip"
           hasPick={
-            myPicks?.some((p) =>
-              ["validated", "paid", "pending_payment"].includes(p.status),
-            ) ?? false
+            myPicks?.some((p) => p.status === "validated") ?? false
           }
           existing={picksToExisting(myPicks)}
+          canBet={canBet}
         />
       )}
     </Link>

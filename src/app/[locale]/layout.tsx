@@ -31,13 +31,13 @@ export const metadata: Metadata = {
     template: "%s · Lucarne",
   },
   description:
-    "Plateforme privée de pronostics pour la Coupe du Monde 2026 : ligues sur invitation, mises entre amis, validations admin et classements.",
+    "Plateforme privée de pronostics pour la Coupe du Monde 2026 : achète ta place, parie sur les 104 matchs, top 3 partage la cagnotte.",
   applicationName: "Lucarne",
   authors: [{ name: "Lucarne" }],
   openGraph: {
     title: "Lucarne · Pronostics privés pour le Mondial 2026",
     description:
-      "Organise une ligue de pronostics privée avec mises, validations et classements pour tout le Mondial 2026.",
+      "Une seule place à acheter, accès à tous les pronostics du Mondial 2026, top 3 du classement se partage la cagnotte.",
     type: "website",
     images: [
       {
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Lucarne · Pronostics privés pour le Mondial 2026",
     description:
-      "Ligues privées, mises entre amis, validations admin et classements pour le Mondial 2026.",
+      "Ligues privées, achat de place unique, classements et cagnotte réelle pour le Mondial 2026.",
     images: ["/marketing/lucarne-hero-stadium.jpg"],
   },
   appleWebApp: {

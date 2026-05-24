@@ -41,7 +41,25 @@ update public.app_settings set scoring_rules = '{
 -- ---------------------------------------------------------------------------
 -- place_bet — extend buffer to 1 hour + accept stake_cents = 0
 -- ---------------------------------------------------------------------------
-create or replace function public.place_bet(
+-- Drop every existing overload first so `revoke … from public` below isn't
+-- ambiguous (initial_schema declared p_stake_cents as bigint without
+-- defaults; this version uses int + defaults, which is a different signature).
+do $$
+declare
+  r record;
+begin
+  for r in
+    select format('drop function if exists %s cascade',
+                   p.oid::regprocedure::text) as ddl
+      from pg_proc p
+      join pg_namespace n on n.oid = p.pronamespace
+     where n.nspname = 'public' and p.proname = 'place_bet'
+  loop
+    execute r.ddl;
+  end loop;
+end $$;
+
+create function public.place_bet(
   p_league_id uuid,
   p_match_id uuid,
   p_bet_type bet_type_enum,

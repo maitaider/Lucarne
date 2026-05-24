@@ -3,31 +3,24 @@
 import { z } from "zod";
 import { getStripe } from "./server";
 import { getSupabaseServer } from "@/lib/supabase/server";
-import { getAppSettings } from "@/lib/admin/economy";
+import { getAppSettings, effectiveBuyInDeadline } from "@/lib/admin/economy";
 import { redirect } from "@/i18n/navigation";
 
 const checkoutSchema = z.object({
-  // Pack tier: pre-defined token bundles
-  pack: z.enum(["small", "medium", "large", "custom"]).default("medium"),
-  custom_tokens: z.number().int().min(10).max(10000).optional(),
   locale: z.enum(["fr", "en"]).default("fr"),
 });
-
-/** Predefined token packs (qty in tokens). Price computed from app_settings.token_price_cents. */
-const PACKS = {
-  small: 20,
-  medium: 50,
-  large: 200,
-  custom: 0, // overridden by custom_tokens
-} as const;
 
 export type CheckoutResult =
   | { ok: true; url: string }
   | { ok: false; message: string; code?: string };
 
+/**
+ * Creates a Stripe Checkout Session for the fixed seat / buy-in.
+ * The amount is `app_settings.buy_in_amount_cents` (default $20 CAD).
+ * Successful payment is fulfilled by the webhook → real_payments row,
+ * which unlocks betting via has_paid_buy_in().
+ */
 export async function createCheckoutSession(input: {
-  pack?: "small" | "medium" | "large" | "custom";
-  custom_tokens?: number;
   locale?: "fr" | "en";
 }): Promise<CheckoutResult> {
   const parsed = checkoutSchema.safeParse(input);
@@ -62,30 +55,40 @@ export async function createCheckoutSession(input: {
   }
 
   const settings = await getAppSettings();
-  if (
-    settings.buy_in_deadline &&
-    new Date(settings.buy_in_deadline).getTime() < Date.now()
-  ) {
+  const deadline = effectiveBuyInDeadline(settings);
+  if (deadline.getTime() < Date.now()) {
     return {
       ok: false,
-      message: "La date butoir d'achat est passée.",
+      message: "La date butoire d'achat de place est passée.",
       code: "deadline_passed",
     };
   }
 
-  const tokens =
-    parsed.data.pack === "custom"
-      ? (parsed.data.custom_tokens ?? 0)
-      : PACKS[parsed.data.pack];
-  if (tokens <= 0) {
-    return { ok: false, message: "Quantité invalide", code: "bad_qty" };
+  // Refuse double-payment: if the user already has a confirmed buy-in,
+  // there's nothing to sell them.
+  const { data: existing } = await supabase
+    .from("real_payments")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("status", "confirmed")
+    .gte("amount_cents", settings.buy_in_amount_cents)
+    .limit(1);
+  if (existing && existing.length > 0) {
+    return {
+      ok: false,
+      message: "Ta place est déjà payée.",
+      code: "already_paid",
+    };
   }
 
-  const amountCents = tokens * settings.token_price_cents;
-  const appUrl =
-    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-  const successUrl = `${appUrl}/${parsed.data.locale}/profile/wallet?stripe=success&session_id={CHECKOUT_SESSION_ID}`;
-  const cancelUrl = `${appUrl}/${parsed.data.locale}/profile/wallet?stripe=cancelled`;
+  const amountCents = settings.buy_in_amount_cents;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const successUrl = `${appUrl}/${parsed.data.locale}/buy-in?stripe=success&session_id={CHECKOUT_SESSION_ID}`;
+  const cancelUrl = `${appUrl}/${parsed.data.locale}/buy-in?stripe=cancelled`;
+
+  // Token credit kept symbolic — 1 token per buy-in for ledger continuity.
+  // The real unlock is the real_payments row, not the token balance.
+  const tokensToCredit = 1;
 
   let session;
   try {
@@ -98,7 +101,7 @@ export async function createCheckoutSession(input: {
       client_reference_id: user.id,
       metadata: {
         user_id: user.id,
-        tokens: String(tokens),
+        kind: "buy_in",
       },
       line_items: [
         {
@@ -107,8 +110,14 @@ export async function createCheckoutSession(input: {
             currency: settings.currency.toLowerCase(),
             unit_amount: amountCents,
             product_data: {
-              name: `Lucarne · ${tokens} jetons`,
-              description: `Achat de ${tokens} jetons (${settings.token_price_cents / 100} ${settings.currency} chacun)`,
+              name:
+                parsed.data.locale === "fr"
+                  ? "Lucarne · place pour la Coupe du Monde 2026"
+                  : "Lucarne · World Cup 2026 seat",
+              description:
+                parsed.data.locale === "fr"
+                  ? "Accès complet pour parier sur tous les matchs."
+                  : "Full access to bet on every fixture.",
             },
           },
         },
@@ -119,7 +128,7 @@ export async function createCheckoutSession(input: {
     return { ok: false, message: err.message, code: "stripe_error" };
   }
 
-  // Pre-register checkout in DB (status pending) so webhook can fulfill it
+  // Pre-register the checkout so the webhook can complete it.
   await supabase
     .from("stripe_checkouts")
     .insert({
@@ -131,7 +140,7 @@ export async function createCheckoutSession(input: {
           : null,
       amount_cents: amountCents,
       currency: settings.currency,
-      tokens_to_credit: tokens,
+      tokens_to_credit: tokensToCredit,
       status: "pending",
     });
 
@@ -142,8 +151,6 @@ export async function createCheckoutSession(input: {
 }
 
 export async function redirectToCheckout(input: {
-  pack?: "small" | "medium" | "large" | "custom";
-  custom_tokens?: number;
   locale?: "fr" | "en";
 }): Promise<void> {
   const res = await createCheckoutSession(input);

@@ -1,8 +1,8 @@
 import { setRequestLocale } from "next-intl/server";
 import { getMyBalance, listMyTransactions } from "@/lib/wallet/queries";
-import { getAppSettings } from "@/lib/admin/economy";
 import { isStripeConfigured } from "@/lib/stripe/server";
-import { BuyTokensCard } from "@/components/wallet/buy-tokens-card";
+import { getMyBuyInStatus } from "@/lib/profile/buy-in";
+import { BuyInCard } from "@/components/wallet/buy-in-card";
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -21,10 +21,10 @@ export default async function WalletPage({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const [balance, transactions, settings] = await Promise.all([
+  const [balance, transactions, buyIn] = await Promise.all([
     getMyBalance(),
     listMyTransactions(),
-    getAppSettings(),
+    getMyBuyInStatus(),
   ]);
   const stripeReady = isStripeConfigured();
   const L = locale as Locale;
@@ -97,12 +97,15 @@ export default async function WalletPage({
         </p>
       </section>
 
-      {/* Buy tokens (Stripe) */}
+      {/* Buy-in (Stripe) */}
       <div className="mb-10">
-        <BuyTokensCard
-          tokenPriceCents={settings.token_price_cents}
-          currency={settings.currency}
+        <BuyInCard
+          amountCents={buyIn.amount_cents}
+          currency={buyIn.settings.currency}
           stripeReady={stripeReady}
+          alreadyPaid={buyIn.paid || buyIn.is_admin}
+          deadlinePassed={buyIn.deadline_passed}
+          deadlineAt={buyIn.deadline_at}
           locale={L}
         />
       </div>

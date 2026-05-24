@@ -2,7 +2,6 @@
 
 import { Link, usePathname } from "@/i18n/navigation";
 import {
-  ClipboardList,
   Coins,
   LayoutDashboard,
   Settings,
@@ -21,7 +20,6 @@ const ITEMS: {
   badge?: string;
 }[] = [
   { href: "/admin", icon: LayoutDashboard, fr: "Vue d'ensemble", en: "Overview" },
-  { href: "/admin/validations", icon: ClipboardList, fr: "Validations", en: "Validations" },
   { href: "/admin/payments", icon: Wallet, fr: "Paiements", en: "Payments" },
   { href: "/admin/economy", icon: Coins, fr: "Économie", en: "Economy" },
   { href: "/admin/users", icon: Users, fr: "Joueurs", en: "Players" },

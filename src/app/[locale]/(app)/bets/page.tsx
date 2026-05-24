@@ -9,7 +9,6 @@ import {
   Receipt,
   ShieldCheck,
   Sparkles,
-  Timer,
   Trophy,
   type LucideIcon,
 } from "lucide-react";
@@ -26,16 +25,13 @@ export default async function MyBetsPage({
   const bets = await listMyBets();
 
   const groups = {
-    pending: bets.filter((b) =>
-      ["pending_payment", "paid"].includes(b.status),
-    ),
     validated: bets.filter((b) => b.status === "validated"),
     settled: bets.filter((b) => b.status === "settled"),
     other: bets.filter((b) =>
       ["rejected", "refunded"].includes(b.status),
     ),
   };
-  const activeStake = groups.pending.concat(groups.validated).reduce(
+  const activeStake = groups.validated.reduce(
     (sum, bet) => sum + Math.floor(bet.stake_cents / 100),
     0,
   );
@@ -69,7 +65,6 @@ export default async function MyBetsPage({
 
       <BetStatusConsole
         locale={L}
-        pending={groups.pending.length}
         validated={groups.validated.length}
         settled={groups.settled.length}
         other={groups.other.length}
@@ -88,7 +83,6 @@ export default async function MyBetsPage({
 
 function BetStatusConsole({
   locale,
-  pending,
   validated,
   settled,
   other,
@@ -96,7 +90,6 @@ function BetStatusConsole({
   settledWins,
 }: {
   locale: Locale;
-  pending: number;
   validated: number;
   settled: number;
   other: number;
@@ -104,14 +97,7 @@ function BetStatusConsole({
   settledWins: number;
 }) {
   return (
-    <section className="mb-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-      <BetMetric
-        icon={Timer}
-        label={locale === "fr" ? "À valider" : "To validate"}
-        value={pending}
-        detail={locale === "fr" ? "contrôle admin" : "admin review"}
-        accent="violet"
-      />
+    <section className="mb-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       <BetMetric
         icon={ShieldCheck}
         label={locale === "fr" ? "Actifs" : "Active"}

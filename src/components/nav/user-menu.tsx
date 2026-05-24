@@ -163,7 +163,7 @@ export function UserMenu({ user, locale }: Props) {
             />
             {isAdmin && (
               <MenuItem
-                href="/admin/validations"
+                href="/admin"
                 icon={ShieldCheck}
                 label="Admin"
                 onClick={() => setOpen(false)}

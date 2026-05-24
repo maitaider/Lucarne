@@ -167,7 +167,10 @@ create table if not exists public.news_posts (
   created_at timestamptz not null default now()
 );
 
-create index if not exists news_posts_recent on public.news_posts (published_at desc) where expires_at is null or expires_at > now();
+-- now() is STABLE, not IMMUTABLE, so it can't appear in a partial index
+-- predicate. Index everything ordered by published_at; expiry is checked
+-- at query time.
+create index if not exists news_posts_recent on public.news_posts (published_at desc);
 
 alter table public.news_posts enable row level security;
 

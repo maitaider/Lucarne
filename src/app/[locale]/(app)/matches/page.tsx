@@ -3,6 +3,8 @@ import { setRequestLocale } from "next-intl/server";
 import { listMatches, groupMatchesByDate } from "@/lib/matches/queries";
 import { getGroupStandings } from "@/lib/matches/group-standings";
 import { getMyPicksByMatch, type MyPick } from "@/lib/bets/my-picks";
+import { getMyBuyInStatus } from "@/lib/profile/buy-in";
+import { BuyInBanner } from "@/components/paywall/buy-in-banner";
 import { MatchCard } from "@/components/match/match-card";
 import { GroupTableCard } from "@/components/match/group-table";
 import { Bracket } from "@/components/match/bracket";
@@ -37,10 +39,11 @@ export default async function MatchesPage({
   const currentView: View =
     view === "calendar" ? "calendar" : view === "knockout" ? "knockout" : "groups";
 
-  const [allMatches, groups, myPicksByMatch] = await Promise.all([
+  const [allMatches, groups, myPicksByMatch, buyIn] = await Promise.all([
     listMatches(),
     currentView === "groups" ? getGroupStandings() : Promise.resolve([]),
     getMyPicksByMatch(),
+    getMyBuyInStatus(),
   ]);
 
   const liveCount = allMatches.filter((m) => m.status === "live").length;
@@ -50,6 +53,15 @@ export default async function MatchesPage({
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      {!buyIn.can_bet && (
+        <BuyInBanner
+          amountCents={buyIn.amount_cents}
+          currency={buyIn.settings.currency}
+          deadlineAt={buyIn.deadline_at}
+          deadlinePassed={buyIn.deadline_passed}
+          locale={L}
+        />
+      )}
       {/* Header with tournament summary */}
       <header className="relative mb-6 overflow-hidden rounded-[8px] border border-white/[0.12] bg-surface-1/[0.7] p-5 shadow-[0_26px_85px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl sm:p-6">
         <Image
@@ -140,6 +152,7 @@ export default async function MatchesPage({
           group={group}
           locale={L}
           myPicksByMatch={myPicksByMatch}
+          canBet={buyIn.can_bet}
         />
       )}
 
@@ -148,6 +161,7 @@ export default async function MatchesPage({
           matches={allMatches}
           locale={L}
           myPicksByMatch={myPicksByMatch}
+          canBet={buyIn.can_bet}
         />
       )}
     </main>
@@ -367,12 +381,14 @@ function CalendarView({
   group,
   locale,
   myPicksByMatch,
+  canBet,
 }: {
   matches: Awaited<ReturnType<typeof listMatches>>;
   stage?: string;
   group?: string;
   locale: Locale;
   myPicksByMatch: Map<string, MyPick[]>;
+  canBet: boolean;
 }) {
   let filtered = matches;
   if (stage && stage !== "all") filtered = filtered.filter((m) => m.stage === stage);
@@ -406,6 +422,7 @@ function CalendarView({
                     match={m}
                     locale={locale}
                     myPicks={myPicksByMatch.get(m.id)}
+                    canBet={canBet}
                   />
                 ))}
               </div>
@@ -463,10 +480,12 @@ function KnockoutView({
   matches,
   locale,
   myPicksByMatch,
+  canBet,
 }: {
   matches: Awaited<ReturnType<typeof listMatches>>;
   locale: Locale;
   myPicksByMatch: Map<string, MyPick[]>;
+  canBet: boolean;
 }) {
   const knockoutMatches = matches.filter(
     (m) => m.stage !== "group" && m.stage !== "third_place",
@@ -500,6 +519,7 @@ function KnockoutView({
                 match={m}
                 locale={locale}
                 myPicks={myPicksByMatch.get(m.id)}
+                canBet={canBet}
               />
             ))}
           </div>

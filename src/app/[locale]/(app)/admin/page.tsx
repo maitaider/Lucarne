@@ -6,14 +6,13 @@ import {
   computePrizePool,
   formatMoney,
 } from "@/lib/admin/economy";
-import { listValidationQueue } from "@/lib/admin/queries";
 import {
   AlertCircle,
   ArrowRight,
   CalendarClock,
-  ClipboardList,
   Coins,
   Crown,
+  Ticket,
   Trophy,
   Users,
   Wallet,
@@ -31,12 +30,12 @@ export default async function AdminOverviewPage({
   setRequestLocale(locale);
   const L = locale as Locale;
 
-  const [stats, settings, validationQueue] = await Promise.all([
+  const [stats, settings] = await Promise.all([
     getOverviewStats(),
     getAppSettings(),
-    listValidationQueue(),
   ]);
 
+  const seatsSold = stats.paying_users_count;
   const totalTokens = Math.floor(stats.net_cents / settings.token_price_cents);
   const prize = computePrizePool(stats.net_cents, settings);
   const deadline = settings.buy_in_deadline
@@ -81,20 +80,12 @@ export default async function AdminOverviewPage({
           accent="gold"
         />
         <KpiCard
-          icon={ClipboardList}
-          label={L === "fr" ? "À valider" : "Pending review"}
-          value={String(validationQueue.length)}
-          detail={
-            validationQueue.length > 0
-              ? L === "fr"
-                ? "à traiter"
-                : "to handle"
-              : L === "fr"
-                ? "tout est à jour"
-                : "all caught up"
-          }
-          accent={validationQueue.length > 0 ? "error" : "primary"}
-          href="/admin/validations"
+          icon={Ticket}
+          label={L === "fr" ? "Places vendues" : "Seats sold"}
+          value={String(seatsSold)}
+          detail={`${fmt(settings.buy_in_amount_cents)} ${L === "fr" ? "par place" : "per seat"}`}
+          accent="gold"
+          href="/admin/payments"
         />
       </section>
 
@@ -248,15 +239,15 @@ export default async function AdminOverviewPage({
             accent="primary"
           />
           <QuickAction
-            href="/admin/validations"
-            icon={ClipboardList}
-            title={L === "fr" ? "Traiter la file" : "Process queue"}
+            href="/admin/economy"
+            icon={Ticket}
+            title={L === "fr" ? "Régler la place" : "Set seat price"}
             body={
               L === "fr"
-                ? `${validationQueue.length} ticket${validationQueue.length === 1 ? "" : "s"} en attente`
-                : `${validationQueue.length} ticket${validationQueue.length === 1 ? "" : "s"} pending`
+                ? `Prix actuel ${fmt(settings.buy_in_amount_cents)}.`
+                : `Current price ${fmt(settings.buy_in_amount_cents)}.`
             }
-            accent={validationQueue.length > 0 ? "error" : "primary"}
+            accent="gold"
           />
           <QuickAction
             href="/admin/economy"

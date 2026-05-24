@@ -30,9 +30,7 @@ export function MyPickBadge({
   const settledLost = picks.filter(
     (p) => p.status === "settled" && p.result === "lost",
   );
-  const active = picks.filter((p) =>
-    ["validated", "paid", "pending_payment"].includes(p.status),
-  );
+  const active = picks.filter((p) => p.status === "validated");
 
   // Won — show total points
   if (settledWon.length > 0) {

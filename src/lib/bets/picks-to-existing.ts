@@ -4,8 +4,7 @@ import type { QuickBetExistingPicks } from "@/components/bet/quick-bet-provider"
 /**
  * Converts an array of MyPick rows for one match into the
  * QuickBetExistingPicks shape consumed by the QuickBet sheet.
- * Only "active" bets are considered (validated/paid/pending_payment);
- * settled bets don't pre-fill the form.
+ * Only "validated" bets pre-fill the form; settled bets are historical.
  */
 export function picksToExisting(
   picks: MyPick[] | undefined,
@@ -13,7 +12,7 @@ export function picksToExisting(
   const out: QuickBetExistingPicks = {};
   if (!picks) return out;
   for (const p of picks) {
-    if (!["validated", "paid", "pending_payment"].includes(p.status)) continue;
+    if (p.status !== "validated") continue;
     const payload = p.payload as Record<string, unknown>;
     if (p.bet_type === "match_winner" && typeof payload?.winner === "string") {
       const w = payload.winner;

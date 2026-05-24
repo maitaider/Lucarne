@@ -176,7 +176,7 @@ function StatusPill({
       </span>
     );
   }
-  // pending_payment / paid → en attente admin
+  // refunded / cancelled / other
   return (
       <span className="inline-flex items-center gap-1 rounded-[6px] bg-white/[0.055] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
       <Clock className="size-3" />

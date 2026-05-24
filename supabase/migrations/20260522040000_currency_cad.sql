@@ -16,7 +16,25 @@ alter table public.real_payments
   alter column currency set default 'CAD';
 
 -- Extend update_app_settings RPC to accept currency
-create or replace function public.update_app_settings(
+-- Drop every existing overload first so `revoke … from public` below isn't
+-- ambiguous (the 20260522020000 admin_panel migration created an 8-arg
+-- version; here we replace it with a 9-arg version that adds currency).
+do $$
+declare
+  r record;
+begin
+  for r in
+    select format('drop function if exists %s cascade',
+                   p.oid::regprocedure::text) as ddl
+      from pg_proc p
+      join pg_namespace n on n.oid = p.pronamespace
+     where n.nspname = 'public' and p.proname = 'update_app_settings'
+  loop
+    execute r.ddl;
+  end loop;
+end $$;
+
+create function public.update_app_settings(
   p_token_price_cents int default null,
   p_buy_in_deadline timestamptz default null,
   p_tournament_start_at timestamptz default null,

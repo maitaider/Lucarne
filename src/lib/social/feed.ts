@@ -20,11 +20,23 @@ export type FeedActivity = {
   };
 };
 
+type MatchEmbed = {
+  id: string;
+  status: string;
+  kickoff_at: string;
+  home_team: { name_fr: string; name_en: string } | null;
+  away_team: { name_fr: string; name_en: string } | null;
+};
+
 /**
  * Returns the recent activity feed for a league:
  * - When a bet is placed and validated (so friends can see picks AFTER kickoff)
  * - When a bet settles (won/lost)
  * - Sorted newest first
+ *
+ * Implementation note: bets.match_id is a cross-schema FK to ref.matches,
+ * which PostgREST can't always follow via embed syntax. We split this into
+ * two queries (bets first, matches by id second) for stability.
  */
 export async function listLeagueFeed(
   leagueId: string,
@@ -34,19 +46,14 @@ export async function listLeagueFeed(
 
   const supabase = await getSupabaseServer();
 
-  // Pull bets in this league. RLS will hide friends' picks before kickoff.
-  const { data, error } = await supabase
+  // 1. Pull bets in this league. RLS hides friends' picks before kickoff.
+  const { data: betsData, error: betsErr } = await supabase
     .from("bets")
     .select(
       `
       id, bet_type, status, result, points, stake_cents, payout_cents,
-      payload, submitted_at, locked_at, user_id,
-      author:profiles!bets_user_id_fkey(username, display_name),
-      match:match_id(
-        id, status, kickoff_at,
-        home_team:home_team_id(name_fr, name_en),
-        away_team:away_team_id(name_fr, name_en)
-      )
+      payload, submitted_at, locked_at, user_id, match_id,
+      author:profiles!bets_user_id_fkey(username, display_name)
     `,
     )
     .eq("league_id", leagueId)
@@ -54,19 +61,55 @@ export async function listLeagueFeed(
     .order("submitted_at", { ascending: false })
     .limit(limit);
 
-  if (error || !data) return [];
+  if (betsErr || !betsData) return [];
+
+  // 2. Hydrate matches by id (cross-schema, so query ref directly).
+  const matchIds = Array.from(
+    new Set(betsData.map((b) => b.match_id).filter((id): id is string => !!id)),
+  );
+  const matchesById = new Map<string, MatchEmbed>();
+  if (matchIds.length > 0) {
+    const { data: matchesData } = await supabase
+      .schema("ref")
+      .from("matches")
+      .select(
+        `
+        id, status, kickoff_at,
+        home_team:teams!matches_home_team_id_fkey(name_fr, name_en),
+        away_team:teams!matches_away_team_id_fkey(name_fr, name_en)
+      `,
+      )
+      .in("id", matchIds);
+    for (const m of matchesData ?? []) {
+      matchesById.set(m.id, {
+        id: m.id,
+        status: m.status,
+        kickoff_at: m.kickoff_at,
+        home_team: pickOne(
+          m.home_team as
+            | { name_fr: string; name_en: string }
+            | { name_fr: string; name_en: string }[]
+            | null,
+        ),
+        away_team: pickOne(
+          m.away_team as
+            | { name_fr: string; name_en: string }
+            | { name_fr: string; name_en: string }[]
+            | null,
+        ),
+      });
+    }
+  }
 
   const activities: FeedActivity[] = [];
-  for (const row of data) {
+  for (const row of betsData) {
     const author = pickOne(
       row.author as
         | { username: string; display_name: string | null }
         | { username: string; display_name: string | null }[]
         | null,
     );
-    const match = pickOne(row.match as MatchEmbed | MatchEmbed[] | null);
-    const homeTeam = match ? pickOne(match.home_team) : null;
-    const awayTeam = match ? pickOne(match.away_team) : null;
+    const match = row.match_id ? (matchesById.get(row.match_id) ?? null) : null;
 
     const bet = {
       id: row.id,
@@ -75,8 +118,8 @@ export async function listLeagueFeed(
       payout_cents: row.payout_cents,
       points: row.points,
       payload: row.payload,
-      home_team: homeTeam?.name_fr ?? null,
-      away_team: awayTeam?.name_fr ?? null,
+      home_team: match?.home_team?.name_fr ?? null,
+      away_team: match?.away_team?.name_fr ?? null,
       match_id: match?.id ?? null,
       match_status: match?.status ?? null,
     };
@@ -107,20 +150,6 @@ export async function listLeagueFeed(
   }
   return activities;
 }
-
-type MatchEmbed = {
-  id: string;
-  status: string;
-  kickoff_at: string;
-  home_team:
-    | { name_fr: string; name_en: string }
-    | { name_fr: string; name_en: string }[]
-    | null;
-  away_team:
-    | { name_fr: string; name_en: string }
-    | { name_fr: string; name_en: string }[]
-    | null;
-};
 
 function pickOne<T>(v: T | T[] | null | undefined): T | null {
   if (!v) return null;

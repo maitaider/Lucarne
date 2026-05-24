@@ -9,6 +9,8 @@ import { getGlobalStandings, listMyLeagues } from "@/lib/leagues/queries";
 import { getCommunityOdds, shareToOdds } from "@/lib/bets/community-odds";
 import { getMyPicksByMatch, type MyPick } from "@/lib/bets/my-picks";
 import { picksToExisting } from "@/lib/bets/picks-to-existing";
+import { getMyBuyInStatus } from "@/lib/profile/buy-in";
+import { BuyInBanner } from "@/components/paywall/buy-in-banner";
 import {
   Cockpit,
   TrophyModeCard,
@@ -41,16 +43,25 @@ export default async function DashboardPage({
   setRequestLocale(locale);
   const L = locale as Locale;
 
-  const [user, stats, allMatches, myBets, myLeagues, standings, myPicksByMatch] =
-    await Promise.all([
-      getCurrentUser(),
-      getMyStats(),
-      listMatches(),
-      listMyBets(),
-      listMyLeagues(),
-      getGlobalStandings(6),
-      getMyPicksByMatch(),
-    ]);
+  const [
+    user,
+    stats,
+    allMatches,
+    myBets,
+    myLeagues,
+    standings,
+    myPicksByMatch,
+    buyIn,
+  ] = await Promise.all([
+    getCurrentUser(),
+    getMyStats(),
+    listMatches(),
+    listMyBets(),
+    listMyLeagues(),
+    getGlobalStandings(6),
+    getMyPicksByMatch(),
+    getMyBuyInStatus(),
+  ]);
 
   const now = Date.now();
   const liveMatches = allMatches.filter((m) => m.status === "live");
@@ -139,9 +150,7 @@ export default async function DashboardPage({
   const bracket = buildBracketPreview(allMatches, L);
 
   // Real metrics for rings
-  const activeBets = myBets.filter((b) =>
-    ["pending_payment", "paid", "validated"].includes(b.status),
-  );
+  const activeBets = myBets.filter((b) => b.status === "validated");
   const activeStake = activeBets.reduce(
     (sum, b) => sum + b.stake_cents,
     0,
@@ -188,6 +197,15 @@ export default async function DashboardPage({
 
   return (
     <main className="mx-auto max-w-[1600px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+      {!buyIn.can_bet && (
+        <BuyInBanner
+          amountCents={buyIn.amount_cents}
+          currency={buyIn.settings.currency}
+          deadlineAt={buyIn.deadline_at}
+          deadlinePassed={buyIn.deadline_passed}
+          locale={L}
+        />
+      )}
       <section className="relative overflow-hidden rounded-[12px] border border-white/[0.13] bg-abyss/[0.78] shadow-[0_38px_120px_rgba(0,0,0,0.42),inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-2xl">
         <Image
           src="/marketing/lucarne-hero-stadium.jpg"
@@ -320,6 +338,7 @@ export default async function DashboardPage({
               match={ticketCandidates[0]}
               locale={L}
               myPicks={myPicksByMatch.get(ticketCandidates[0].id)}
+              canBet={buyIn.can_bet}
             />
           ) : (
             <EmptyPanel
@@ -473,10 +492,12 @@ function FeaturedActionCard({
   match,
   locale,
   myPicks,
+  canBet,
 }: {
   match: MatchListItem;
   locale: Locale;
   myPicks?: MyPick[];
+  canBet: boolean;
 }) {
   const homeName = match.home_team
     ? locale === "fr"
@@ -500,9 +521,7 @@ function FeaturedActionCard({
     },
   );
   const hasPick =
-    myPicks?.some((p) =>
-      ["validated", "paid", "pending_payment"].includes(p.status),
-    ) ?? false;
+    myPicks?.some((p) => p.status === "validated") ?? false;
   return (
     <div className="rounded-[12px] border border-primary-500/25 bg-gradient-to-br from-primary-500/[0.1] via-gold-500/[0.04] to-transparent p-5 backdrop-blur-xl sm:p-6">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -546,6 +565,7 @@ function FeaturedActionCard({
             variant="block"
             hasPick={hasPick}
             existing={picksToExisting(myPicks)}
+            canBet={canBet}
           />
         </div>
         <Link

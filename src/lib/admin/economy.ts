@@ -3,6 +3,8 @@ import { getSupabaseServer } from "@/lib/supabase/server";
 
 export type AppSettings = {
   token_price_cents: number;
+  /** Fixed seat price in cents (e.g. 2000 = $20 CAD). */
+  buy_in_amount_cents: number;
   buy_in_deadline: string | null;
   tournament_start_at: string;
   tournament_end_at: string;
@@ -21,6 +23,7 @@ export type AppSettings = {
 
 const DEFAULT: AppSettings = {
   token_price_cents: 100,
+  buy_in_amount_cents: 2000,
   buy_in_deadline: null,
   tournament_start_at: "2026-06-11T20:00:00Z",
   tournament_end_at: "2026-07-19T21:00:00Z",
@@ -52,13 +55,15 @@ export async function getAppSettings(): Promise<AppSettings> {
   const { data } = await supabase
     .from("app_settings")
     .select(
-      "token_price_cents, buy_in_deadline, tournament_start_at, tournament_end_at, prize_distribution, scoring_rules, contact_label, contact_info, currency, updated_at",
+      "token_price_cents, buy_in_amount_cents, buy_in_deadline, tournament_start_at, tournament_end_at, prize_distribution, scoring_rules, contact_label, contact_info, currency, updated_at",
     )
     .eq("id", 1)
     .maybeSingle();
   if (!data) return DEFAULT;
   return {
     token_price_cents: data.token_price_cents,
+    buy_in_amount_cents:
+      data.buy_in_amount_cents ?? DEFAULT.buy_in_amount_cents,
     buy_in_deadline: data.buy_in_deadline,
     tournament_start_at: data.tournament_start_at,
     tournament_end_at: data.tournament_end_at,
@@ -73,6 +78,17 @@ export async function getAppSettings(): Promise<AppSettings> {
     currency: data.currency ?? "CAD",
     updated_at: data.updated_at,
   };
+}
+
+/**
+ * Effective buy-in deadline: explicit `buy_in_deadline` if set, otherwise
+ * tournament_start_at - 1h. After this point the seat sales close.
+ */
+export function effectiveBuyInDeadline(settings: AppSettings): Date {
+  if (settings.buy_in_deadline) return new Date(settings.buy_in_deadline);
+  return new Date(
+    new Date(settings.tournament_start_at).getTime() - 60 * 60 * 1000,
+  );
 }
 
 export type OverviewStats = {

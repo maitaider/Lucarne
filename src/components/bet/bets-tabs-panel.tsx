@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
 import { Search, X } from "lucide-react";
 
-type TabKey = "all" | "pending" | "validated" | "settled" | "other";
+type TabKey = "all" | "validated" | "settled" | "other";
 
 export function BetsTabsPanel({
   bets,
@@ -22,14 +22,12 @@ export function BetsTabsPanel({
   const counts = useMemo(() => {
     const c: Record<TabKey, number> = {
       all: bets.length,
-      pending: 0,
       validated: 0,
       settled: 0,
       other: 0,
     };
     for (const b of bets) {
-      if (["pending_payment", "paid"].includes(b.status)) c.pending += 1;
-      else if (b.status === "validated") c.validated += 1;
+      if (b.status === "validated") c.validated += 1;
       else if (b.status === "settled") c.settled += 1;
       else c.other += 1;
     }
@@ -40,8 +38,6 @@ export function BetsTabsPanel({
     const lower = query.trim().toLowerCase();
     return bets.filter((b) => {
       // Status filter
-      if (active === "pending" && !["pending_payment", "paid"].includes(b.status))
-        return false;
       if (active === "validated" && b.status !== "validated") return false;
       if (active === "settled" && b.status !== "settled") return false;
       if (active === "other" && !["rejected", "refunded"].includes(b.status))
@@ -66,7 +62,6 @@ export function BetsTabsPanel({
 
   const tabs: { key: TabKey; fr: string; en: string }[] = [
     { key: "all", fr: "Tous", en: "All" },
-    { key: "pending", fr: "À valider", en: "Pending" },
     { key: "validated", fr: "Actifs", en: "Active" },
     { key: "settled", fr: "Résolus", en: "Settled" },
     { key: "other", fr: "Autres", en: "Other" },
