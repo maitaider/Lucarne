@@ -7,6 +7,8 @@ import { listMatches, type MatchListItem } from "@/lib/matches/queries";
 import { listMyBets } from "@/lib/bets/queries";
 import { getGlobalStandings, listMyLeagues } from "@/lib/leagues/queries";
 import { getCommunityOdds, shareToOdds } from "@/lib/bets/community-odds";
+import { getMyPicksByMatch, type MyPick } from "@/lib/bets/my-picks";
+import { picksToExisting } from "@/lib/bets/picks-to-existing";
 import {
   Cockpit,
   TrophyModeCard,
@@ -39,7 +41,7 @@ export default async function DashboardPage({
   setRequestLocale(locale);
   const L = locale as Locale;
 
-  const [user, stats, allMatches, myBets, myLeagues, standings] =
+  const [user, stats, allMatches, myBets, myLeagues, standings, myPicksByMatch] =
     await Promise.all([
       getCurrentUser(),
       getMyStats(),
@@ -47,6 +49,7 @@ export default async function DashboardPage({
       listMyBets(),
       listMyLeagues(),
       getGlobalStandings(6),
+      getMyPicksByMatch(),
     ]);
 
   const now = Date.now();
@@ -313,7 +316,11 @@ export default async function DashboardPage({
             linkLabel={L === "fr" ? "Tous les matchs" : "All matches"}
           />
           {ticketCandidates[0] ? (
-            <FeaturedActionCard match={ticketCandidates[0]} locale={L} />
+            <FeaturedActionCard
+              match={ticketCandidates[0]}
+              locale={L}
+              myPicks={myPicksByMatch.get(ticketCandidates[0].id)}
+            />
           ) : (
             <EmptyPanel
               text={
@@ -465,9 +472,11 @@ function CommandMetric({
 function FeaturedActionCard({
   match,
   locale,
+  myPicks,
 }: {
   match: MatchListItem;
   locale: Locale;
+  myPicks?: MyPick[];
 }) {
   const homeName = match.home_team
     ? locale === "fr"
@@ -490,6 +499,10 @@ function FeaturedActionCard({
       timeZone: "Europe/Paris",
     },
   );
+  const hasPick =
+    myPicks?.some((p) =>
+      ["validated", "paid", "pending_payment"].includes(p.status),
+    ) ?? false;
   return (
     <div className="rounded-[12px] border border-primary-500/25 bg-gradient-to-br from-primary-500/[0.1] via-gold-500/[0.04] to-transparent p-5 backdrop-blur-xl sm:p-6">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -531,6 +544,8 @@ function FeaturedActionCard({
             }}
             locale={locale}
             variant="block"
+            hasPick={hasPick}
+            existing={picksToExisting(myPicks)}
           />
         </div>
         <Link

@@ -1,8 +1,24 @@
 import type { StandingEntry } from "@/lib/leagues/queries";
 import { Crown, Trophy, Medal } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatMoney } from "@/lib/admin/economy";
 
-export function LeaderboardPodium({ top3 }: { top3: StandingEntry[] }) {
+type PayoutInfo = {
+  /** Projected cents for each rank (index 0 = #1, index 1 = #2, …). */
+  payouts: number[];
+  /** Currency code, e.g. "CAD". */
+  currency: string;
+  /** Locale used for the money formatter — e.g. "fr-CA" / "en-CA". */
+  locale: string;
+};
+
+export function LeaderboardPodium({
+  top3,
+  payouts,
+}: {
+  top3: StandingEntry[];
+  payouts?: PayoutInfo;
+}) {
   const [first, second, third] = [top3[0], top3[1], top3[2]];
   return (
     <div className="relative overflow-hidden rounded-[8px] border border-white/[0.08] bg-gradient-to-br from-surface-1/[0.84] via-surface-1/[0.58] to-surface-2/[0.7] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_24px_70px_rgba(0,0,0,0.24)] backdrop-blur-xl sm:p-10">
@@ -11,9 +27,9 @@ export function LeaderboardPodium({ top3 }: { top3: StandingEntry[] }) {
         className="pointer-events-none absolute left-1/2 top-0 size-[420px] -translate-x-1/2 rounded-full bg-gold-500/10 blur-3xl"
       />
       <div className="relative grid grid-cols-3 items-end gap-3 sm:gap-6">
-        <Step entry={second} rank={2} />
-        <Step entry={first} rank={1} />
-        <Step entry={third} rank={3} />
+        <Step entry={second} rank={2} payout={payouts?.payouts[1]} payoutMeta={payouts} />
+        <Step entry={first} rank={1} payout={payouts?.payouts[0]} payoutMeta={payouts} />
+        <Step entry={third} rank={3} payout={payouts?.payouts[2]} payoutMeta={payouts} />
       </div>
     </div>
   );
@@ -22,9 +38,13 @@ export function LeaderboardPodium({ top3 }: { top3: StandingEntry[] }) {
 function Step({
   entry,
   rank,
+  payout,
+  payoutMeta,
 }: {
   entry: StandingEntry | undefined;
   rank: 1 | 2 | 3;
+  payout?: number;
+  payoutMeta?: PayoutInfo;
 }) {
   if (!entry) {
     return (
@@ -129,6 +149,21 @@ function Step({
             pts
           </span>
         </div>
+        {payout !== undefined && payout > 0 && payoutMeta && (
+          <div
+            className={cn(
+              "mt-1.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-mono text-[10px] font-bold tabular-nums ring-1",
+              rank === 1
+                ? "bg-gold-500/15 text-gold-300 ring-gold-500/35"
+                : rank === 2
+                  ? "bg-text-secondary/15 text-text-primary ring-text-secondary/30"
+                  : "bg-amber-700/15 text-amber-300 ring-amber-700/30",
+            )}
+          >
+            <span aria-hidden>≈</span>
+            {formatMoney(payout, payoutMeta.currency, payoutMeta.locale)}
+          </div>
+        )}
       </div>
 
       <div

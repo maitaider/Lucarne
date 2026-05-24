@@ -2,15 +2,20 @@ import type { MatchListItem } from "@/lib/matches/queries";
 import { Link } from "@/i18n/navigation";
 import { TeamEmblem } from "@/components/team/team-emblem";
 import { QuickBetButton } from "@/components/bet/quick-bet-button";
+import { MyPickBadge } from "@/components/bet/my-pick-badge";
+import { picksToExisting } from "@/lib/bets/picks-to-existing";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
+import type { MyPick } from "@/lib/bets/my-picks";
 
 export function MatchCard({
   match,
   locale,
+  myPicks,
 }: {
   match: MatchListItem;
   locale: Locale;
+  myPicks?: MyPick[];
 }) {
   const isLive = match.status === "live";
   const isFinished = match.status === "finished";
@@ -57,8 +62,8 @@ export function MatchCard({
       )}
 
       {/* Header */}
-      <div className="mb-3 flex items-center justify-between text-xs">
-        <div className="flex items-center gap-1.5 text-text-tertiary">
+      <div className="mb-3 flex items-center justify-between gap-2 text-xs">
+        <div className="flex min-w-0 items-center gap-1.5 text-text-tertiary">
           <StageLabel stage={match.stage} group={match.group_label} locale={locale} />
           {match.venue && (
             <>
@@ -67,6 +72,9 @@ export function MatchCard({
                 {locale === "fr" ? match.venue.city_fr : match.venue.city_en}
               </span>
             </>
+          )}
+          {myPicks && myPicks.length > 0 && (
+            <MyPickBadge picks={myPicks} locale={locale} size="xs" />
           )}
         </div>
         {isLive ? (
@@ -108,9 +116,20 @@ export function MatchCard({
         />
       </div>
 
-      {/* Bet CTA bottom strip (scheduled only, opens QuickBet sheet) */}
+      {/* Bet CTA bottom strip (scheduled only, opens QuickBet sheet).
+         Pre-fills with existing picks so user can edit instead of duplicating. */}
       {isScheduled && (
-        <QuickBetButton match={match} locale={locale} variant="strip" />
+        <QuickBetButton
+          match={match}
+          locale={locale}
+          variant="strip"
+          hasPick={
+            myPicks?.some((p) =>
+              ["validated", "paid", "pending_payment"].includes(p.status),
+            ) ?? false
+          }
+          existing={picksToExisting(myPicks)}
+        />
       )}
     </Link>
   );

@@ -2,7 +2,6 @@
 
 import {
   createContext,
-  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -25,6 +24,16 @@ import { useConfetti } from "@/lib/hooks/use-confetti";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
 
+/**
+ * Existing picks indexed by bet_type so the sheet can prefill the right tab
+ * and switch the CTA from "Confirmer" to "Mettre à jour".
+ */
+export type QuickBetExistingPicks = Partial<{
+  match_winner: { winner: "home" | "draw" | "away" };
+  total_goals: { total: number };
+  anytime_scorer: { players: { player_name: string }[] };
+}>;
+
 export type QuickBetMatch = {
   id: string;
   kickoff_at: string;
@@ -46,7 +55,7 @@ export type QuickBetMatch = {
 };
 
 type QuickBetCtx = {
-  open: (match: QuickBetMatch) => void;
+  open: (match: QuickBetMatch, existing?: QuickBetExistingPicks) => void;
   close: () => void;
 };
 
@@ -60,6 +69,11 @@ export function useQuickBet(): QuickBetCtx {
   return ctx;
 }
 
+type OpenState = {
+  match: QuickBetMatch;
+  existing: QuickBetExistingPicks;
+};
+
 export function QuickBetProvider({
   locale,
   children,
@@ -67,12 +81,12 @@ export function QuickBetProvider({
   locale: Locale;
   children: React.ReactNode;
 }) {
-  const [match, setMatch] = useState<QuickBetMatch | null>(null);
+  const [state, setState] = useState<OpenState | null>(null);
 
   const ctx = useMemo<QuickBetCtx>(
     () => ({
-      open: (m) => setMatch(m),
-      close: () => setMatch(null),
+      open: (m, existing) => setState({ match: m, existing: existing ?? {} }),
+      close: () => setState(null),
     }),
     [],
   );
@@ -80,11 +94,12 @@ export function QuickBetProvider({
   return (
     <QuickBetContext.Provider value={ctx}>
       {children}
-      {match && (
+      {state && (
         <QuickBetSheet
-          match={match}
+          match={state.match}
+          existing={state.existing}
           locale={locale}
-          onClose={() => setMatch(null)}
+          onClose={() => setState(null)}
         />
       )}
     </QuickBetContext.Provider>
@@ -95,10 +110,12 @@ type Tab = "winner" | "goals" | "scorer";
 
 function QuickBetSheet({
   match,
+  existing,
   locale,
   onClose,
 }: {
   match: QuickBetMatch;
+  existing: QuickBetExistingPicks;
   locale: Locale;
   onClose: () => void;
 }) {
@@ -106,14 +123,38 @@ function QuickBetSheet({
   const toast = useToast();
   const fireConfetti = useConfetti();
 
-  const [tab, setTab] = useState<Tab>("winner");
+  // Initial tab = first one with an existing pick, else "winner"
+  const initialTab: Tab = existing.match_winner
+    ? "winner"
+    : existing.total_goals
+      ? "goals"
+      : existing.anytime_scorer
+        ? "scorer"
+        : "winner";
+
+  const [tab, setTab] = useState<Tab>(initialTab);
   const [winnerPick, setWinnerPick] = useState<"home" | "draw" | "away" | null>(
-    null,
+    existing.match_winner?.winner ?? null,
   );
-  const [totalGoals, setTotalGoals] = useState<number | null>(null);
-  const [scorers, setScorers] = useState<string[]>(["", "", "", ""]);
+  const [totalGoals, setTotalGoals] = useState<number | null>(
+    existing.total_goals?.total ?? null,
+  );
+  const [scorers, setScorers] = useState<string[]>(() => {
+    const base = ["", "", "", ""];
+    existing.anytime_scorer?.players.forEach((p, i) => {
+      if (i < 4) base[i] = p.player_name;
+    });
+    return base;
+  });
   const [isPending, setIsPending] = useState(false);
   const [visible, setVisible] = useState(false);
+
+  // Per-tab "already placed" indicator
+  const hasExisting: Record<Tab, boolean> = {
+    winner: existing.match_winner != null,
+    goals: existing.total_goals != null,
+    scorer: existing.anytime_scorer != null,
+  };
 
   useEffect(() => {
     const id = requestAnimationFrame(() => setVisible(true));
@@ -231,10 +272,15 @@ function QuickBetSheet({
 
     if (res.ok) {
       fireConfetti("place");
+      const wasUpdate = hasExisting[tab];
       toast.success(
-        locale === "fr"
-          ? "Pronostic enregistré ! Tu peux le modifier jusqu'à 1h avant le match."
-          : "Bet recorded! You can edit it up to 1 hour before kickoff.",
+        wasUpdate
+          ? locale === "fr"
+            ? "Pronostic mis à jour."
+            : "Pick updated."
+          : locale === "fr"
+            ? "Pronostic enregistré ! Tu peux le modifier jusqu'à 1h avant le match."
+            : "Bet recorded! You can edit it up to 1 hour before kickoff.",
       );
       handleClose();
       router.refresh();
@@ -340,13 +386,14 @@ function QuickBetSheet({
                 {tabs.map((t) => {
                   const isActive = tab === t.key;
                   const Icon = t.icon;
+                  const hasPick = hasExisting[t.key];
                   return (
                     <button
                       key={t.key}
                       type="button"
                       onClick={() => setTab(t.key)}
                       className={cn(
-                        "flex flex-1 items-center justify-center gap-1.5 rounded-[7px] px-3 py-1.5 text-xs font-semibold transition",
+                        "relative flex flex-1 items-center justify-center gap-1.5 rounded-[7px] px-3 py-1.5 text-xs font-semibold transition",
                         isActive
                           ? "bg-primary-500 text-abyss shadow-glow-primary"
                           : "text-text-secondary hover:text-text-primary",
@@ -366,6 +413,20 @@ function QuickBetSheet({
                       >
                         +{t.pts}
                       </span>
+                      {hasPick && (
+                        <span
+                          aria-hidden
+                          className={cn(
+                            "absolute right-1 top-1 size-1.5 rounded-full",
+                            isActive ? "bg-abyss" : "bg-primary-400",
+                          )}
+                          title={
+                            locale === "fr"
+                              ? "Pronostic déjà placé"
+                              : "Already picked"
+                          }
+                        />
+                      )}
                     </button>
                   );
                 })}
@@ -418,9 +479,13 @@ function QuickBetSheet({
                 ) : (
                   <Zap className="size-4" strokeWidth={2.5} />
                 )}
-                {locale === "fr"
-                  ? "Valider mon pronostic"
-                  : "Confirm prediction"}
+                {hasExisting[tab]
+                  ? locale === "fr"
+                    ? "Mettre à jour"
+                    : "Update pick"
+                  : locale === "fr"
+                    ? "Valider mon pronostic"
+                    : "Confirm prediction"}
               </button>
 
               <p className="text-center text-[10px] leading-4 text-text-tertiary">

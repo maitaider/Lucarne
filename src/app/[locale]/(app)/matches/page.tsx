@@ -2,6 +2,7 @@ import Image from "next/image";
 import { setRequestLocale } from "next-intl/server";
 import { listMatches, groupMatchesByDate } from "@/lib/matches/queries";
 import { getGroupStandings } from "@/lib/matches/group-standings";
+import { getMyPicksByMatch, type MyPick } from "@/lib/bets/my-picks";
 import { MatchCard } from "@/components/match/match-card";
 import { GroupTableCard } from "@/components/match/group-table";
 import { Bracket } from "@/components/match/bracket";
@@ -36,9 +37,10 @@ export default async function MatchesPage({
   const currentView: View =
     view === "calendar" ? "calendar" : view === "knockout" ? "knockout" : "groups";
 
-  const [allMatches, groups] = await Promise.all([
+  const [allMatches, groups, myPicksByMatch] = await Promise.all([
     listMatches(),
     currentView === "groups" ? getGroupStandings() : Promise.resolve([]),
+    getMyPicksByMatch(),
   ]);
 
   const liveCount = allMatches.filter((m) => m.status === "live").length;
@@ -132,11 +134,21 @@ export default async function MatchesPage({
       )}
 
       {currentView === "calendar" && (
-        <CalendarView matches={allMatches} stage={stage} group={group} locale={L} />
+        <CalendarView
+          matches={allMatches}
+          stage={stage}
+          group={group}
+          locale={L}
+          myPicksByMatch={myPicksByMatch}
+        />
       )}
 
       {currentView === "knockout" && (
-        <KnockoutView matches={allMatches} locale={L} />
+        <KnockoutView
+          matches={allMatches}
+          locale={L}
+          myPicksByMatch={myPicksByMatch}
+        />
       )}
     </main>
   );
@@ -354,11 +366,13 @@ function CalendarView({
   stage,
   group,
   locale,
+  myPicksByMatch,
 }: {
   matches: Awaited<ReturnType<typeof listMatches>>;
   stage?: string;
   group?: string;
   locale: Locale;
+  myPicksByMatch: Map<string, MyPick[]>;
 }) {
   let filtered = matches;
   if (stage && stage !== "all") filtered = filtered.filter((m) => m.stage === stage);
@@ -387,7 +401,12 @@ function CalendarView({
               </h2>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {grouped.get(date)!.map((m) => (
-                  <MatchCard key={m.id} match={m} locale={locale} />
+                  <MatchCard
+                    key={m.id}
+                    match={m}
+                    locale={locale}
+                    myPicks={myPicksByMatch.get(m.id)}
+                  />
                 ))}
               </div>
             </section>
@@ -443,9 +462,11 @@ function StageFilter({
 function KnockoutView({
   matches,
   locale,
+  myPicksByMatch,
 }: {
   matches: Awaited<ReturnType<typeof listMatches>>;
   locale: Locale;
+  myPicksByMatch: Map<string, MyPick[]>;
 }) {
   const knockoutMatches = matches.filter(
     (m) => m.stage !== "group" && m.stage !== "third_place",
@@ -474,7 +495,12 @@ function KnockoutView({
           </h2>
           <div className="max-w-md">
             {thirdPlace.map((m) => (
-              <MatchCard key={m.id} match={m} locale={locale} />
+              <MatchCard
+                key={m.id}
+                match={m}
+                locale={locale}
+                myPicks={myPicksByMatch.get(m.id)}
+              />
             ))}
           </div>
         </section>

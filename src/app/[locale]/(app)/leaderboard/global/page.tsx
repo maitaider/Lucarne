@@ -1,9 +1,12 @@
 import { setRequestLocale } from "next-intl/server";
 import { getGlobalStandings } from "@/lib/leagues/queries";
+import { getProjectedPayouts } from "@/lib/leagues/projected-payouts";
+import { formatMoney } from "@/lib/admin/economy";
 import { LeaderboardPodium } from "@/components/leaderboard/podium";
 import { StandingsTable } from "@/components/leaderboard/standings-table";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import {
+  Coins,
   Crown,
   Medal,
   ShieldCheck,
@@ -22,10 +25,19 @@ export default async function GlobalLeaderboardPage({
   setRequestLocale(locale);
   const L = locale as Locale;
 
-  const standings = await getGlobalStandings();
+  const [standings, projected] = await Promise.all([
+    getGlobalStandings(),
+    getProjectedPayouts(),
+  ]);
   const leader = standings[0];
   const totalBets = standings.reduce((sum, entry) => sum + entry.bets_count, 0);
   const totalWins = standings.reduce((sum, entry) => sum + entry.wins, 0);
+  const moneyLocale = L === "fr" ? "fr-CA" : "en-CA";
+  const podiumPayouts = {
+    payouts: projected.payouts,
+    currency: projected.settings.currency,
+    locale: moneyLocale,
+  };
 
   let currentUserId: string | null = null;
   if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
@@ -84,6 +96,15 @@ export default async function GlobalLeaderboardPage({
         <EmptyLeaderboardPreview locale={L} />
       ) : (
         <>
+          <ProjectedPotCard
+            locale={L}
+            poolCents={projected.pool_cents}
+            currency={projected.settings.currency}
+            moneyLocale={moneyLocale}
+            shares={projected.shares}
+            payouts={projected.payouts}
+            top3={standings.slice(0, 3)}
+          />
           <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <LeaderboardMetric
               icon={ShieldCheck}
@@ -116,7 +137,10 @@ export default async function GlobalLeaderboardPage({
           </div>
           {standings.length >= 1 && (
             <section className="mb-8">
-              <LeaderboardPodium top3={standings.slice(0, 3)} />
+              <LeaderboardPodium
+                top3={standings.slice(0, 3)}
+                payouts={podiumPayouts}
+              />
             </section>
           )}
           <StandingsTable
@@ -164,6 +188,97 @@ function LeaderboardMetric({
       </div>
       <div className="mt-1 truncate text-xs text-text-tertiary">{detail}</div>
     </div>
+  );
+}
+
+function ProjectedPotCard({
+  locale,
+  poolCents,
+  currency,
+  moneyLocale,
+  shares,
+  payouts,
+  top3,
+}: {
+  locale: Locale;
+  poolCents: number;
+  currency: string;
+  moneyLocale: string;
+  shares: number[];
+  payouts: number[];
+  top3: Awaited<ReturnType<typeof getGlobalStandings>>;
+}) {
+  const seats = [0, 1, 2].map((idx) => ({
+    rank: idx + 1,
+    payout: payouts[idx] ?? 0,
+    share: shares[idx] ?? 0,
+    entry: top3[idx] ?? null,
+  }));
+
+  return (
+    <section className="mb-8 overflow-hidden rounded-[12px] border border-gold-500/25 bg-gradient-to-br from-gold-500/[0.12] via-gold-500/[0.04] to-transparent p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl sm:p-6">
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-start gap-3">
+          <span className="flex size-11 items-center justify-center rounded-[10px] border border-gold-500/40 bg-gold-500/[0.14] text-gold-300 shadow-glow-gold">
+            <Coins className="size-5" strokeWidth={1.6} />
+          </span>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-gold-300">
+              {locale === "fr" ? "Cagnotte projetée" : "Projected pot"}
+            </p>
+            <h2 className="font-display text-2xl font-bold tabular-nums text-text-primary sm:text-3xl">
+              {formatMoney(poolCents, currency, moneyLocale)}
+            </h2>
+            <p className="mt-1 max-w-md text-xs leading-5 text-text-secondary">
+              {locale === "fr"
+                ? "Total collecté à ce jour. Le tournoi finit le 19 juillet 2026 — les paiements continuent jusqu’à la date butoire."
+                : "Total real money collected so far. The tournament ends July 19, 2026 — payments keep flowing until the deadline."}
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
+          {seats.map((seat) => {
+            const Icon =
+              seat.rank === 1 ? Crown : seat.rank === 2 ? Trophy : Medal;
+            const tone =
+              seat.rank === 1
+                ? "border-gold-500/40 bg-gold-500/[0.14] text-gold-300"
+                : seat.rank === 2
+                  ? "border-text-secondary/30 bg-text-secondary/[0.1] text-text-primary"
+                  : "border-amber-700/35 bg-amber-700/[0.12] text-amber-300";
+            return (
+              <div
+                key={seat.rank}
+                className={`min-w-[110px] rounded-[10px] border p-3 ring-1 ring-inset ring-white/[0.04] ${tone}`}
+              >
+                <div className="mb-2 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider">
+                  <span>#{seat.rank}</span>
+                  <Icon className="size-3.5" strokeWidth={1.7} />
+                </div>
+                <div className="font-display text-lg font-bold tabular-nums">
+                  {formatMoney(seat.payout, currency, moneyLocale)}
+                </div>
+                <div className="mt-0.5 truncate text-[10px] text-text-tertiary">
+                  {seat.share}%{" "}
+                  {seat.entry
+                    ? `· @${seat.entry.username}`
+                    : locale === "fr"
+                      ? "· libre"
+                      : "· open"}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <p className="mt-4 text-[10px] uppercase tracking-wider text-text-tertiary">
+        {locale === "fr"
+          ? "Estimation indicative — la cagnotte évolue au fil des paiements confirmés."
+          : "Snapshot — the pot evolves as new payments clear."}
+      </p>
+    </section>
   );
 }
 
