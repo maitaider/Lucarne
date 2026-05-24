@@ -6,19 +6,12 @@ import { getMyStats } from "@/lib/profile/stats";
 import { listMatches, type MatchListItem } from "@/lib/matches/queries";
 import { listMyBets } from "@/lib/bets/queries";
 import { getGlobalStandings, listMyLeagues } from "@/lib/leagues/queries";
-import { getCommunityOdds, shareToOdds } from "@/lib/bets/community-odds";
 import { getMyPicksByMatch, type MyPick } from "@/lib/bets/my-picks";
 import { picksToExisting } from "@/lib/bets/picks-to-existing";
 import { getMyBuyInStatus } from "@/lib/profile/buy-in";
 import { BuyInBanner } from "@/components/paywall/buy-in-banner";
 import { LockCountdown } from "@/components/ui/lock-countdown";
-import {
-  Cockpit,
-  TrophyModeCard,
-  type PredictionTicket,
-  type BracketCell,
-  type StandingRow,
-} from "@/components/dashboard/cockpit";
+import { TodayPanel } from "@/components/dashboard/today-panel";
 import { WorldTrophyMark } from "@/components/brand/sport-icons";
 import { QuickBetButton } from "@/components/bet/quick-bet-button";
 import { BetStatusBadge } from "@/components/bet/bet-status-badge";
@@ -67,136 +60,30 @@ export default async function DashboardPage({
   ]);
 
   const now = Date.now();
-  const liveMatches = allMatches.filter((m) => m.status === "live");
-  const scheduledMatches = allMatches
-    .filter(
-      (m) =>
-        m.status === "scheduled" &&
-        new Date(m.kickoff_at).getTime() > now + 60_000,
-    )
-    .slice(0, 4);
 
-  // 4 prediction tickets: live first, then scheduled.
-  const ticketCandidates = [...liveMatches, ...scheduledMatches].slice(0, 4);
-  const communityOdds = await getCommunityOdds(
-    ticketCandidates.map((m) => m.id),
-  );
-
-  const tickets: PredictionTicket[] = ticketCandidates.map((m, idx) => {
-    const odds = communityOdds.get(m.id) ?? { home: 38, draw: 24, away: 38, total: 0 };
-    const accent: PredictionTicket["accent"] =
-      m.status === "live"
-        ? "violet"
-        : idx === 0
-          ? "primary"
-          : idx === 1
-            ? "gold"
-            : idx === 2
-              ? "emerald"
-              : "primary";
-    return {
-      match: {
-        id: m.id,
-        kickoff_at: m.kickoff_at,
-        status: m.status,
-        home_team: m.home_team
-          ? {
-              iso_code: m.home_team.iso_code ?? null,
-              name_fr: m.home_team.name_fr,
-              name_en: m.home_team.name_en,
-              flag_emoji: m.home_team.flag_emoji ?? null,
-            }
-          : null,
-        away_team: m.away_team
-          ? {
-              iso_code: m.away_team.iso_code ?? null,
-              name_fr: m.away_team.name_fr,
-              name_en: m.away_team.name_en,
-              flag_emoji: m.away_team.flag_emoji ?? null,
-            }
-          : null,
-        home_placeholder: m.home_placeholder,
-        away_placeholder: m.away_placeholder,
-      },
-      label: ticketLabel(m, idx, L),
-      stage:
-        m.stage === "group" && m.group_label
-          ? `${L === "fr" ? "Groupe" : "Group"} ${m.group_label}`
-          : stageName(m.stage, L),
-      venue: m.venue
-        ? `${L === "fr" ? m.venue.city_fr : m.venue.city_en} · ${m.venue.name}`
-        : ticketLabel(m, idx, L),
-      time: new Date(m.kickoff_at).toLocaleString(
-        L === "fr" ? "fr-FR" : "en-US",
-        { day: "2-digit", month: "short", timeZone: "Europe/Paris" },
-      ),
-      accent,
-      shares: [odds.home, odds.draw, odds.away],
-      odds: [
-        shareToOdds(odds.home),
-        shareToOdds(odds.draw),
-        shareToOdds(odds.away),
-      ],
-    };
-  });
-
-  // Build standings rows (max 4 for cockpit display)
-  const standingRows: StandingRow[] = standings.slice(0, 4).map((s) => ({
-    rank: s.rank,
-    name: s.display_name ?? `@${s.username}`,
-    wins: s.wins,
-    points: s.total_points,
-    isMe: user?.id === s.user_id,
-  }));
-
-  // Build bracket preview (3 cols × ~3 cells)
-  const bracket = buildBracketPreview(allMatches, L);
-
-  // Real metrics for rings
+  // Page-level metrics (used by the lean stats strip + the "Featured" CTA card).
   const activeBets = myBets.filter((b) => b.status === "validated");
-  const activeStake = activeBets.reduce(
-    (sum, b) => sum + b.stake_cents,
-    0,
-  );
   const balanceCents = user?.balance_cents ?? 0;
-  const totalCapital = activeStake + balanceCents;
-  const riskPct =
-    totalCapital > 0 ? Math.round((activeStake / totalCapital) * 100) : 0;
-  const roiPct =
-    stats.total_staked_cents > 0
-      ? Math.round(
-          ((stats.total_payout_cents - stats.total_staked_cents) /
-            stats.total_staked_cents) *
-            100,
-        )
-      : 0;
-  const goldPct = Math.round(stats.win_rate * 100);
-
-  // Form curve: cumulative points over last settled bets (or flat zeros)
-  const settledBets = myBets
-    .filter((b) => b.status === "settled")
-    .slice(0, 12)
-    .reverse();
-  const formPoints =
-    settledBets.length > 0
-      ? settledBets.reduce<number[]>((acc, b, i) => {
-          const prev = i === 0 ? 0 : acc[i - 1]!;
-          acc.push(prev + b.points);
-          return acc;
-        }, [])
-      : [0, 0, 0, 0, 0];
-
-  const finishedCount = allMatches.filter((m) => m.status === "finished").length;
-  const donutValue = Math.min(
-    Math.round((finishedCount / Math.max(allMatches.length, 1)) * 100),
-    100,
-  );
-
-  // Page-level metrics
   const balanceTokens = Math.floor(balanceCents / 100);
   const winRatePct = Math.round(stats.win_rate * 100);
   const myRank =
     user && standings.find((s) => s.user_id === user.id)?.rank;
+
+  // First openable match — surfaced as the "Featured" CTA below.
+  const ticketCandidates = [
+    ...allMatches.filter((m) => m.status === "live"),
+    ...allMatches
+      .filter(
+        (m) =>
+          m.status === "scheduled" &&
+          new Date(m.kickoff_at).getTime() > now + 60_000,
+      )
+      .sort(
+        (a, b) =>
+          new Date(a.kickoff_at).getTime() -
+          new Date(b.kickoff_at).getTime(),
+      ),
+  ];
 
   return (
     <main className="mx-auto max-w-[1600px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
@@ -260,27 +147,27 @@ export default async function DashboardPage({
               </h1>
               <p className="mt-3 max-w-xl text-sm leading-6 text-text-secondary sm:text-base">
                 {L === "fr"
-                  ? "Console live, classement, organigramme et stats — tout pour piloter ton tournoi."
-                  : "Live console, leaderboard, bracket, and stats — everything to drive your tournament."}
+                  ? "Tout ce qui compte aujourd'hui — prochains matchs, classement, tes pronos — sur une seule page."
+                  : "Everything that matters today — next matches, leaderboard, your picks — on one page."}
               </p>
             </div>
 
-            <TrophyModeCard locale={L} />
-
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               <CommandMetric
                 icon={Link2}
                 label={L === "fr" ? "Solde" : "Balance"}
-                value={balanceTokens.toLocaleString(L === "fr" ? "fr-FR" : "en-US")}
-                detail={L === "fr" ? "jetons dispo" : "tokens ready"}
+                value={balanceTokens.toLocaleString(
+                  L === "fr" ? "fr-FR" : "en-US",
+                )}
+                detail={L === "fr" ? "jetons" : "tokens"}
                 accent="primary"
                 href="/profile/wallet"
               />
               <CommandMetric
                 icon={Receipt}
-                label={L === "fr" ? "Paris actifs" : "Active bets"}
+                label={L === "fr" ? "Pronos actifs" : "Active picks"}
                 value={activeBets.length}
-                detail={`${Math.floor(activeStake / 100)} ${L === "fr" ? "jetons" : "tokens"}`}
+                detail={L === "fr" ? "à régler" : "open"}
                 accent="violet"
                 href="/bets"
               />
@@ -290,7 +177,7 @@ export default async function DashboardPage({
                 value={stats.total_points}
                 detail={
                   stats.settled_bets > 0
-                    ? `${winRatePct}% ${L === "fr" ? "réussite" : "win rate"}`
+                    ? `${winRatePct}% ${L === "fr" ? "réussite" : "win"}`
                     : L === "fr"
                       ? "en attente"
                       : "pending"
@@ -300,43 +187,21 @@ export default async function DashboardPage({
               />
               <CommandMetric
                 icon={Users}
-                label={L === "fr" ? "Ligues" : "Leagues"}
-                value={myLeagues.length}
-                detail={
-                  myRank
-                    ? `${L === "fr" ? "rang" : "rank"} #${myRank}`
-                    : L === "fr"
-                      ? "espaces privés"
-                      : "private rooms"
-                }
+                label={L === "fr" ? "Rang" : "Rank"}
+                value={myRank ? `#${myRank}` : "—"}
+                detail={`${myLeagues.length} ${L === "fr" ? "ligues" : "leagues"}`}
                 accent="primary"
-                href="/leagues"
+                href={myRank ? "/leaderboard/global" : "/leagues"}
               />
             </div>
           </div>
 
-          {/* Right side — cockpit */}
-          <Cockpit
+          {/* Right side — Today panel (live + upcoming + leaderboard) */}
+          <TodayPanel
+            matches={allMatches}
+            standings={standings}
+            currentUserId={user?.id ?? null}
             locale={L}
-            tickets={tickets}
-            standings={standingRows}
-            bracket={bracket}
-            rings={[
-              { label: "ROI", value: clampRing(roiPct + 50), color: "primary" },
-              {
-                label: L === "fr" ? "Risque" : "Risk",
-                value: riskPct,
-                color: "violet",
-              },
-              { label: "Gold", value: goldPct, color: "gold" },
-            ]}
-            donutValue={donutValue}
-            donutLabel={
-              L === "fr"
-                ? `${finishedCount}/${allMatches.length} matchs`
-                : `${finishedCount}/${allMatches.length} matches`
-            }
-            formPoints={formPoints}
           />
         </div>
       </section>
@@ -514,19 +379,21 @@ function CommandMetric({
   }[accent];
 
   const inner = (
-    <div className="group relative overflow-hidden rounded-[10px] border border-white/[0.08] bg-white/[0.04] p-4 backdrop-blur-xl transition hover:border-white/[0.16] hover:bg-white/[0.07]">
-      <div className="mb-3 flex items-center justify-between">
-        <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
+    <div className="group flex items-center gap-2.5 overflow-hidden rounded-[10px] border border-white/[0.08] bg-white/[0.035] p-2.5 backdrop-blur-xl transition hover:border-white/[0.16] hover:bg-white/[0.07]">
+      <span className={cn("rounded-md p-1.5 ring-1", colors.bg)}>
+        <Icon className={cn("size-3.5", colors.text)} strokeWidth={1.7} />
+      </span>
+      <div className="min-w-0 flex-1">
+        <div className="text-[9px] font-bold uppercase tracking-wider text-text-tertiary">
           {label}
-        </span>
-        <span className={cn("rounded-md p-1.5 ring-1", colors.bg)}>
-          <Icon className={cn("size-3.5", colors.text)} strokeWidth={1.7} />
-        </span>
+        </div>
+        <div className="font-display text-base font-bold tabular-nums leading-tight text-text-primary sm:text-lg">
+          {value}
+        </div>
+        <div className="truncate text-[10px] text-text-tertiary">
+          {detail}
+        </div>
       </div>
-      <div className="font-display text-2xl font-bold tabular-nums text-text-primary sm:text-3xl">
-        {value}
-      </div>
-      <div className="mt-1 text-xs text-text-tertiary">{detail}</div>
     </div>
   );
 
@@ -817,69 +684,6 @@ function EmptyPanel({ text }: { text: string }) {
 /* -------------------------------------------------------------------------- */
 /*  Utilities                                                                 */
 /* -------------------------------------------------------------------------- */
-
-function clampRing(value: number): number {
-  return Math.max(0, Math.min(value, 100));
-}
-
-function ticketLabel(match: MatchListItem, idx: number, locale: Locale): string {
-  if (match.status === "live") return locale === "fr" ? "Live" : "Live";
-  if (idx === 0) return locale === "fr" ? "Match d'ouverture" : "Opening match";
-  if (idx === 1) return locale === "fr" ? "Affiche premium" : "Premium fixture";
-  if (idx === 2) return locale === "fr" ? "Duel tactique" : "Tactical duel";
-  if (match.stage === "final") return locale === "fr" ? "Finale gold" : "Gold final";
-  return locale === "fr" ? "Prochain match" : "Upcoming match";
-}
-
-function stageName(stage: string, locale: Locale): string {
-  const labels: Record<string, { fr: string; en: string }> = {
-    r32: { fr: "1/16ᵉ", en: "R32" },
-    r16: { fr: "8ᵉ", en: "R16" },
-    qf: { fr: "Quart", en: "QF" },
-    sf: { fr: "Demi", en: "SF" },
-    third_place: { fr: "3ᵉ place", en: "3rd place" },
-    final: { fr: "Finale", en: "Final" },
-    group: { fr: "Groupes", en: "Group" },
-  };
-  return labels[stage]?.[locale] ?? stage;
-}
-
-function buildBracketPreview(
-  matches: MatchListItem[],
-  _locale: Locale,
-): BracketCell[][] {
-  const r32 = matches.filter((m) => m.stage === "r32").slice(0, 4);
-  const r16 = matches.filter((m) => m.stage === "r16").slice(0, 4);
-  const qf = matches.filter((m) => m.stage === "qf").slice(0, 2);
-
-  function teamCode(team: { iso_code: string | null } | null, placeholder: string | null): string | null {
-    if (team?.iso_code) return team.iso_code.toUpperCase();
-    if (placeholder) return placeholder.slice(0, 8);
-    return null;
-  }
-
-  function fillStage(
-    stageKey: BracketCell["stageKey"],
-    list: MatchListItem[],
-    count: number,
-  ): BracketCell[] {
-    const cells: BracketCell[] = list.map((m) => ({
-      stageKey,
-      homeCode: teamCode(m.home_team, m.home_placeholder),
-      awayCode: teamCode(m.away_team, m.away_placeholder),
-    }));
-    while (cells.length < count) {
-      cells.push({ stageKey, homeCode: null, awayCode: null });
-    }
-    return cells;
-  }
-
-  return [
-    fillStage("r32", r32, 4),
-    fillStage("r16", r16, 4),
-    fillStage("qf", qf, 2),
-  ];
-}
 
 function betLabel(
   bet: {
