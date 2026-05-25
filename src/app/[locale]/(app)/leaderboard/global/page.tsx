@@ -2,6 +2,8 @@ import { setRequestLocale } from "next-intl/server";
 import { getGlobalStandings } from "@/lib/leagues/queries";
 import { getProjectedPayouts } from "@/lib/leagues/projected-payouts";
 import { formatMoney } from "@/lib/admin/economy";
+import { AppPageShell } from "@/components/layout/app-page-shell";
+import { PageHero } from "@/components/layout/page-hero";
 import { LeaderboardPodium } from "@/components/leaderboard/podium";
 import { StandingsTable } from "@/components/leaderboard/standings-table";
 import { getSupabaseServer } from "@/lib/supabase/server";
@@ -49,48 +51,46 @@ export default async function GlobalLeaderboardPage({
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-10 lg:px-8">
-      <header className="mb-4 rounded-[8px] border border-white/[0.1] bg-surface-1/[0.68] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-xl">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <div className="mb-3 inline-flex items-center gap-1.5 rounded-[8px] border border-gold-500/30 bg-gold-500/[0.1] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-gold-400 shadow-glow-gold">
-              <Trophy className="size-3.5" strokeWidth={1.7} />
-              {locale === "fr" ? "Course au trophée" : "Trophy race"}
-            </div>
-            <h1 className="font-display text-3xl font-semibold text-text-primary sm:text-4xl">
-              {locale === "fr" ? "Classement global" : "Global leaderboard"}
-            </h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-text-secondary">
-              {locale === "fr"
-                ? "Tous les joueurs Lucarne, leurs points, leur forme et leur progression vers le podium Coupe du Monde."
-                : "All Lucarne players, their points, form, and progression toward the World Cup podium."}
-            </p>
-          </div>
-          <div className="grid gap-2 sm:grid-cols-3 lg:min-w-[520px]">
-            <LeaderboardMetric
-              icon={Users}
-              label={locale === "fr" ? "Joueurs" : "Players"}
-              value={standings.length}
-              detail={locale === "fr" ? "classés" : "ranked"}
-              accent="primary"
+    <AppPageShell width="ultra">
+      <PageHero
+        kicker={L === "fr" ? "Course au trophée" : "Trophy race"}
+        kickerIcon={Trophy}
+        accent="gold"
+        title={
+          L === "fr" ? "Classement global" : "Global leaderboard"
+        }
+        description={
+          L === "fr"
+            ? "Tous les joueurs Lucarne, leurs points et leur progression vers le podium Coupe du Monde. Cagnotte réelle partagée entre les 3 premiers."
+            : "All Lucarne players, their points, and their progression toward the World Cup podium. Real prize pool split among the top 3."
+        }
+        stats={
+          <>
+            <LeaderboardStat
+              label={L === "fr" ? "Joueurs" : "Players"}
+              value={`${standings.length}`}
+              tone="primary"
             />
-            <LeaderboardMetric
-              icon={Medal}
-              label={locale === "fr" ? "Paris" : "Bets"}
-              value={totalBets}
-              detail={locale === "fr" ? "résolus" : "settled"}
-              accent="violet"
+            <LeaderboardStat
+              label={L === "fr" ? "Paris réglés" : "Settled bets"}
+              value={`${totalBets}`}
+              tone="violet"
             />
-            <LeaderboardMetric
-              icon={Crown}
-              label={locale === "fr" ? "Leader" : "Leader"}
-              value={leader ? `#${leader.rank}` : "—"}
-              detail={leader?.display_name ?? leader?.username ?? (locale === "fr" ? "à venir" : "pending")}
-              accent="gold"
+            <LeaderboardStat
+              label={L === "fr" ? "Leader" : "Leader"}
+              value={leader ? `@${leader.username}` : "—"}
+              tone="gold"
             />
-          </div>
-        </div>
-      </header>
+          </>
+        }
+        visual={{
+          src: "/assets/lucarne/claude-pack-20260525/svg/10-wallet-prize-pool.svg",
+          alt:
+            L === "fr"
+              ? "Cagnotte projetée et podium"
+              : "Projected prize pool and podium",
+        }}
+      />
 
       {standings.length === 0 ? (
         <EmptyLeaderboardPreview locale={L} />
@@ -150,7 +150,31 @@ export default async function GlobalLeaderboardPage({
           />
         </>
       )}
-    </main>
+    </AppPageShell>
+  );
+}
+
+function LeaderboardStat({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone: "primary" | "gold" | "violet";
+}) {
+  const cls = {
+    primary: "border-primary-500/30 bg-primary-500/[0.08] text-primary-300",
+    gold: "border-gold-500/35 bg-gold-500/[0.08] text-gold-300",
+    violet: "border-violet-500/30 bg-violet-500/[0.08] text-violet-300",
+  }[tone];
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${cls}`}
+    >
+      {label}
+      <span className="font-mono normal-case text-text-primary">{value}</span>
+    </span>
   );
 }
 

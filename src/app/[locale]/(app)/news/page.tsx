@@ -1,5 +1,10 @@
 import { setRequestLocale } from "next-intl/server";
-import { listNewsPosts } from "@/lib/news/queries";
+import { listNewsPosts, type NewsPost } from "@/lib/news/queries";
+import { AppPageShell } from "@/components/layout/app-page-shell";
+import { PageHero } from "@/components/layout/page-hero";
+import { EmptyStateVisual } from "@/components/layout/empty-state-visual";
+import { DataSourceBadge } from "@/components/ui/data-source-badge";
+import { Link } from "@/i18n/navigation";
 import {
   Megaphone,
   Newspaper,
@@ -11,10 +16,18 @@ import {
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
 
+type NewsKind = NewsPost["kind"];
+
 const KIND_CONFIG: Record<
-  string,
+  NewsKind | "all",
   { Icon: LucideIcon; fr: string; en: string; accent: string }
 > = {
+  all: {
+    Icon: Newspaper,
+    fr: "Tout",
+    en: "All",
+    accent: "bg-white/[0.06] text-text-secondary ring-white/[0.1]",
+  },
   news: {
     Icon: Newspaper,
     fr: "Actu",
@@ -47,43 +60,124 @@ const KIND_CONFIG: Record<
   },
 };
 
+const FILTER_ORDER: Array<NewsKind | "all"> = [
+  "all",
+  "news",
+  "announcement",
+  "match_recap",
+  "release",
+];
+
 export default async function NewsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ kind?: string }>;
 }) {
   const { locale } = await params;
+  const { kind } = await searchParams;
   setRequestLocale(locale);
   const L = locale as Locale;
-  const posts = await listNewsPosts(30);
+  const allPosts = await listNewsPosts(50);
+
+  const activeKind: NewsKind | "all" = FILTER_ORDER.includes(
+    kind as NewsKind | "all",
+  )
+    ? (kind as NewsKind | "all")
+    : "all";
+
+  const posts =
+    activeKind === "all"
+      ? allPosts
+      : allPosts.filter((p) => p.kind === activeKind);
+
+  const lastUpdated = allPosts[0]?.published_at ?? null;
+  const counts = FILTER_ORDER.reduce<Record<string, number>>((acc, k) => {
+    acc[k] = k === "all" ? allPosts.length : allPosts.filter((p) => p.kind === k).length;
+    return acc;
+  }, {});
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
-      <header className="mb-6 rounded-[12px] border border-white/[0.1] bg-gradient-to-br from-primary-500/[0.08] via-transparent to-violet-500/[0.06] p-6 backdrop-blur-xl">
-        <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-primary-500/30 bg-primary-500/[0.1] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-300">
-          <Newspaper className="size-3" strokeWidth={2} />
-          Lucarne ·{" "}
-          {L === "fr" ? "Fil d'actualité" : "News feed"}
-        </div>
-        <h1 className="font-display text-3xl font-semibold tracking-tight text-text-primary sm:text-4xl">
-          {L === "fr" ? "Le mur des news" : "The news wall"}
-        </h1>
-        <p className="mt-2 text-sm text-text-secondary">
-          {L === "fr"
-            ? "Annonces de l'admin, résumés de matchs, mises à jour de l'app — tout y passe."
-            : "Admin announcements, match recaps, app updates — everything lands here."}
-        </p>
-      </header>
+    <AppPageShell width="wide">
+      <PageHero
+        kicker={L === "fr" ? "Fil d'actu" : "News feed"}
+        kickerIcon={Newspaper}
+        accent="primary"
+        title={L === "fr" ? "Le mur des news" : "The news wall"}
+        description={
+          L === "fr"
+            ? "Annonces, résumés de matchs et mises à jour. Alimenté par Hermes pendant le tournoi, ou directement par l'admin."
+            : "Announcements, match recaps, and updates. Fed by Hermes during the tournament, or directly by the admin."
+        }
+        stats={
+          <DataSourceBadge
+            source="hermes"
+            updatedAt={lastUpdated}
+            locale={L}
+          />
+        }
+        visual={{
+          src: "/assets/lucarne/claude-pack-20260525/svg/05-news-hermes-feed.svg",
+          alt:
+            L === "fr"
+              ? "Fil d'actualités Hermes Lucarne"
+              : "Lucarne Hermes news feed",
+        }}
+      />
+
+      {/* Filter chips */}
+      <nav
+        className="flex flex-wrap items-center gap-1.5"
+        aria-label={L === "fr" ? "Filtrer par type" : "Filter by kind"}
+      >
+        {FILTER_ORDER.map((k) => {
+          const cfg = KIND_CONFIG[k];
+          const Icon = cfg.Icon;
+          const isActive = activeKind === k;
+          const count = counts[k] ?? 0;
+          return (
+            <Link
+              key={k}
+              href={k === "all" ? "/news" : `/news?kind=${k}`}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-wider transition",
+                isActive
+                  ? "border-primary-500/40 bg-primary-500/[0.12] text-primary-200 shadow-glow-primary"
+                  : "border-white/[0.08] bg-white/[0.04] text-text-tertiary hover:border-white/[0.2] hover:text-text-primary",
+              )}
+            >
+              <Icon className="size-3" strokeWidth={2} />
+              {L === "fr" ? cfg.fr : cfg.en}
+              <span className="rounded-full bg-white/[0.05] px-1.5 py-0.5 font-mono text-[9px] tabular-nums text-text-tertiary">
+                {count}
+              </span>
+            </Link>
+          );
+        })}
+      </nav>
 
       {posts.length === 0 ? (
-        <div className="rounded-[12px] border border-dashed border-white/[0.1] bg-surface-1/[0.4] p-12 text-center backdrop-blur-xl">
-          <Newspaper className="mx-auto mb-3 size-7 text-text-tertiary" strokeWidth={1.5} />
-          <p className="text-sm text-text-secondary">
-            {L === "fr"
-              ? "Pas encore de news. Hermes ou l'admin publieront ici."
-              : "No news yet. Hermes or the admin will post here."}
-          </p>
-        </div>
+        <EmptyStateVisual
+          src="/assets/lucarne/claude-pack-20260525/svg/05-news-hermes-feed.svg"
+          alt={
+            L === "fr" ? "Pas encore de news" : "No news yet"
+          }
+          title={
+            activeKind === "all"
+              ? L === "fr"
+                ? "Pas encore de news"
+                : "No news yet"
+              : L === "fr"
+                ? "Aucune news dans cette catégorie"
+                : "No news in this category"
+          }
+          body={
+            L === "fr"
+              ? "Hermes ou l'admin publieront ici dès que le tournoi reprendra."
+              : "Hermes or the admin will post here as soon as the tournament resumes."
+          }
+        />
       ) : (
         <ul className="space-y-4">
           {posts.map((p) => {
@@ -92,7 +186,7 @@ export default async function NewsPage({
             return (
               <li
                 key={p.id}
-                className="rounded-[12px] border border-white/[0.08] bg-surface-1/[0.55] p-5 backdrop-blur-xl transition hover:border-white/[0.16] hover:bg-surface-1/[0.7]"
+                className="rounded-[8px] border border-white/[0.08] bg-surface-1/[0.55] p-5 backdrop-blur-xl transition hover:border-white/[0.16] hover:bg-surface-1/[0.7]"
               >
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <span
@@ -135,6 +229,6 @@ export default async function NewsPage({
           })}
         </ul>
       )}
-    </main>
+    </AppPageShell>
   );
 }

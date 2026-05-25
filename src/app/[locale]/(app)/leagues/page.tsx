@@ -2,6 +2,9 @@ import { setRequestLocale } from "next-intl/server";
 import { listMyLeagues } from "@/lib/leagues/queries";
 import { isAdmin } from "@/lib/admin/queries";
 import { Link } from "@/i18n/navigation";
+import { AppPageShell } from "@/components/layout/app-page-shell";
+import { PageHero } from "@/components/layout/page-hero";
+import { EmptyStateVisual } from "@/components/layout/empty-state-visual";
 import {
   ArrowRight,
   Crown,
@@ -29,32 +32,40 @@ export default async function LeaguesPage({
   const premiumCount = leagues.filter((league) => league.allows_real_money).length;
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-10 lg:px-8">
-      <header className="mb-4 flex flex-col gap-5 rounded-[8px] border border-white/[0.1] bg-surface-1/[0.68] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-xl lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <div className="mb-3 inline-flex items-center gap-1.5 rounded-[8px] border border-gold-500/30 bg-gold-500/[0.1] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-gold-400 shadow-glow-gold">
-            <Crown className="size-3.5" strokeWidth={1.7} />
-            {locale === "fr" ? "Ligues privées Mondial" : "World Cup private leagues"}
-          </div>
-          <h1 className="font-display text-3xl font-semibold text-text-primary sm:text-4xl">
-            {locale === "fr" ? "Salons de compétition" : "Competition rooms"}
-          </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-text-secondary">
-            {locale === "fr"
-              ? `${leagues.length} ligue${leagues.length > 1 ? "s" : ""} pour suivre tes classements privés, inviter ton cercle et jouer la Coupe du Monde avec un vrai board dédié.`
-              : `${leagues.length} league${leagues.length > 1 ? "s" : ""} to follow private standings, invite your circle, and play the World Cup with a dedicated board.`}
-          </p>
-        </div>
-        {admin && (
-          <Link
-            href="/leagues/new"
-            className="inline-flex items-center gap-1.5 rounded-[8px] bg-primary-500 px-4 py-2.5 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400"
-          >
-            <Plus className="size-4" />
-            {locale === "fr" ? "Nouvelle ligue" : "New league"}
-          </Link>
-        )}
-      </header>
+    <AppPageShell width="ultra">
+      <PageHero
+        kicker={
+          L === "fr" ? "Ligues privées" : "Private leagues"
+        }
+        kickerIcon={Crown}
+        accent="gold"
+        title={
+          L === "fr" ? "Salons de compétition" : "Competition rooms"
+        }
+        description={
+          L === "fr"
+            ? `${leagues.length} ligue${leagues.length > 1 ? "s" : ""} pour suivre tes classements privés, inviter ton cercle et jouer la Coupe du Monde avec un vrai board dédié.`
+            : `${leagues.length} league${leagues.length > 1 ? "s" : ""} to follow private standings, invite your circle, and play the World Cup with a dedicated board.`
+        }
+        actions={
+          admin && (
+            <Link
+              href="/leagues/new"
+              className="inline-flex items-center gap-1.5 rounded-[8px] bg-primary-500 px-4 py-2 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400"
+            >
+              <Plus className="size-4" />
+              {L === "fr" ? "Nouvelle ligue" : "New league"}
+            </Link>
+          )
+        }
+        visual={{
+          src: "/assets/lucarne/claude-pack-20260525/svg/06-private-league-room.svg",
+          alt:
+            L === "fr"
+              ? "Salon de ligue privée Lucarne"
+              : "Lucarne private league room",
+        }}
+      />
 
       <LeagueConsole
         locale={L}
@@ -120,7 +131,7 @@ export default async function LeaguesPage({
           ))}
         </div>
       )}
-    </main>
+    </AppPageShell>
   );
 }
 

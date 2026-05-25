@@ -1,11 +1,19 @@
-import Image from "next/image";
 import { setRequestLocale } from "next-intl/server";
-import { Link } from "@/i18n/navigation";
 import { getMyBuyInStatus } from "@/lib/profile/buy-in";
 import { isStripeConfigured } from "@/lib/stripe/server";
 import { formatMoney } from "@/lib/admin/economy";
+import { AppPageShell } from "@/components/layout/app-page-shell";
+import { PageHero } from "@/components/layout/page-hero";
+import { SectionPanel } from "@/components/layout/section-panel";
 import { BuyInCard } from "@/components/wallet/buy-in-card";
-import { CalendarClock, CheckCircle2, ShieldCheck, Trophy } from "lucide-react";
+import {
+  CalendarClock,
+  CheckCircle2,
+  Crown,
+  Sparkles,
+  Ticket,
+  type LucideIcon,
+} from "lucide-react";
 import type { Locale } from "@/i18n/routing";
 
 export default async function BuyInPage({
@@ -20,42 +28,43 @@ export default async function BuyInPage({
   setRequestLocale(locale);
   const L = locale as Locale;
 
-  const [status] = await Promise.all([getMyBuyInStatus()]);
+  const status = await getMyBuyInStatus();
   const stripeReady = isStripeConfigured();
   const moneyLocale = L === "fr" ? "fr-CA" : "en-CA";
+  const priceLabel = formatMoney(
+    status.amount_cents,
+    status.settings.currency,
+    moneyLocale,
+  );
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-      <section className="relative mb-8 overflow-hidden rounded-[14px] border border-white/[0.13] bg-abyss/[0.78] p-6 shadow-[0_38px_120px_rgba(0,0,0,0.42),inset_0_1px_0_rgba(255,255,255,0.1)] sm:p-8">
-        <Image
-          src="/marketing/lucarne-hero-stadium.jpg"
-          alt=""
-          fill
-          sizes="100vw"
-          className="absolute inset-0 -z-20 object-cover object-[55%_45%] opacity-[0.32]"
-        />
-        <div className="absolute inset-0 -z-10 bg-[linear-gradient(96deg,rgba(5,6,5,0.93)_0%,rgba(5,6,5,0.78)_38%,rgba(5,6,5,0.46)_100%)]" />
-
-        <div className="relative max-w-2xl">
-          <div className="mb-3 inline-flex items-center gap-1.5 rounded-[8px] border border-gold-500/30 bg-gold-500/[0.1] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-gold-400 shadow-glow-gold">
-            <Trophy className="size-3.5" />
-            {L === "fr" ? "Place Coupe du Monde 2026" : "World Cup 2026 seat"}
-          </div>
-          <h1 className="font-display text-3xl font-semibold leading-tight text-text-primary sm:text-4xl">
-            {L === "fr"
-              ? "Un seul paiement, tout le tournoi."
-              : "One payment, the whole tournament."}
-          </h1>
-          <p className="mt-3 text-sm leading-6 text-text-secondary sm:text-base">
-            {L === "fr"
-              ? `Pour ${formatMoney(status.amount_cents, status.settings.currency, moneyLocale)}, tu débloques les paris sur les 104 matchs. Pas d’abonnement, pas de relance, pas de mise minimale. Le top 3 du classement final se partage la cagnotte réelle.`
-              : `For ${formatMoney(status.amount_cents, status.settings.currency, moneyLocale)} you unlock betting on all 104 matches. No subscription, no upsell, no minimum stake. The top 3 split the real-money pot at the end.`}
-          </p>
-        </div>
-      </section>
+    <AppPageShell width="wide">
+      <PageHero
+        kicker={L === "fr" ? "Place Mondial 2026" : "World Cup 2026 seat"}
+        kickerIcon={Ticket}
+        accent="gold"
+        title={
+          L === "fr"
+            ? "Un seul paiement, tout le tournoi."
+            : "One payment, the whole tournament."
+        }
+        description={
+          L === "fr"
+            ? `Pour ${priceLabel}, tu débloques tous les pronostics sur les 104 matchs. Pas d'abonnement, pas de relance, pas de mise minimale. Le top 3 du classement final se partage la cagnotte.`
+            : `For ${priceLabel} you unlock predictions on all 104 matches. No subscription, no upsell, no minimum stake. The top 3 split the prize pool at the end.`
+        }
+        visual={{
+          src: "/assets/lucarne/claude-pack-20260525/svg/07-buy-in-gold-seat.svg",
+          alt:
+            L === "fr"
+              ? "Illustration de la place achetée — siège or"
+              : "Gold seat — purchased entry",
+          priority: true,
+        }}
+      />
 
       {stripe === "success" && (
-        <div className="mb-6 flex items-start gap-3 rounded-[10px] border border-primary-500/35 bg-primary-500/[0.1] px-4 py-3 text-sm text-primary-200">
+        <div className="flex items-start gap-3 rounded-[8px] border border-primary-500/35 bg-primary-500/[0.1] px-4 py-3 text-sm text-primary-200">
           <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
           <div>
             <div className="font-semibold">
@@ -63,14 +72,14 @@ export default async function BuyInPage({
             </div>
             <div className="mt-0.5 text-text-secondary">
               {L === "fr"
-                ? "Ton paiement est en cours de validation. L’accès aux paris s’ouvre dans quelques secondes — recharge la page si besoin."
-                : "Your payment is being confirmed. Betting access opens within seconds — refresh the page if it lags."}
+                ? "Ton paiement est en cours de validation. L'accès aux pronos s'ouvre dans quelques secondes — recharge la page si besoin."
+                : "Your payment is being confirmed. Predictions unlock within seconds — refresh the page if needed."}
             </div>
           </div>
         </div>
       )}
       {stripe === "cancelled" && (
-        <div className="mb-6 rounded-[10px] border border-white/[0.1] bg-white/[0.04] px-4 py-3 text-sm text-text-secondary">
+        <div className="rounded-[8px] border border-white/[0.1] bg-white/[0.04] px-4 py-3 text-sm text-text-secondary">
           {L === "fr"
             ? "Paiement annulé — tu peux relancer quand tu veux."
             : "Payment cancelled — you can restart whenever."}
@@ -87,67 +96,110 @@ export default async function BuyInPage({
         locale={L}
       />
 
-      <section className="mt-10 grid gap-3 sm:grid-cols-3">
-        <Bullet
-          icon={ShieldCheck}
-          title={L === "fr" ? "Pas de mise par pari" : "No per-bet stake"}
-          body={
-            L === "fr"
-              ? "Le buy-in est ta seule contribution. Les paris se jouent en points."
-              : "The buy-in is your only contribution. Bets are scored in points."
-          }
-        />
-        <Bullet
-          icon={CalendarClock}
-          title={L === "fr" ? "Modifie jusqu’au dernier moment" : "Edit till the last call"}
-          body={
-            L === "fr"
-              ? "Tu peux changer un pronostic jusqu’à 1 h avant chaque coup d’envoi."
-              : "Change a pick up to 1 h before each kickoff."
-          }
-        />
-        <Bullet
-          icon={Trophy}
-          title={L === "fr" ? "Top 3 récolte la cagnotte" : "Top 3 share the pot"}
-          body={
-            L === "fr"
-              ? "À la fin du tournoi, le podium se partage l’intégralité du pot."
-              : "When the tournament ends, the podium splits the whole pot."
-          }
-        />
-      </section>
+      {/* Timeline: Paye → Pronostique → Suis → Podium */}
+      <SectionPanel
+        icon={Sparkles}
+        title={L === "fr" ? "Ton parcours en 4 étapes" : "Your 4-step journey"}
+        accent="primary"
+      >
+        <ol className="grid gap-3 sm:grid-cols-4">
+          <Step
+            n={1}
+            icon={Ticket}
+            title={L === "fr" ? "Paie" : "Pay"}
+            body={
+              L === "fr"
+                ? "Un paiement unique de " + priceLabel + " via Stripe."
+                : "One-time " + priceLabel + " via Stripe."
+            }
+            done={status.paid || status.is_admin}
+          />
+          <Step
+            n={2}
+            icon={Sparkles}
+            title={L === "fr" ? "Pronostique" : "Predict"}
+            body={
+              L === "fr"
+                ? "Classe les groupes + bâtis ton arbre. Modifiable jusqu'au verrou."
+                : "Rank groups + build the bracket. Editable until the lock."
+            }
+          />
+          <Step
+            n={3}
+            icon={CalendarClock}
+            title={L === "fr" ? "Suis le live" : "Follow live"}
+            body={
+              L === "fr"
+                ? "Scores et news Hermes pendant les 104 matchs."
+                : "Scores and Hermes news through all 104 matches."
+            }
+          />
+          <Step
+            n={4}
+            icon={Crown}
+            title={L === "fr" ? "Podium" : "Podium"}
+            body={
+              L === "fr"
+                ? "Top 3 du classement final se partage la cagnotte."
+                : "Top 3 split the prize pool at the end."
+            }
+          />
+        </ol>
+      </SectionPanel>
 
-      <p className="mt-6 text-center text-xs text-text-tertiary">
-        {L === "fr" ? "Déjà joué ? " : "Already played? "}
-        <Link
+      <p className="text-center text-xs text-text-tertiary">
+        {L === "fr" ? "Déjà payé ? " : "Already paid? "}
+        <a
           href="/dashboard"
           className="font-semibold text-primary-400 hover:text-primary-300"
         >
           {L === "fr" ? "Aller au dashboard" : "Open dashboard"}
-        </Link>
+        </a>
       </p>
-    </main>
+    </AppPageShell>
   );
 }
 
-function Bullet({
+function Step({
+  n,
   icon: Icon,
   title,
   body,
+  done = false,
 }: {
-  icon: typeof ShieldCheck;
+  n: number;
+  icon: LucideIcon;
   title: string;
   body: string;
+  done?: boolean;
 }) {
   return (
-    <div className="rounded-[10px] border border-white/[0.08] bg-surface-1/[0.6] p-4 backdrop-blur-xl">
-      <div className="mb-2 flex size-9 items-center justify-center rounded-[8px] border border-gold-500/30 bg-gold-500/[0.1] text-gold-300">
-        <Icon className="size-4" strokeWidth={1.7} />
+    <li
+      className={`rounded-[8px] border p-3 ${
+        done
+          ? "border-primary-500/35 bg-primary-500/[0.05]"
+          : "border-white/[0.08] bg-white/[0.03]"
+      }`}
+    >
+      <div className="mb-2 flex items-center justify-between">
+        <span
+          className={`flex size-7 items-center justify-center rounded-[6px] ${
+            done
+              ? "bg-primary-500/15 text-primary-300 ring-1 ring-primary-500/30"
+              : "bg-white/[0.05] text-text-tertiary ring-1 ring-white/[0.08]"
+          }`}
+        >
+          <Icon className="size-3.5" strokeWidth={1.7} />
+        </span>
+        <span className="font-mono text-[10px] font-bold tabular-nums text-text-tertiary">
+          {String(n).padStart(2, "0")}
+        </span>
       </div>
       <div className="font-display text-sm font-semibold text-text-primary">
         {title}
       </div>
       <p className="mt-1 text-xs leading-5 text-text-secondary">{body}</p>
-    </div>
+    </li>
   );
 }
+

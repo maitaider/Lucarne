@@ -1,6 +1,8 @@
 import { setRequestLocale } from "next-intl/server";
 import { listMyBets } from "@/lib/bets/queries";
 import { BetsTabsPanel } from "@/components/bet/bets-tabs-panel";
+import { AppPageShell } from "@/components/layout/app-page-shell";
+import { PageHero } from "@/components/layout/page-hero";
 import type { Locale } from "@/i18n/routing";
 import { Link } from "@/i18n/navigation";
 import {
@@ -38,30 +40,29 @@ export default async function MyBetsPage({
   const settledWins = groups.settled.filter((bet) => bet.result === "won").length;
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-10 lg:px-8">
-      <header className="mb-4 flex flex-col gap-5 rounded-[8px] border border-white/[0.1] bg-surface-1/[0.68] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-xl lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <div className="mb-3 inline-flex items-center gap-1.5 rounded-[8px] border border-gold-500/30 bg-gold-500/[0.1] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-gold-400 shadow-glow-gold">
-            <Receipt className="size-3.5" strokeWidth={1.7} />
-            {locale === "fr" ? "Tickets Coupe du Monde" : "World Cup tickets"}
-          </div>
-          <h1 className="font-display text-3xl font-semibold text-text-primary sm:text-4xl">
-            {locale === "fr" ? "Salle des paris" : "Bet room"}
-          </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-text-secondary">
-            {locale === "fr"
-              ? `${bets.length} ticket${bets.length > 1 ? "s" : ""} placé${bets.length > 1 ? "s" : ""}. Suis la validation, l'exposition en jetons et les résultats sans perdre le fil du tournoi.`
-              : `${bets.length} ticket${bets.length > 1 ? "s" : ""} placed. Track validation, token exposure, and outcomes without losing the tournament thread.`}
-          </p>
-        </div>
-        <Link
-          href="/matches"
-          className="inline-flex items-center justify-center gap-1.5 rounded-[8px] bg-primary-500 px-4 py-2.5 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400"
-        >
-          <ArrowRight className="size-4" strokeWidth={2} />
-          {locale === "fr" ? "Choisir un match" : "Pick a match"}
-        </Link>
-      </header>
+    <AppPageShell width="ultra">
+      <PageHero
+        kicker={
+          L === "fr" ? "Mes tickets Mondial" : "My World Cup tickets"
+        }
+        kickerIcon={Receipt}
+        accent="gold"
+        title={L === "fr" ? "Salle des paris" : "Bet room"}
+        description={
+          L === "fr"
+            ? `${bets.length} ticket${bets.length > 1 ? "s" : ""} placé${bets.length > 1 ? "s" : ""}. Suis la validation, les points en jeu et les résultats sans perdre le fil du tournoi.`
+            : `${bets.length} ticket${bets.length > 1 ? "s" : ""} placed. Track validation, points at stake, and outcomes without losing the tournament thread.`
+        }
+        actions={
+          <Link
+            href="/predict"
+            className="inline-flex items-center justify-center gap-1.5 rounded-[8px] bg-primary-500 px-4 py-2 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400"
+          >
+            <ArrowRight className="size-4" strokeWidth={2} />
+            {L === "fr" ? "Ouvrir Pronostique" : "Open Predict"}
+          </Link>
+        }
+      />
 
       <BetStatusConsole
         locale={L}
@@ -77,7 +78,7 @@ export default async function MyBetsPage({
       ) : (
         <BetsTabsPanel bets={bets} locale={L} />
       )}
-    </main>
+    </AppPageShell>
   );
 }
 

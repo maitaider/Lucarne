@@ -6,12 +6,14 @@ import {
   computePrizePool,
   formatMoney,
 } from "@/lib/admin/economy";
+import { PageHero } from "@/components/layout/page-hero";
 import {
   AlertCircle,
   ArrowRight,
   CalendarClock,
   Coins,
   Crown,
+  ShieldCheck,
   Ticket,
   Trophy,
   Users,
@@ -52,6 +54,28 @@ export default async function AdminOverviewPage({
 
   return (
     <div className="space-y-6">
+      <PageHero
+        kicker={L === "fr" ? "Poste de contrôle" : "Ops console"}
+        kickerIcon={ShieldCheck}
+        accent="violet"
+        title={
+          L === "fr" ? "Vue d'ensemble admin" : "Admin overview"
+        }
+        description={
+          L === "fr"
+            ? "Paiements, joueurs payants, places vendues et cagnotte projetée — tout l'état du tournoi en un coup d'œil."
+            : "Payments, paying players, seats sold, and projected prize pool — the tournament state at a glance."
+        }
+        visual={{
+          src: "/assets/lucarne/claude-pack-20260525/svg/09-admin-ops-panel.svg",
+          alt:
+            L === "fr"
+              ? "Console admin Lucarne"
+              : "Lucarne admin ops panel",
+        }}
+        background="subtle"
+      />
+
       {/* KPI grid */}
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
