@@ -1,5 +1,6 @@
 import { Link } from "@/i18n/navigation";
 import { Flag } from "@/components/team/flag";
+import { EmptyStateVisual } from "@/components/layout/empty-state-visual";
 import type { MatchListItem } from "@/lib/matches/queries";
 import type { StandingEntry } from "@/lib/leagues/queries";
 import {
@@ -103,11 +104,25 @@ function FeaturedCard({
 }) {
   if (!match) {
     return (
-      <article className="rounded-[12px] border border-white/[0.1] bg-surface-1/[0.55] p-5 text-center text-sm text-text-tertiary backdrop-blur-xl">
-        {locale === "fr"
-          ? "Aucun match programmé pour le moment."
-          : "No upcoming match yet."}
-      </article>
+      <EmptyStateVisual
+        src="/assets/lucarne/claude-pack-20260525/svg/01-dashboard-today-command.svg"
+        alt={
+          locale === "fr"
+            ? "Aucun match programmé"
+            : "No upcoming match"
+        }
+        title={
+          locale === "fr"
+            ? "Aucun match programmé pour le moment"
+            : "No upcoming match yet"
+        }
+        body={
+          locale === "fr"
+            ? "Le calendrier complet apparaîtra ici dès qu'il sera publié."
+            : "The full schedule will surface here as soon as it's published."
+        }
+        compact
+      />
     );
   }
 

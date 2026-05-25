@@ -1,24 +1,19 @@
-import Image from "next/image";
 import { setRequestLocale } from "next-intl/server";
 import { listMatches } from "@/lib/matches/queries";
 import { getMyBuyInStatus } from "@/lib/profile/buy-in";
 import { getMyTournamentPrediction } from "@/lib/predictions/queries";
 import { getMyPicksByMatch } from "@/lib/bets/my-picks";
 import { listPlayersForTeams } from "@/lib/players/queries";
+import { AppPageShell } from "@/components/layout/app-page-shell";
+import { PageHero } from "@/components/layout/page-hero";
 import { PredictBoard } from "@/components/predict/predict-board";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Trophy } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
 
 /**
- * `/predict` — the merged prediction surface.
- * Replaces /bracket (group rankings + knockout) and /picks (per-match
- * winner/goals/scorers) with a single page split in two segments:
- *   - Groupes: 12 group cards, each with team-ranker + 6 collapsible
- *     group matches (1/N/2 + total goals + scorers).
- *   - Phase finale: auto-resolved bracket tree, each tie with winner
- *     buttons + inline +Plus for goals/scorers.
- *
- * Old routes (/bracket, /picks) 308-redirect here.
+ * `/predict` — merged prediction surface (groups ranking + per-match
+ * picks + knockout bracket). See PredictBoard for the working UI; this
+ * file owns the data fetch + hero shell.
  */
 export default async function PredictPage({
   params,
@@ -42,7 +37,7 @@ export default async function PredictPage({
     getMyPicksByMatch(),
   ]);
 
-  // Hydrate group teams (sourced from match schedule).
+  // Hydrate group teams from match schedule.
   const teamMap = new Map<
     string,
     {
@@ -81,7 +76,7 @@ export default async function PredictPage({
     }
   }
 
-  // Players for the scorer combobox (every team that plays in the tournament).
+  // Players for the scorer combobox.
   const teamIds = Array.from(teamMap.keys());
   const allPlayers = await listPlayersForTeams(teamIds);
 
@@ -98,7 +93,6 @@ export default async function PredictPage({
     }));
   }
 
-  // Knockout schedule for the bracket tree.
   const knockoutSchedule = allMatches
     .filter((m) => m.stage !== "group")
     .map((m) => ({
@@ -115,37 +109,67 @@ export default async function PredictPage({
       kickoff_at: m.kickoff_at,
     }));
 
-  // Group matches (the 72 fixtures of the group phase).
   const groupMatches = allMatches.filter((m) => m.stage === "group");
 
+  // Asset pairs with the active tab — picked at server render time so
+  // the hero asset matches the work surface below.
+  const heroVisual =
+    tab === "finale"
+      ? {
+          src: "/assets/lucarne/claude-pack-20260525/svg/03-knockout-scenario-tree.svg",
+          alt:
+            L === "fr"
+              ? "Illustration de l'arbre de la phase finale"
+              : "Knockout bracket illustration",
+        }
+      : {
+          src: "/assets/lucarne/claude-pack-20260525/svg/02-predict-groups-board.svg",
+          alt:
+            L === "fr"
+              ? "Illustration du tableau de pronostics par groupe"
+              : "Group prediction board illustration",
+        };
+
+  // Stat chips for the hero — small, scannable, motivational.
+  const groupsFilled = Object.values(prediction.group_standings).filter(
+    (g) => g.length === 4,
+  ).length;
+  const knockoutPicked = Object.keys(prediction.knockout_winners).length;
+
   return (
-    <main className="mx-auto max-w-6xl px-4 pb-24 pt-6 sm:px-6 sm:pt-8 lg:px-8">
-      <header className="relative mb-6 overflow-hidden rounded-[12px] border border-white/[0.13] bg-abyss/[0.8] p-5 shadow-[0_28px_90px_rgba(0,0,0,0.38),inset_0_1px_0_rgba(255,255,255,0.08)] sm:p-7">
-        <Image
-          src="/marketing/lucarne-hero-stadium.jpg"
-          alt=""
-          fill
-          sizes="100vw"
-          className="absolute inset-0 -z-20 object-cover object-[60%_44%] opacity-[0.2]"
-        />
-        <div className="absolute inset-0 -z-10 bg-[linear-gradient(96deg,rgba(5,6,5,0.94)_0%,rgba(5,6,5,0.78)_44%,rgba(5,6,5,0.5)_100%)]" />
-        <div className="relative max-w-2xl">
-          <div className="mb-3 inline-flex items-center gap-1.5 rounded-[8px] border border-gold-500/35 bg-gold-500/[0.1] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-gold-300 shadow-glow-gold">
-            <Sparkles className="size-3.5" strokeWidth={1.7} />
-            {L === "fr" ? "Pronostique" : "Predict"}
-          </div>
-          <h1 className="font-display text-3xl font-semibold leading-tight text-text-primary sm:text-4xl">
-            {L === "fr"
-              ? "Ton pronostic complet du Mondial"
-              : "Your full World Cup prediction"}
-          </h1>
-          <p className="mt-2 text-sm leading-6 text-text-secondary">
-            {L === "fr"
-              ? "Phase de groupes : classe les équipes + parie sur chaque match. Phase finale : bâtis ton arbre jusqu'au champion. Tout sur une page, sauvegardé tout seul."
-              : "Group phase: rank teams + bet on every match. Knockouts: build your bracket to the champion. All in one page, auto-saved."}
-          </p>
-        </div>
-      </header>
+    <AppPageShell width="ultra">
+      <PageHero
+        kicker={L === "fr" ? "Pronostique" : "Predict"}
+        kickerIcon={Sparkles}
+        accent="gold"
+        title={
+          L === "fr"
+            ? "Ton pronostic complet du Mondial"
+            : "Your full World Cup prediction"
+        }
+        description={
+          L === "fr"
+            ? "Phase de groupes : classe les équipes et parie sur chaque match. Phase finale : bâtis ton arbre jusqu'au champion. Tout sur une page, sauvegardé tout seul."
+            : "Group phase: rank the teams and pick every match. Knockouts: build your bracket all the way to the champion. One page, auto-saved."
+        }
+        stats={
+          <>
+            <HeroStat
+              icon={Sparkles}
+              label={L === "fr" ? "Groupes" : "Groups"}
+              value={`${groupsFilled}/12`}
+              tone="primary"
+            />
+            <HeroStat
+              icon={Trophy}
+              label={L === "fr" ? "Phase finale" : "Knockouts"}
+              value={`${knockoutPicked}/32`}
+              tone="gold"
+            />
+          </>
+        }
+        visual={heroVisual}
+      />
 
       <PredictBoard
         initialTab={tab}
@@ -163,6 +187,33 @@ export default async function PredictPage({
         deadlinePassed={buyIn.deadline_passed}
         locale={L}
       />
-    </main>
+    </AppPageShell>
+  );
+}
+
+function HeroStat({
+  icon: Icon,
+  label,
+  value,
+  tone,
+}: {
+  icon: typeof Sparkles;
+  label: string;
+  value: string;
+  tone: "primary" | "gold" | "violet";
+}) {
+  const cls = {
+    primary: "border-primary-500/30 bg-primary-500/[0.08] text-primary-300",
+    gold: "border-gold-500/35 bg-gold-500/[0.08] text-gold-300",
+    violet: "border-violet-500/30 bg-violet-500/[0.08] text-violet-300",
+  }[tone];
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${cls}`}
+    >
+      <Icon className="size-3" strokeWidth={2} />
+      {label}
+      <span className="font-mono normal-case text-text-primary">{value}</span>
+    </span>
   );
 }

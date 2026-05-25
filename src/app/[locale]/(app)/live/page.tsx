@@ -1,16 +1,27 @@
-import Image from "next/image";
 import { setRequestLocale } from "next-intl/server";
-import { Link } from "@/i18n/navigation";
 import { listMatches } from "@/lib/matches/queries";
 import { listNewsPosts } from "@/lib/news/queries";
+import { AppPageShell } from "@/components/layout/app-page-shell";
+import { PageHero } from "@/components/layout/page-hero";
 import { LiveScores } from "@/components/live/live-scores";
 import { LiveNews } from "@/components/live/live-news";
+import { DataSourceBadge } from "@/components/ui/data-source-badge";
 import { Newspaper, Radio } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Link } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
 
 type Tab = "scores" | "news";
 
+/**
+ * `/live` — real-time tournament hub.
+ *
+ *  - Desktop: scores fill the main column, news rail sits on the right.
+ *    Tabs are hidden (everything is on screen).
+ *  - Mobile: tabs switch between the two surfaces (single-column).
+ *  - Freshness chips on each surface show how stale the data is and
+ *    where it came from (Hermes / API-Football / admin).
+ */
 export default async function LivePage({
   params,
   searchParams,
@@ -25,10 +36,12 @@ export default async function LivePage({
 
   const activeTab: Tab = tab === "news" ? "news" : "scores";
 
-  // Fetch the slice we actually render — saves payload + DB time.
+  // We need both on desktop (rail layout). On mobile we only render
+  // the active tab, but fetching both is cheap — the news query is
+  // tiny and matches is already cached.
   const [allMatches, news] = await Promise.all([
-    activeTab === "scores" ? listMatches() : Promise.resolve([]),
-    activeTab === "news" ? listNewsPosts(40) : Promise.resolve([]),
+    listMatches(),
+    listNewsPosts(20),
   ]);
 
   const now = Date.now();
@@ -51,57 +64,72 @@ export default async function LivePage({
     )
     .slice(0, 6);
 
-  return (
-    <main className="mx-auto max-w-5xl px-4 pb-24 pt-6 sm:px-6 sm:pt-8 lg:px-8">
-      <header className="relative mb-6 overflow-hidden rounded-[12px] border border-white/[0.13] bg-abyss/[0.8] p-5 shadow-[0_28px_90px_rgba(0,0,0,0.38),inset_0_1px_0_rgba(255,255,255,0.08)] sm:p-7">
-        <Image
-          src="/marketing/lucarne-hero-stadium.jpg"
-          alt=""
-          fill
-          sizes="100vw"
-          className="absolute inset-0 -z-20 object-cover object-[60%_44%] opacity-[0.2]"
-        />
-        <div className="absolute inset-0 -z-10 bg-[linear-gradient(96deg,rgba(5,6,5,0.94)_0%,rgba(5,6,5,0.78)_44%,rgba(5,6,5,0.5)_100%)]" />
-        <div className="relative max-w-2xl">
-          <div className="mb-3 inline-flex items-center gap-1.5 rounded-[8px] border border-violet-500/35 bg-violet-500/[0.1] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-violet-300">
-            {liveCount > 0 && (
-              <span className="relative flex size-1.5">
-                <span className="absolute inline-flex size-full animate-ping rounded-full bg-violet-400 opacity-75" />
-                <span className="relative inline-flex size-1.5 rounded-full bg-violet-400" />
-              </span>
-            )}
-            <Radio className="size-3.5" strokeWidth={1.7} />
-            {L === "fr" ? "Live" : "Live"}
-            {liveCount > 0 && (
-              <span className="ml-1 text-violet-200">
-                · {liveCount} {L === "fr" ? "en cours" : "live"}
-              </span>
-            )}
-          </div>
-          <h1 className="font-display text-3xl font-semibold leading-tight text-text-primary sm:text-4xl">
-            {L === "fr" ? "Le tournoi en direct" : "Tournament live"}
-          </h1>
-          <p className="mt-2 text-sm leading-6 text-text-secondary">
-            {L === "fr"
-              ? "Scores live, résultats du jour et fil d'actualités. Mis à jour automatiquement par Hermes (cron toutes les 5 min pendant les matchs)."
-              : "Live scores, today's results, and the news feed. Auto-refreshed by Hermes (cron every 5 min during matches)."}
-          </p>
-        </div>
-      </header>
+  // Freshness: most recently kicked-off / finished match drives the
+  // "Mis à jour il y a Xmin" chip on scores; most recently published
+  // post drives the chip on news.
+  const lastMatchActivity =
+    allMatches
+      .map((m) => new Date(m.kickoff_at).getTime())
+      .filter((t) => t < now)
+      .sort((a, b) => b - a)[0] ?? null;
+  const lastNewsActivity =
+    news[0]?.published_at ? new Date(news[0].published_at).getTime() : null;
 
-      {/* Sub-tabs */}
+  return (
+    <AppPageShell width="ultra">
+      <PageHero
+        kicker={L === "fr" ? "Live" : "Live"}
+        kickerIcon={Radio}
+        accent="violet"
+        title={L === "fr" ? "Le tournoi en direct" : "Tournament live"}
+        description={
+          L === "fr"
+            ? "Scores en direct, résultats du jour et fil d'actualités, alimentés automatiquement par Hermes pendant les matchs."
+            : "Live scores, today's results, and the news feed — auto-fed by Hermes while matches are running."
+        }
+        stats={
+          <>
+            {liveCount > 0 && (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-500/45 bg-violet-500/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-violet-200">
+                <span className="relative flex size-1.5">
+                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-violet-300 opacity-75" />
+                  <span className="relative inline-flex size-1.5 rounded-full bg-violet-300" />
+                </span>
+                {liveCount} {L === "fr" ? "en direct" : "live"}
+              </span>
+            )}
+            <DataSourceBadge
+              source="hermes"
+              updatedAt={
+                lastMatchActivity ? new Date(lastMatchActivity).toISOString() : null
+              }
+              locale={L}
+            />
+          </>
+        }
+        visual={{
+          src: "/assets/lucarne/claude-pack-20260525/svg/04-live-match-center.svg",
+          alt:
+            L === "fr"
+              ? "Centre live Lucarne — scores et news en direct"
+              : "Lucarne live center — scores and news",
+          priority: true,
+        }}
+      />
+
+      {/* Mobile tab switcher — hidden on desktop */}
       <nav
-        className="mb-6 inline-flex rounded-[8px] border border-white/[0.1] bg-abyss/[0.44] p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl"
+        className="inline-flex self-start rounded-[8px] border border-white/[0.1] bg-abyss/[0.44] p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl lg:hidden"
         aria-label="Live sections"
       >
-        <TabLink
+        <MobileTabLink
           href="/live"
           icon={Radio}
           label={L === "fr" ? "Scores" : "Scores"}
           active={activeTab === "scores"}
           badge={liveCount > 0 ? liveCount : undefined}
         />
-        <TabLink
+        <MobileTabLink
           href="/live?tab=news"
           icon={Newspaper}
           label={L === "fr" ? "Actus" : "News"}
@@ -109,20 +137,64 @@ export default async function LivePage({
         />
       </nav>
 
-      {activeTab === "scores" ? (
-        <LiveScores
-          todayMatches={todayMatches}
-          recentlyFinished={recentlyFinished}
-          locale={L}
-        />
-      ) : (
-        <LiveNews posts={news} locale={L} />
-      )}
-    </main>
+      {/* Desktop: 2-column scores + news rail. Mobile: single column based on tab. */}
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] lg:gap-6">
+        <section className={cn(activeTab === "news" && "hidden lg:block")}>
+          <LiveScores
+            todayMatches={todayMatches}
+            recentlyFinished={recentlyFinished}
+            locale={L}
+          />
+        </section>
+
+        <aside className={cn(activeTab === "scores" && "hidden lg:block")}>
+          <NewsRail
+            posts={news}
+            lastUpdated={
+              lastNewsActivity ? new Date(lastNewsActivity).toISOString() : null
+            }
+            locale={L}
+          />
+        </aside>
+      </div>
+    </AppPageShell>
   );
 }
 
-function TabLink({
+function NewsRail({
+  posts,
+  lastUpdated,
+  locale,
+}: {
+  posts: Awaited<ReturnType<typeof listNewsPosts>>;
+  lastUpdated: string | null;
+  locale: Locale;
+}) {
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
+          <Newspaper className="size-3" strokeWidth={2} />
+          {locale === "fr" ? "Actus" : "News"}
+        </h2>
+        <DataSourceBadge
+          source="hermes"
+          updatedAt={lastUpdated}
+          locale={locale}
+        />
+      </div>
+      <LiveNews posts={posts} locale={locale} />
+      <Link
+        href="/news"
+        className="inline-flex items-center gap-1.5 text-xs font-semibold text-text-tertiary underline-offset-4 hover:text-text-primary hover:underline"
+      >
+        {locale === "fr" ? "Toutes les actus" : "All news"} →
+      </Link>
+    </div>
+  );
+}
+
+function MobileTabLink({
   href,
   icon: Icon,
   label,
