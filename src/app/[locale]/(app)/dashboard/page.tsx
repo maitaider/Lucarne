@@ -25,6 +25,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Stat } from "@/components/ui/stat";
 import { ProgressBar } from "@/components/ui/progress-bar";
+import { CountUp } from "@/components/ui/count-up";
 import {
   ArrowRight,
   CalendarClock,
@@ -139,7 +140,7 @@ export default async function DashboardPage({
   ).length;
 
   return (
-    <main className="mx-auto flex w-full max-w-[1700px] flex-col gap-5 px-4 pb-24 pt-6 sm:px-6 lg:px-8">
+    <main className="lk-stagger mx-auto flex w-full max-w-[1700px] flex-col gap-5 px-4 pb-24 pt-6 sm:px-6 lg:px-8">
       {!buyIn.can_bet && (
         <BuyInBanner
           amountCents={buyIn.amount_cents}
@@ -195,9 +196,14 @@ export default async function DashboardPage({
               <Stat
                 icon={Coins}
                 label={L === "fr" ? "Solde" : "Balance"}
-                value={balanceTokens.toLocaleString(
-                  L === "fr" ? "fr-FR" : "en-US",
-                )}
+                value={
+                  <CountUp
+                    value={balanceTokens}
+                    format={(n) =>
+                      n.toLocaleString(L === "fr" ? "fr-FR" : "en-US")
+                    }
+                  />
+                }
                 detail={L === "fr" ? "jetons" : "tokens"}
                 accent="primary"
                 href="/profile/wallet"
@@ -205,7 +211,7 @@ export default async function DashboardPage({
               <Stat
                 icon={Receipt}
                 label={L === "fr" ? "Pronos actifs" : "Active picks"}
-                value={activeBets.length}
+                value={<CountUp value={activeBets.length} />}
                 detail={L === "fr" ? "à régler" : "open"}
                 accent="violet"
                 href="/bets"
@@ -213,7 +219,7 @@ export default async function DashboardPage({
               <Stat
                 icon={Crown}
                 label={L === "fr" ? "Points" : "Points"}
-                value={stats.total_points}
+                value={<CountUp value={stats.total_points} />}
                 detail={
                   stats.settled_bets > 0
                     ? `${winRatePct}% ${L === "fr" ? "réussite" : "win"}`

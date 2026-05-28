@@ -32,7 +32,7 @@ export function AppPageShell({
   return (
     <main
       className={cn(
-        "mx-auto flex flex-col gap-6 px-4 pb-24 pt-6 sm:px-6 sm:pt-8 lg:px-8",
+        "lk-stagger mx-auto flex flex-col gap-6 px-4 pb-24 pt-6 sm:px-6 sm:pt-8 lg:px-8",
         maxClass,
         className,
       )}

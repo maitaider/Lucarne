@@ -53,7 +53,8 @@ export function Card({
   const classes = cn(
     BASE,
     ACCENT[accent],
-    isInteractive && "transition hover:border-primary-500/45 hover:shadow-raised",
+    isInteractive &&
+      "transition duration-200 hover:-translate-y-0.5 hover:border-primary-500/45 hover:shadow-raised active:translate-y-0 active:scale-[0.995]",
     PADDED[padded],
     href && "group block",
     className,

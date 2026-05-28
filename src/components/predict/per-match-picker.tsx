@@ -211,8 +211,9 @@ function ScoreStepper({
         <Minus className="size-3" strokeWidth={2.5} />
       </button>
       <span
+        key={value ?? "empty"}
         className={cn(
-          "w-5 text-center font-display text-sm font-bold tabular-nums",
+          "lk-pop w-5 text-center font-display text-sm font-bold tabular-nums",
           value == null ? "text-text-tertiary" : "text-text-primary",
         )}
       >

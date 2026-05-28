@@ -17,7 +17,7 @@ type Variant = "primary" | "gold" | "secondary" | "ghost" | "danger";
 type Size = "sm" | "md" | "lg";
 
 const BASE =
-  "inline-flex items-center justify-center gap-2 rounded-sm font-semibold leading-none whitespace-nowrap transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-abyss disabled:pointer-events-none disabled:opacity-50";
+  "inline-flex items-center justify-center gap-2 rounded-sm font-semibold leading-none whitespace-nowrap transition duration-150 active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-abyss disabled:pointer-events-none disabled:opacity-50 disabled:active:scale-100";
 
 const VARIANT: Record<Variant, string> = {
   primary:
