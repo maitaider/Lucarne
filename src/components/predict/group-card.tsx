@@ -8,7 +8,7 @@ import { computeGroupOrder } from "@/lib/predictions/group-order";
 import { ListChecks } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
-import type { MatchPick, ScorerPick, TeamLite, Winner } from "./predict-board";
+import type { MatchPick, ScorerPick, TeamLite } from "./predict-board";
 
 /**
  * One group's card. "Predict the matches" model:
@@ -44,8 +44,7 @@ export function GroupCard({
     matchId: string,
     update: (prev: MatchPick) => MatchPick,
     bet:
-      | { kind: "winner"; winner: Winner }
-      | { kind: "total_goals"; total: number }
+      | { kind: "score"; home: number; away: number }
       | { kind: "scorers"; picks: ScorerPick[] },
   ) => void;
   locale: Locale;
@@ -55,11 +54,15 @@ export function GroupCard({
   const fallback = teams.length === teamIds.length && teams.length > 0 ? teams : teamIds;
 
   const { order, stats } = computeGroupOrder(
-    matches.map((m) => ({
-      home_team_id: m.home_team?.id ?? null,
-      away_team_id: m.away_team?.id ?? null,
-      result: matchPicks.get(m.id)?.winner ?? null,
-    })),
+    matches.map((m) => {
+      const p = matchPicks.get(m.id);
+      return {
+        home_team_id: m.home_team?.id ?? null,
+        away_team_id: m.away_team?.id ?? null,
+        home_goals: p?.home_goals ?? null,
+        away_goals: p?.away_goals ?? null,
+      };
+    }),
     teamIds,
     fallback,
   );
@@ -67,7 +70,10 @@ export function GroupCard({
     .map((id) => teamById.get(id))
     .filter((t): t is TeamLite => Boolean(t));
 
-  const pickedCount = matches.filter((m) => matchPicks.get(m.id)?.winner).length;
+  const pickedCount = matches.filter((m) => {
+    const p = matchPicks.get(m.id);
+    return p?.home_goals != null && p?.away_goals != null;
+  }).length;
 
   return (
     <div className="overflow-hidden rounded-md border border-border-subtle bg-surface-1 shadow-card">
@@ -160,8 +166,8 @@ export function GroupCard({
               match={m}
               pick={
                 matchPicks.get(m.id) ?? {
-                  winner: null,
-                  total_goals: null,
+                  home_goals: null,
+                  away_goals: null,
                   scorers: [],
                 }
               }
@@ -172,17 +178,12 @@ export function GroupCard({
                 m.away_team ? (playersByTeam.get(m.away_team.id) ?? []) : []
               }
               canEdit={canBet && canEdit}
-              onWinner={(w) =>
-                onSavePerMatch(m.id, (prev) => ({ ...prev, winner: w }), {
-                  kind: "winner",
-                  winner: w,
-                })
-              }
-              onTotalGoals={(n) =>
-                onSavePerMatch(m.id, (prev) => ({ ...prev, total_goals: n }), {
-                  kind: "total_goals",
-                  total: n,
-                })
+              onScore={(home, away) =>
+                onSavePerMatch(
+                  m.id,
+                  (prev) => ({ ...prev, home_goals: home, away_goals: away }),
+                  { kind: "score", home, away },
+                )
               }
               onScorers={(picks) =>
                 onSavePerMatch(m.id, (prev) => ({ ...prev, scorers: picks }), {

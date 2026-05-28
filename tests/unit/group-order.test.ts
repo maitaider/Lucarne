@@ -5,12 +5,11 @@ import {
 } from "@/lib/predictions/group-order";
 
 const TEAMS = ["A", "B", "C", "D"];
+type Pair = "AB" | "AC" | "AD" | "BC" | "BD" | "CD";
 
-/** Round-robin fixtures with explicit results. */
-function fixtures(
-  results: Partial<Record<"AB" | "AC" | "AD" | "BC" | "BD" | "CD", GroupFixture["result"]>>,
-): GroupFixture[] {
-  const pairs: [string, string, keyof typeof results][] = [
+/** Round-robin fixtures with explicit [home, away] scorelines. */
+function fixtures(scores: Partial<Record<Pair, [number, number]>>): GroupFixture[] {
+  const pairs: [string, string, Pair][] = [
     ["A", "B", "AB"],
     ["A", "C", "AC"],
     ["A", "D", "AD"],
@@ -18,55 +17,57 @@ function fixtures(
     ["B", "D", "BD"],
     ["C", "D", "CD"],
   ];
-  return pairs.map(([h, a, key]) => ({
-    home_team_id: h,
-    away_team_id: a,
-    result: results[key] ?? null,
-  }));
+  return pairs.map(([h, a, key]) => {
+    const s = scores[key];
+    return {
+      home_team_id: h,
+      away_team_id: a,
+      home_goals: s ? s[0] : null,
+      away_goals: s ? s[1] : null,
+    };
+  });
 }
 
-describe("computeGroupOrder", () => {
+describe("computeGroupOrder (scorelines)", () => {
   it("ranks by points when there's a clear order", () => {
-    // A wins all, B beats C+D, C beats D.
     const { order, stats } = computeGroupOrder(
       fixtures({
-        AB: "home",
-        AC: "home",
-        AD: "home",
-        BC: "home",
-        BD: "home",
-        CD: "home",
+        AB: [2, 0],
+        AC: [2, 0],
+        AD: [2, 0],
+        BC: [1, 0],
+        BD: [1, 0],
+        CD: [1, 0],
       }),
       TEAMS,
       TEAMS,
     );
     expect(order).toEqual(["A", "B", "C", "D"]);
     expect(stats.A.points).toBe(9);
+    expect(stats.A.gd).toBe(6);
     expect(stats.B.points).toBe(6);
-    expect(stats.C.points).toBe(3);
-    expect(stats.D.points).toBe(0);
   });
 
-  it("breaks a points tie with head-to-head", () => {
-    // C=6 (top), A=4 & B=4 tied, D=2. A beat B head-to-head → A before B.
+  it("breaks a points tie on goal difference", () => {
+    // A & B both 7 pts (drew each other); A has a much better GD → A first.
     const { order } = computeGroupOrder(
       fixtures({
-        AB: "home", // A beats B
-        AC: "away", // C beats A
-        AD: "draw",
-        BC: "home", // B beats C
-        BD: "draw",
-        CD: "home", // C beats D
+        AB: [1, 1],
+        AC: [3, 0],
+        AD: [3, 0],
+        BC: [1, 0],
+        BD: [1, 0],
+        CD: [1, 0],
       }),
       TEAMS,
       TEAMS,
     );
-    expect(order).toEqual(["C", "A", "B", "D"]);
+    expect(order).toEqual(["A", "B", "C", "D"]);
   });
 
   it("handles partial predictions (unplayed fixtures ignored)", () => {
     const { order, stats } = computeGroupOrder(
-      fixtures({ AB: "home" }),
+      fixtures({ AB: [2, 0] }),
       TEAMS,
       TEAMS,
     );

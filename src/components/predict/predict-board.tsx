@@ -49,10 +49,11 @@ import type { Locale } from "@/i18n/routing";
 export type Winner = "home" | "draw" | "away";
 export type ScorerPick = { player_id: string; player_name: string };
 
-/** Per-match pick (winner / total goals / scorers). Mirrors picks-board. */
+/** Per-match pick: a scoreline (home/away goals) + optional scorers.
+ *  The match result (win/draw) is derived from the score. */
 export type MatchPick = {
-  winner: Winner | null;
-  total_goals: number | null;
+  home_goals: number | null;
+  away_goals: number | null;
   scorers: ScorerPick[];
 };
 
@@ -76,7 +77,7 @@ export type KnockoutScheduleItem = BracketMatchInfo & {
 type Tab = "groupes" | "finale";
 
 function emptyMatchPick(): MatchPick {
-  return { winner: null, total_goals: null, scorers: [] };
+  return { home_goals: null, away_goals: null, scorers: [] };
 }
 
 function hydrateMatchPicks(initial: InitialPicks): Map<string, MatchPick> {
@@ -86,14 +87,13 @@ function hydrateMatchPicks(initial: InitialPicks): Map<string, MatchPick> {
     for (const r of rows) {
       if (r.status !== "validated") continue;
       const payload = (r.payload ?? {}) as Record<string, unknown>;
-      if (r.bet_type === "match_winner" && typeof payload.winner === "string") {
-        const w = payload.winner;
-        if (w === "home" || w === "draw" || w === "away") state.winner = w;
-      } else if (
-        r.bet_type === "total_goals" &&
-        typeof payload.total === "number"
+      if (
+        r.bet_type === "exact_score" &&
+        typeof payload.home === "number" &&
+        typeof payload.away === "number"
       ) {
-        state.total_goals = payload.total;
+        state.home_goals = payload.home;
+        state.away_goals = payload.away;
       } else if (
         r.bet_type === "anytime_scorer" &&
         Array.isArray(payload.players)
@@ -338,8 +338,7 @@ export function PredictBoard({
     matchId: string,
     update: (prev: MatchPick) => MatchPick,
     bet:
-      | { kind: "winner"; winner: Winner }
-      | { kind: "total_goals"; total: number }
+      | { kind: "score"; home: number; away: number }
       | { kind: "scorers"; picks: ScorerPick[] },
   ) {
     if (!canBet) {
@@ -354,17 +353,21 @@ export function PredictBoard({
 
     // "Predict the matches" model: a group result re-ranks that group's
     // standings (which feed the knockout bracket).
-    if (bet.kind === "winner") {
+    if (bet.kind === "score") {
       const gm = groupMatches.find((m) => m.id === matchId);
       if (gm?.group_label) {
         const label = gm.group_label;
         const ids = (groupTeams[label] ?? []).map((t) => t.id);
         const { order } = computeGroupOrder(
-          (matchesByGroup[label] ?? []).map((m) => ({
-            home_team_id: m.home_team?.id ?? null,
-            away_team_id: m.away_team?.id ?? null,
-            result: next.get(m.id)?.winner ?? null,
-          })),
+          (matchesByGroup[label] ?? []).map((m) => {
+            const p = next.get(m.id);
+            return {
+              home_team_id: m.home_team?.id ?? null,
+              away_team_id: m.away_team?.id ?? null,
+              home_goals: p?.home_goals ?? null,
+              away_goals: p?.away_goals ?? null,
+            };
+          }),
           ids,
           groups[label] ?? ids,
         );
@@ -373,17 +376,11 @@ export function PredictBoard({
     }
 
     const payload = (() => {
-      if (bet.kind === "winner")
+      if (bet.kind === "score")
         return {
-          bet_type: "match_winner" as const,
+          bet_type: "exact_score" as const,
           match_id: matchId,
-          payload: { winner: bet.winner },
-        };
-      if (bet.kind === "total_goals")
-        return {
-          bet_type: "total_goals" as const,
-          match_id: matchId,
-          payload: { total: bet.total },
+          payload: { home: bet.home, away: bet.away },
         };
       return {
         bet_type: "anytime_scorer" as const,
@@ -472,12 +469,13 @@ export function PredictBoard({
   const knockoutPickedCount = Object.keys(knockouts).length;
   const totalKnockouts = knockoutSchedule.length;
   const matchWinnersCount = Array.from(matchPicks.values()).filter(
-    (p) => p.winner != null,
+    (p) => p.home_goals != null && p.away_goals != null,
   ).length;
   const totalMatches = groupMatches.length + knockoutSchedule.length;
-  const groupWinnersCount = groupMatches.filter(
-    (m) => matchPicks.get(m.id)?.winner != null,
-  ).length;
+  const groupWinnersCount = groupMatches.filter((m) => {
+    const p = matchPicks.get(m.id);
+    return p?.home_goals != null && p?.away_goals != null;
+  }).length;
 
   // ---- HowTo steps -----------------------------------------------------------
 
@@ -735,8 +733,7 @@ function GroupesSection({
     matchId: string,
     update: (prev: MatchPick) => MatchPick,
     bet:
-      | { kind: "winner"; winner: Winner }
-      | { kind: "total_goals"; total: number }
+      | { kind: "score"; home: number; away: number }
       | { kind: "scorers"; picks: ScorerPick[] },
   ) => void;
   locale: Locale;
@@ -827,8 +824,7 @@ function FinaleSection({
     matchId: string,
     update: (prev: MatchPick) => MatchPick,
     bet:
-      | { kind: "winner"; winner: Winner }
-      | { kind: "total_goals"; total: number }
+      | { kind: "score"; home: number; away: number }
       | { kind: "scorers"; picks: ScorerPick[] },
   ) => void;
   onResetStage: (

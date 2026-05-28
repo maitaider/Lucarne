@@ -1,28 +1,34 @@
 /**
- * Derive a group's finishing order from predicted match results.
+ * Derive a group's finishing order from predicted match scorelines.
  *
- * The "predict the matches" model: the user taps a result (home / draw /
- * away) for each of the 6 group fixtures, and the standings — which feed
- * the knockout bracket — are computed here. Points: win 3, draw 1, loss 0.
+ * The "predict the matches" model: the user enters a score for each of the
+ * 6 group fixtures (e.g. 2–1), and the standings — which feed the knockout
+ * bracket — are computed here. Points: win 3, draw 1, loss 0.
  *
  * Tiebreak (deterministic so the bracket always has a definite order):
  *   1. points
- *   2. head-to-head points among the teams tied on points
- *   3. wins
- *   4. the fallback order (stable — keeps a sensible, repeatable result
- *      when predictions can't separate teams)
+ *   2. goal difference
+ *   3. goals for
+ *   4. head-to-head points among the teams tied on points
+ *   5. the fallback order (stable — repeatable when nothing separates teams)
  *
  * Pure + client-safe (no "server-only"): used by both the board and card.
  */
-export type GroupResult = "home" | "draw" | "away" | null;
-
 export type GroupFixture = {
   home_team_id: string | null;
   away_team_id: string | null;
-  result: GroupResult;
+  home_goals: number | null;
+  away_goals: number | null;
 };
 
-export type TeamStat = { points: number; wins: number; played: number };
+export type TeamStat = {
+  points: number;
+  wins: number;
+  played: number;
+  gf: number;
+  ga: number;
+  gd: number;
+};
 
 export type GroupComputed = {
   /** Team ids ordered best → worst. */
@@ -30,40 +36,50 @@ export type GroupComputed = {
   stats: Record<string, TeamStat>;
 };
 
+type Result = "home" | "away" | "draw" | null;
+
+function resultOf(f: GroupFixture): Result {
+  if (f.home_goals == null || f.away_goals == null) return null;
+  if (f.home_goals > f.away_goals) return "home";
+  if (f.away_goals > f.home_goals) return "away";
+  return "draw";
+}
+
 export function computeGroupOrder(
   fixtures: GroupFixture[],
   teamIds: string[],
   fallbackOrder: string[],
 ): GroupComputed {
-  const points = new Map<string, number>();
-  const wins = new Map<string, number>();
-  const played = new Map<string, number>();
+  const stat = new Map<string, TeamStat>();
   for (const id of teamIds) {
-    points.set(id, 0);
-    wins.set(id, 0);
-    played.set(id, 0);
+    stat.set(id, { points: 0, wins: 0, played: 0, gf: 0, ga: 0, gd: 0 });
   }
-
-  const add = (map: Map<string, number>, id: string, n: number) =>
-    map.set(id, (map.get(id) ?? 0) + n);
 
   for (const f of fixtures) {
-    const { home_team_id: h, away_team_id: a, result } = f;
-    if (!h || !a || !result) continue;
-    if (!points.has(h) || !points.has(a)) continue;
-    add(played, h, 1);
-    add(played, a, 1);
-    if (result === "home") {
-      add(points, h, 3);
-      add(wins, h, 1);
-    } else if (result === "away") {
-      add(points, a, 3);
-      add(wins, a, 1);
+    const { home_team_id: h, away_team_id: a, home_goals: hg, away_goals: ag } = f;
+    const res = resultOf(f);
+    if (!h || !a || res == null || hg == null || ag == null) continue;
+    if (!stat.has(h) || !stat.has(a)) continue;
+    const sh = stat.get(h)!;
+    const sa = stat.get(a)!;
+    sh.played += 1;
+    sa.played += 1;
+    sh.gf += hg;
+    sh.ga += ag;
+    sa.gf += ag;
+    sa.ga += hg;
+    if (res === "home") {
+      sh.points += 3;
+      sh.wins += 1;
+    } else if (res === "away") {
+      sa.points += 3;
+      sa.wins += 1;
     } else {
-      add(points, h, 1);
-      add(points, a, 1);
+      sh.points += 1;
+      sa.points += 1;
     }
   }
+  for (const s of stat.values()) s.gd = s.gf - s.ga;
 
   const fallbackIndex = (id: string) => {
     const i = fallbackOrder.indexOf(id);
@@ -76,26 +92,29 @@ export function computeGroupOrder(
     const set = new Set(subset);
     for (const id of subset) hp.set(id, 0);
     for (const f of fixtures) {
-      const { home_team_id: h, away_team_id: a, result } = f;
-      if (!h || !a || !result) continue;
+      const { home_team_id: h, away_team_id: a } = f;
+      const res = resultOf(f);
+      if (!h || !a || res == null) continue;
       if (!set.has(h) || !set.has(a)) continue;
-      if (result === "home") add(hp, h, 3);
-      else if (result === "away") add(hp, a, 3);
+      if (res === "home") hp.set(h, (hp.get(h) ?? 0) + 3);
+      else if (res === "away") hp.set(a, (hp.get(a) ?? 0) + 3);
       else {
-        add(hp, h, 1);
-        add(hp, a, 1);
+        hp.set(h, (hp.get(h) ?? 0) + 1);
+        hp.set(a, (hp.get(a) ?? 0) + 1);
       }
     }
     return hp;
   }
 
   const order = [...teamIds].sort((x, y) => {
-    const px = points.get(x) ?? 0;
-    const py = points.get(y) ?? 0;
-    if (px !== py) return py - px;
+    const sx = stat.get(x)!;
+    const sy = stat.get(y)!;
+    if (sx.points !== sy.points) return sy.points - sx.points;
+    if (sx.gd !== sy.gd) return sy.gd - sx.gd;
+    if (sx.gf !== sy.gf) return sy.gf - sx.gf;
 
     // Mini-league among everyone tied on this point total.
-    const tied = teamIds.filter((id) => (points.get(id) ?? 0) === px);
+    const tied = teamIds.filter((id) => (stat.get(id)?.points ?? 0) === sx.points);
     if (tied.length > 1) {
       const hp = headToHead(tied);
       const hx = hp.get(x) ?? 0;
@@ -103,21 +122,11 @@ export function computeGroupOrder(
       if (hx !== hy) return hy - hx;
     }
 
-    const wx = wins.get(x) ?? 0;
-    const wy = wins.get(y) ?? 0;
-    if (wx !== wy) return wy - wx;
-
     return fallbackIndex(x) - fallbackIndex(y);
   });
 
   const stats: Record<string, TeamStat> = {};
-  for (const id of teamIds) {
-    stats[id] = {
-      points: points.get(id) ?? 0,
-      wins: wins.get(id) ?? 0,
-      played: played.get(id) ?? 0,
-    };
-  }
+  for (const id of teamIds) stats[id] = stat.get(id)!;
 
   return { order, stats };
 }

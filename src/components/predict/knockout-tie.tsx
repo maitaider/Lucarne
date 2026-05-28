@@ -18,7 +18,6 @@ import type {
   MatchPick,
   ScorerPick,
   TeamLite,
-  Winner,
 } from "./predict-board";
 
 /**
@@ -66,8 +65,7 @@ export function KnockoutTie({
     matchId: string,
     update: (prev: MatchPick) => MatchPick,
     bet:
-      | { kind: "winner"; winner: Winner }
-      | { kind: "total_goals"; total: number }
+      | { kind: "score"; home: number; away: number }
       | { kind: "scorers"; picks: ScorerPick[] },
   ) => void;
   locale: Locale;
@@ -183,8 +181,8 @@ export function KnockoutTie({
                 }
                 pick={
                   matchPicks.get(String(match.match_number)) ?? {
-                    winner: null,
-                    total_goals: null,
+                    home_goals: null,
+                    away_goals: null,
                     scorers: [],
                   }
                 }
@@ -195,18 +193,15 @@ export function KnockoutTie({
                   away.team_id ? (playersByTeam.get(away.team_id) ?? []) : []
                 }
                 canEdit={canBet}
-                onWinner={(w) =>
+                onScore={(homeGoals, awayGoals) =>
                   onSavePerMatch(
                     String(match.match_number),
-                    (prev) => ({ ...prev, winner: w }),
-                    { kind: "winner", winner: w },
-                  )
-                }
-                onTotalGoals={(n) =>
-                  onSavePerMatch(
-                    String(match.match_number),
-                    (prev) => ({ ...prev, total_goals: n }),
-                    { kind: "total_goals", total: n },
+                    (prev) => ({
+                      ...prev,
+                      home_goals: homeGoals,
+                      away_goals: awayGoals,
+                    }),
+                    { kind: "score", home: homeGoals, away: awayGoals },
                   )
                 }
                 onScorers={(picks) =>

@@ -134,7 +134,7 @@ export default async function DashboardPage({
   ).length;
   const picksDone = Array.from(myPicksByMatch.values()).filter((picks) =>
     picks.some(
-      (p) => p.bet_type === "match_winner" && p.status === "validated",
+      (p) => p.bet_type === "exact_score" && p.status === "validated",
     ),
   ).length;
 
