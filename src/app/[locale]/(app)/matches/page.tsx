@@ -36,8 +36,10 @@ export default async function MatchesPage({
   setRequestLocale(locale);
   const L = locale as Locale;
 
+  // Default to the calendar (flag-rich fixtures) — it's what "Calendrier"
+  // in the nav points at. Groups/knockout are reached via the in-page tabs.
   const currentView: View =
-    view === "calendar" ? "calendar" : view === "knockout" ? "knockout" : "groups";
+    view === "groups" ? "groups" : view === "knockout" ? "knockout" : "calendar";
 
   const [allMatches, groups, myPicksByMatch, buyIn] = await Promise.all([
     listMatches(),
@@ -52,7 +54,7 @@ export default async function MatchesPage({
   const knockoutCount = allMatches.filter((m) => m.stage !== "group").length;
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <main className="mx-auto max-w-[1600px] px-4 py-8 sm:px-6 lg:px-8">
       {!buyIn.can_bet && (
         <BuyInBanner
           amountCents={buyIn.amount_cents}
@@ -170,8 +172,8 @@ export default async function MatchesPage({
 
 function ViewTabs({ current, locale }: { current: View; locale: Locale }) {
   const tabs: { id: View; fr: string; en: string; icon: typeof LayoutGrid }[] = [
-    { id: "groups", fr: "Groupes", en: "Groups", icon: LayoutGrid },
     { id: "calendar", fr: "Calendrier", en: "Calendar", icon: CalendarDays },
+    { id: "groups", fr: "Groupes", en: "Groups", icon: LayoutGrid },
     { id: "knockout", fr: "Phase finale", en: "Knockout", icon: Trophy },
   ];
 
@@ -180,7 +182,7 @@ function ViewTabs({ current, locale }: { current: View; locale: Locale }) {
       {tabs.map((t) => {
         const isActive = t.id === current;
         const Icon = t.icon;
-        const href = t.id === "groups" ? "/matches" : `/matches?view=${t.id}`;
+        const href = t.id === "calendar" ? "/matches" : `/matches?view=${t.id}`;
         return (
           <Link
             key={t.id}

@@ -25,9 +25,9 @@ export function AppPageShell({
 }) {
   const maxClass = {
     narrow: "max-w-4xl",
-    wide: "max-w-5xl",
-    ultra: "max-w-6xl",
-    max: "max-w-[1600px]",
+    wide: "max-w-[1400px]",
+    ultra: "max-w-[1600px]",
+    max: "max-w-[1760px]",
   }[width];
   return (
     <main

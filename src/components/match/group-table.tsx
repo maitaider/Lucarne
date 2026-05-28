@@ -1,5 +1,5 @@
 import type { GroupTable } from "@/lib/matches/group-standings";
-import { TeamEmblem } from "@/components/team/team-emblem";
+import { Flag } from "@/components/team/flag";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
 
@@ -70,7 +70,7 @@ export function GroupTableCard({
                 </td>
                 <td className="py-2.5">
                   <div className="flex items-center gap-2">
-                    <TeamEmblem code={s.team.fifa_code} name={s.team.name_fr} size="sm" />
+                    <Flag isoCode={s.team.iso_code ?? null} size="md" />
                     <span
                       className={cn(
                         "truncate text-sm font-medium",

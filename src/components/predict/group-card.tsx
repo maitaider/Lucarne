@@ -8,6 +8,7 @@ import { PerMatchPicker } from "./per-match-picker";
 import {
   ArrowDown,
   ArrowUp,
+  ArrowUpDown,
   ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -65,69 +66,74 @@ export function GroupCard({
   ).length;
 
   return (
-    <div className="rounded-[10px] border border-white/[0.08] bg-surface-1/[0.5] backdrop-blur-xl">
+    <div className="rounded-md border border-border-subtle bg-surface-1 shadow-card">
       {/* Header */}
-      <div className="flex items-center justify-between gap-2 border-b border-white/[0.06] px-3 py-2">
+      <div className="flex items-center justify-between gap-2 border-b border-white/[0.06] px-3 py-2.5">
         <span className="font-display text-sm font-bold text-text-primary">
           {locale === "fr" ? "Groupe" : "Group"} {label}
         </span>
-        <span className="text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
+        <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
+          <ArrowUpDown className="size-3" strokeWidth={2} />
           {locale === "fr" ? "1ᵉʳ → 4ᵉ" : "1st → 4th"}
         </span>
       </div>
 
-      {/* Ranker (4 teams) */}
+      {/* Ranker (4 teams) — the ↑/↓ steppers reorder the standings. */}
       <ol className="space-y-1.5 p-3">
-        {ordered.map((t, i) => (
-          <li
-            key={t.id}
-            className={cn(
-              "grid grid-cols-[1.5rem_auto_minmax(0,1fr)_auto] items-center gap-2 rounded-[6px] border px-2 py-1.5 text-xs transition",
-              i === 0
-                ? "border-gold-500/35 bg-gold-500/[0.06]"
-                : i === 1
-                  ? "border-primary-500/25 bg-primary-500/[0.05]"
-                  : "border-white/[0.06] bg-white/[0.03]",
-            )}
-          >
-            <span
+        {ordered.map((t, i) => {
+          const isFirst = i === 0;
+          const isSecond = i === 1;
+          return (
+            <li
+              key={t.id}
               className={cn(
-                "font-display text-xs font-bold tabular-nums",
-                i === 0
-                  ? "text-gold-300"
-                  : i === 1
-                    ? "text-primary-300"
-                    : "text-text-tertiary",
+                "grid grid-cols-[1.75rem_auto_minmax(0,1fr)_auto] items-center gap-2.5 rounded-sm border px-2 py-2 text-xs transition",
+                isFirst
+                  ? "border-gold-500/35 bg-gold-500/[0.07]"
+                  : isSecond
+                    ? "border-primary-500/25 bg-primary-500/[0.06]"
+                    : "border-border-subtle bg-white/[0.025]",
               )}
             >
-              {i + 1}
-            </span>
-            <Flag isoCode={t.iso_code} size="sm" />
-            <span className="truncate font-semibold text-text-primary">
-              {locale === "fr" ? t.name_fr : t.name_en}
-            </span>
-            <div className="flex shrink-0 items-center gap-0.5">
-              <button
-                type="button"
-                onClick={() => onMove(i, -1)}
-                disabled={!canEdit || i === 0}
-                aria-label="Promote"
-                className="rounded-md p-0.5 text-text-tertiary hover:bg-white/[0.06] hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-30"
+              <span
+                className={cn(
+                  "flex size-7 items-center justify-center rounded-full font-display text-xs font-bold tabular-nums",
+                  isFirst
+                    ? "bg-gold-500/20 text-gold-200 ring-1 ring-gold-500/40"
+                    : isSecond
+                      ? "bg-primary-500/20 text-primary-200 ring-1 ring-primary-500/35"
+                      : "bg-white/[0.06] text-text-tertiary ring-1 ring-white/[0.08]",
+                )}
               >
-                <ArrowUp className="size-3" strokeWidth={2.5} />
-              </button>
-              <button
-                type="button"
-                onClick={() => onMove(i, 1)}
-                disabled={!canEdit || i === ordered.length - 1}
-                aria-label="Demote"
-                className="rounded-md p-0.5 text-text-tertiary hover:bg-white/[0.06] hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-30"
-              >
-                <ArrowDown className="size-3" strokeWidth={2.5} />
-              </button>
-            </div>
-          </li>
-        ))}
+                {i + 1}
+              </span>
+              <Flag isoCode={t.iso_code} size="md" />
+              <span className="truncate font-semibold text-text-primary">
+                {locale === "fr" ? t.name_fr : t.name_en}
+              </span>
+              <div className="flex shrink-0 flex-col overflow-hidden rounded-sm border border-border-strong/50">
+                <button
+                  type="button"
+                  onClick={() => onMove(i, -1)}
+                  disabled={!canEdit || i === 0}
+                  aria-label={locale === "fr" ? "Monter" : "Move up"}
+                  className="flex h-5 w-7 items-center justify-center text-text-secondary transition hover:bg-primary-500/20 hover:text-primary-200 disabled:cursor-not-allowed disabled:opacity-25 disabled:hover:bg-transparent"
+                >
+                  <ArrowUp className="size-3.5" strokeWidth={2.5} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onMove(i, 1)}
+                  disabled={!canEdit || i === ordered.length - 1}
+                  aria-label={locale === "fr" ? "Descendre" : "Move down"}
+                  className="flex h-5 w-7 items-center justify-center border-t border-border-strong/50 text-text-secondary transition hover:bg-primary-500/20 hover:text-primary-200 disabled:cursor-not-allowed disabled:opacity-25 disabled:hover:bg-transparent"
+                >
+                  <ArrowDown className="size-3.5" strokeWidth={2.5} />
+                </button>
+              </div>
+            </li>
+          );
+        })}
       </ol>
 
       {/* Matches toggle */}

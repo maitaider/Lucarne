@@ -33,6 +33,7 @@ import { ChampionBanner } from "./champion-banner";
 import type { PlayerOption } from "@/components/picks/player-combobox";
 import type { MatchListItem } from "@/lib/matches/shared";
 import {
+  ArrowUpDown,
   Crown,
   ListOrdered,
   MousePointerClick,
@@ -750,6 +751,22 @@ function GroupesSection({
           }
         />
       </div>
+      <Card
+        padded="sm"
+        className="mb-3 border-primary-500/20 bg-primary-500/[0.05]"
+      >
+        <p className="flex items-start gap-2.5 text-xs leading-5 text-text-secondary">
+          <ArrowUpDown
+            className="mt-0.5 size-4 shrink-0 text-primary-400"
+            strokeWidth={2}
+          />
+          <span>
+            {locale === "fr"
+              ? "Dans chaque groupe, classe les 4 équipes de la 1ʳᵉ à la 4ᵉ place avec les flèches ↑ ↓ (les 2 premières se qualifient). Déplie « Pronos par match » pour parier vainqueur, buts et buteurs."
+              : "In each group, rank the 4 teams 1st → 4th with the ↑ ↓ arrows (top 2 qualify). Expand “Per-match picks” to bet winner, goals and scorers."}
+          </span>
+        </p>
+      </Card>
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {labels.map((label) => (
           <GroupCard
