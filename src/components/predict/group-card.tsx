@@ -1,25 +1,21 @@
 "use client";
 
-import { useState } from "react";
 import { Flag } from "@/components/team/flag";
 import type { MatchListItem } from "@/lib/matches/shared";
 import type { PlayerOption } from "@/components/picks/player-combobox";
 import { PerMatchPicker } from "./per-match-picker";
-import {
-  ArrowDown,
-  ArrowUp,
-  ArrowUpDown,
-  ChevronDown,
-} from "lucide-react";
+import { computeGroupOrder } from "@/lib/predictions/group-order";
+import { ListChecks } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
 import type { MatchPick, ScorerPick, TeamLite, Winner } from "./predict-board";
 
 /**
- * One group's card. Two parts stacked:
- *   1. 4 team rows with ↑/↓ buttons to reorder (1st → 4th).
- *   2. Collapsible "Matchs du groupe" — the 6 fixtures with per-match
- *      winner / total / scorer picks.
+ * One group's card. "Predict the matches" model:
+ *   1. A live standings strip (computed from the predicted results) — the
+ *      top 2 qualify, the 3rd goes to the repechage pool.
+ *   2. The 6 group fixtures, each with a [1][N][2] result toggle (+ goals
+ *      and scorers). Tapping results re-ranks the table above in real time.
  */
 export function GroupCard({
   label,
@@ -31,11 +27,11 @@ export function GroupCard({
   teamById,
   canEdit,
   canBet,
-  onMove,
   onSavePerMatch,
   locale,
 }: {
   label: string;
+  /** Saved order — used as the stable tiebreak fallback. */
   teams: string[];
   allTeams: TeamLite[];
   matches: MatchListItem[];
@@ -44,7 +40,6 @@ export function GroupCard({
   teamById: Map<string, TeamLite>;
   canEdit: boolean;
   canBet: boolean;
-  onMove: (idx: number, direction: -1 | 1) => void;
   onSavePerMatch: (
     matchId: string,
     update: (prev: MatchPick) => MatchPick,
@@ -55,154 +50,151 @@ export function GroupCard({
   ) => void;
   locale: Locale;
 }) {
-  const [matchesOpen, setMatchesOpen] = useState(false);
-  const ordered =
-    teams.length === 4
-      ? (teams.map((id) => teamById.get(id)).filter(Boolean) as TeamLite[])
-      : allTeams;
+  const fr = locale === "fr";
+  const teamIds = allTeams.map((t) => t.id);
+  const fallback = teams.length === teamIds.length && teams.length > 0 ? teams : teamIds;
 
-  const pickedMatchesCount = matches.filter(
-    (m) => matchPicks.get(m.id)?.winner,
-  ).length;
+  const { order, stats } = computeGroupOrder(
+    matches.map((m) => ({
+      home_team_id: m.home_team?.id ?? null,
+      away_team_id: m.away_team?.id ?? null,
+      result: matchPicks.get(m.id)?.winner ?? null,
+    })),
+    teamIds,
+    fallback,
+  );
+  const ordered = order
+    .map((id) => teamById.get(id))
+    .filter((t): t is TeamLite => Boolean(t));
+
+  const pickedCount = matches.filter((m) => matchPicks.get(m.id)?.winner).length;
 
   return (
-    <div className="rounded-md border border-border-subtle bg-surface-1 shadow-card">
+    <div className="overflow-hidden rounded-md border border-border-subtle bg-surface-1 shadow-card">
       {/* Header */}
       <div className="flex items-center justify-between gap-2 border-b border-white/[0.06] px-3 py-2.5">
         <span className="font-display text-sm font-bold text-text-primary">
-          {locale === "fr" ? "Groupe" : "Group"} {label}
+          {fr ? "Groupe" : "Group"} {label}
         </span>
-        <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
-          <ArrowUpDown className="size-3" strokeWidth={2} />
-          {locale === "fr" ? "1ᵉʳ → 4ᵉ" : "1st → 4th"}
+        <span className="font-mono text-[10px] tabular-nums text-text-tertiary">
+          {pickedCount}/{matches.length} {fr ? "matchs" : "matches"}
         </span>
       </div>
 
-      {/* Ranker (4 teams) — the ↑/↓ steppers reorder the standings. */}
-      <ol className="space-y-1.5 p-3">
+      {/* Live standings (computed from the predicted results) */}
+      <div className="space-y-1 bg-abyss/30 p-2.5">
+        <div className="mb-1 flex items-center gap-1.5 px-0.5 text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
+          <ListChecks className="size-3 text-primary-400" strokeWidth={2} />
+          {fr ? "Classement selon tes pronos" : "Standings from your picks"}
+        </div>
         {ordered.map((t, i) => {
-          const isFirst = i === 0;
-          const isSecond = i === 1;
+          const qualified = i <= 1;
+          const playoff = i === 2;
+          const st = stats[t.id];
           return (
-            <li
+            <div
               key={t.id}
               className={cn(
-                "grid grid-cols-[1.75rem_auto_minmax(0,1fr)_auto] items-center gap-2.5 rounded-sm border px-2 py-2 text-xs transition",
-                isFirst
-                  ? "border-gold-500/35 bg-gold-500/[0.07]"
-                  : isSecond
-                    ? "border-primary-500/25 bg-primary-500/[0.06]"
-                    : "border-border-subtle bg-white/[0.025]",
+                "flex items-center gap-2 rounded-sm border px-2 py-1.5 text-xs",
+                qualified
+                  ? "border-primary-500/30 bg-primary-500/[0.06]"
+                  : playoff
+                    ? "border-gold-500/30 bg-gold-500/[0.06]"
+                    : "border-border-subtle bg-white/[0.02]",
               )}
             >
               <span
                 className={cn(
-                  "flex size-7 items-center justify-center rounded-full font-display text-xs font-bold tabular-nums",
-                  isFirst
-                    ? "bg-gold-500/20 text-gold-200 ring-1 ring-gold-500/40"
-                    : isSecond
-                      ? "bg-primary-500/20 text-primary-200 ring-1 ring-primary-500/35"
+                  "flex size-5 shrink-0 items-center justify-center rounded-full font-display text-[10px] font-bold tabular-nums",
+                  qualified
+                    ? "bg-primary-500/20 text-primary-200 ring-1 ring-primary-500/40"
+                    : playoff
+                      ? "bg-gold-500/20 text-gold-200 ring-1 ring-gold-500/40"
                       : "bg-white/[0.06] text-text-tertiary ring-1 ring-white/[0.08]",
                 )}
               >
                 {i + 1}
               </span>
-              <Flag isoCode={t.iso_code} size="md" />
-              <span className="truncate font-semibold text-text-primary">
-                {locale === "fr" ? t.name_fr : t.name_en}
+              <Flag isoCode={t.iso_code} size="sm" />
+              <span className="min-w-0 flex-1 truncate font-semibold text-text-primary">
+                {fr ? t.name_fr : t.name_en}
               </span>
-              <div className="flex shrink-0 flex-col overflow-hidden rounded-sm border border-border-strong/50">
-                <button
-                  type="button"
-                  onClick={() => onMove(i, -1)}
-                  disabled={!canEdit || i === 0}
-                  aria-label={locale === "fr" ? "Monter" : "Move up"}
-                  className="flex h-5 w-7 items-center justify-center text-text-secondary transition hover:bg-primary-500/20 hover:text-primary-200 disabled:cursor-not-allowed disabled:opacity-25 disabled:hover:bg-transparent"
+              {(qualified || playoff) && (
+                <span
+                  className={cn(
+                    "shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider",
+                    qualified
+                      ? "bg-primary-500/15 text-primary-300"
+                      : "bg-gold-500/15 text-gold-300",
+                  )}
                 >
-                  <ArrowUp className="size-3.5" strokeWidth={2.5} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onMove(i, 1)}
-                  disabled={!canEdit || i === ordered.length - 1}
-                  aria-label={locale === "fr" ? "Descendre" : "Move down"}
-                  className="flex h-5 w-7 items-center justify-center border-t border-border-strong/50 text-text-secondary transition hover:bg-primary-500/20 hover:text-primary-200 disabled:cursor-not-allowed disabled:opacity-25 disabled:hover:bg-transparent"
-                >
-                  <ArrowDown className="size-3.5" strokeWidth={2.5} />
-                </button>
-              </div>
-            </li>
+                  {qualified
+                    ? fr
+                      ? "Qualifié"
+                      : "Through"
+                    : fr
+                      ? "Repêchage"
+                      : "Playoff"}
+                </span>
+              )}
+              <span className="shrink-0 font-mono text-[11px] font-bold tabular-nums text-text-secondary">
+                {st?.points ?? 0}
+                <span className="ml-0.5 text-[8px] font-medium text-text-tertiary">
+                  pts
+                </span>
+              </span>
+            </div>
           );
         })}
-      </ol>
+      </div>
 
-      {/* Matches toggle */}
-      <button
-        type="button"
-        onClick={() => setMatchesOpen((o) => !o)}
-        className={cn(
-          "flex w-full items-center justify-between border-t border-white/[0.06] px-3 py-2 text-[10px] font-bold uppercase tracking-wider transition",
-          matchesOpen
-            ? "bg-primary-500/[0.08] text-primary-300"
-            : "text-text-tertiary hover:bg-white/[0.04] hover:text-text-primary",
-        )}
-      >
-        <span>
-          {locale === "fr" ? "Pronos par match" : "Per-match picks"}
-          <span className="ml-1.5 font-mono normal-case text-text-tertiary">
-            ({pickedMatchesCount}/{matches.length})
-          </span>
-        </span>
-        <ChevronDown
-          className={cn("size-3 transition-transform", matchesOpen && "rotate-180")}
-          strokeWidth={2.5}
-        />
-      </button>
-
-      {matchesOpen && (
+      {/* The 6 fixtures — the primary interaction. */}
+      <div className="border-t border-white/[0.06]">
+        <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
+          {fr ? "Tape le résultat de chaque match" : "Tap each match result"}
+        </div>
         <ul className="divide-y divide-white/[0.05] border-t border-white/[0.06]">
           {matches.map((m) => (
             <PerMatchPicker
               key={m.id}
               match={m}
-              pick={matchPicks.get(m.id) ?? { winner: null, total_goals: null, scorers: [] }}
+              pick={
+                matchPicks.get(m.id) ?? {
+                  winner: null,
+                  total_goals: null,
+                  scorers: [],
+                }
+              }
               homePlayers={
-                m.home_team
-                  ? (playersByTeam.get(m.home_team.id) ?? [])
-                  : []
+                m.home_team ? (playersByTeam.get(m.home_team.id) ?? []) : []
               }
               awayPlayers={
-                m.away_team
-                  ? (playersByTeam.get(m.away_team.id) ?? [])
-                  : []
+                m.away_team ? (playersByTeam.get(m.away_team.id) ?? []) : []
               }
-              canEdit={canBet}
+              canEdit={canBet && canEdit}
               onWinner={(w) =>
-                onSavePerMatch(
-                  m.id,
-                  (prev) => ({ ...prev, winner: w }),
-                  { kind: "winner", winner: w },
-                )
+                onSavePerMatch(m.id, (prev) => ({ ...prev, winner: w }), {
+                  kind: "winner",
+                  winner: w,
+                })
               }
               onTotalGoals={(n) =>
-                onSavePerMatch(
-                  m.id,
-                  (prev) => ({ ...prev, total_goals: n }),
-                  { kind: "total_goals", total: n },
-                )
+                onSavePerMatch(m.id, (prev) => ({ ...prev, total_goals: n }), {
+                  kind: "total_goals",
+                  total: n,
+                })
               }
               onScorers={(picks) =>
-                onSavePerMatch(
-                  m.id,
-                  (prev) => ({ ...prev, scorers: picks }),
-                  { kind: "scorers", picks },
-                )
+                onSavePerMatch(m.id, (prev) => ({ ...prev, scorers: picks }), {
+                  kind: "scorers",
+                  picks,
+                })
               }
               locale={locale}
             />
           ))}
         </ul>
-      )}
+      </div>
     </div>
   );
 }

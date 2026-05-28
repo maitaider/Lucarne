@@ -25,6 +25,7 @@ import {
   resetTournamentPrediction,
   upsertTournamentPrediction,
 } from "@/lib/predictions/actions";
+import { computeGroupOrder } from "@/lib/predictions/group-order";
 import type { TournamentPrediction } from "@/lib/predictions/queries";
 import { placeBet } from "@/lib/bets/place-bet";
 import { GroupCard } from "./group-card";
@@ -33,8 +34,8 @@ import { ChampionBanner } from "./champion-banner";
 import type { PlayerOption } from "@/components/picks/player-combobox";
 import type { MatchListItem } from "@/lib/matches/shared";
 import {
-  ArrowUpDown,
   Crown,
+  ListChecks,
   ListOrdered,
   MousePointerClick,
   RotateCcw,
@@ -269,13 +270,7 @@ export function PredictBoard({
     });
   }
 
-  function moveTeam(group: string, idx: number, direction: -1 | 1) {
-    if (!canEdit) return;
-    const list = groups[group] ?? [];
-    const target = idx + direction;
-    if (target < 0 || target >= list.length) return;
-    const next = [...list];
-    [next[idx], next[target]] = [next[target]!, next[idx]!];
+  function commitGroupOrder(group: string, next: string[]) {
     const nextGroups = { ...groups, [group]: next };
     const pruned = pruneOrphanedKnockoutPicks(
       knockoutSchedule,
@@ -356,6 +351,26 @@ export function PredictBoard({
     const next = new Map(matchPicks);
     next.set(matchId, after);
     setMatchPicks(next);
+
+    // "Predict the matches" model: a group result re-ranks that group's
+    // standings (which feed the knockout bracket).
+    if (bet.kind === "winner") {
+      const gm = groupMatches.find((m) => m.id === matchId);
+      if (gm?.group_label) {
+        const label = gm.group_label;
+        const ids = (groupTeams[label] ?? []).map((t) => t.id);
+        const { order } = computeGroupOrder(
+          (matchesByGroup[label] ?? []).map((m) => ({
+            home_team_id: m.home_team?.id ?? null,
+            away_team_id: m.away_team?.id ?? null,
+            result: next.get(m.id)?.winner ?? null,
+          })),
+          ids,
+          groups[label] ?? ids,
+        );
+        commitGroupOrder(label, order);
+      }
+    }
 
     const payload = (() => {
       if (bet.kind === "winner")
@@ -591,9 +606,7 @@ export function PredictBoard({
           teamById={teamById}
           canEdit={canEdit}
           canBet={canBet}
-          onMoveTeam={moveTeam}
           onSavePerMatch={savePerMatch}
-          onReset={() => reset("groups")}
           locale={locale}
         />
       ) : (
@@ -707,9 +720,7 @@ function GroupesSection({
   teamById,
   canEdit,
   canBet,
-  onMoveTeam,
   onSavePerMatch,
-  onReset,
   locale,
 }: {
   groupTeams: Record<string, TeamLite[]>;
@@ -720,7 +731,6 @@ function GroupesSection({
   teamById: Map<string, TeamLite>;
   canEdit: boolean;
   canBet: boolean;
-  onMoveTeam: (group: string, idx: number, dir: -1 | 1) => void;
   onSavePerMatch: (
     matchId: string,
     update: (prev: MatchPick) => MatchPick,
@@ -729,7 +739,6 @@ function GroupesSection({
       | { kind: "total_goals"; total: number }
       | { kind: "scorers"; picks: ScorerPick[] },
   ) => void;
-  onReset: () => void;
   locale: Locale;
 }) {
   const labels = Object.keys(groupTeams).sort();
@@ -740,30 +749,20 @@ function GroupesSection({
           <Sparkles className="size-4 text-primary-400" strokeWidth={1.7} />
           {locale === "fr" ? "Phase de groupes" : "Group phase"}
         </h2>
-        <ResetButton
-          disabled={!canEdit}
-          onClick={onReset}
-          locale={locale}
-          label={
-            locale === "fr"
-              ? "Réinit. classements groupes"
-              : "Reset group standings"
-          }
-        />
       </div>
       <Card
         padded="sm"
         className="mb-3 border-primary-500/20 bg-primary-500/[0.05]"
       >
         <p className="flex items-start gap-2.5 text-xs leading-5 text-text-secondary">
-          <ArrowUpDown
+          <ListChecks
             className="mt-0.5 size-4 shrink-0 text-primary-400"
             strokeWidth={2}
           />
           <span>
             {locale === "fr"
-              ? "Dans chaque groupe, classe les 4 équipes de la 1ʳᵉ à la 4ᵉ place avec les flèches ↑ ↓ (les 2 premières se qualifient). Déplie « Pronos par match » pour parier vainqueur, buts et buteurs."
-              : "In each group, rank the 4 teams 1st → 4th with the ↑ ↓ arrows (top 2 qualify). Expand “Per-match picks” to bet winner, goals and scorers."}
+              ? "Tape le résultat de chacun des 6 matchs par groupe (1 · Nul · 2). Le classement se calcule tout seul : les 2 premiers se qualifient, le 3ᵉ joue le repêchage. Touche « + » sur un match pour ajouter buts et buteurs."
+              : "Tap a result for each of the 6 group matches (1 · Draw · 2). The standings compute automatically: top 2 qualify, 3rd goes to the playoff. Tap “+” on a match to add goals and scorers."}
           </span>
         </p>
       </Card>
@@ -780,7 +779,6 @@ function GroupesSection({
             teamById={teamById}
             canEdit={canEdit}
             canBet={canBet}
-            onMove={(idx, dir) => onMoveTeam(label, idx, dir)}
             onSavePerMatch={onSavePerMatch}
             locale={locale}
           />
