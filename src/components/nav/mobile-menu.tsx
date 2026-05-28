@@ -15,6 +15,7 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
+import { LanguageSwitcher } from "./language-switcher";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
 
@@ -105,14 +106,17 @@ export function MobileMenu({ locale }: { locale: Locale }) {
               <span className="font-display text-base font-semibold text-text-primary">
                 {locale === "fr" ? "Menu" : "Menu"}
               </span>
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                aria-label={locale === "fr" ? "Fermer" : "Close"}
-                className="flex size-8 items-center justify-center rounded-[8px] text-text-secondary hover:bg-white/[0.05] hover:text-text-primary"
-              >
-                <X className="size-4" strokeWidth={1.5} />
-              </button>
+              <div className="flex items-center gap-2">
+                <LanguageSwitcher />
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  aria-label={locale === "fr" ? "Fermer" : "Close"}
+                  className="flex size-8 items-center justify-center rounded-[8px] text-text-secondary hover:bg-white/[0.05] hover:text-text-primary"
+                >
+                  <X className="size-4" strokeWidth={1.5} />
+                </button>
+              </div>
             </div>
             <nav
               className="flex-1 space-y-5 overflow-y-auto p-3"

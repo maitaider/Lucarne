@@ -3,6 +3,7 @@ import { LucarneLogo } from "@/components/brand/lucarne-mark";
 import { UserMenu } from "./user-menu";
 import { NavLinks } from "./nav-links";
 import { MobileMenu } from "./mobile-menu";
+import { LanguageSwitcher } from "./language-switcher";
 import { NotificationsBell } from "@/components/notifications/notifications-bell";
 import {
   listMyNotifications,
@@ -36,6 +37,7 @@ export async function AppHeader({
         <NavLinks locale={locale} />
 
         <div className="flex items-center gap-2">
+          <LanguageSwitcher className="hidden sm:inline-flex" />
           {user ? (
             <>
               <NotificationsBell
