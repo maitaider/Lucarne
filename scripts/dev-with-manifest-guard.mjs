@@ -22,8 +22,19 @@ import { spawn } from "node:child_process";
 import { mkdirSync, writeFileSync, watch, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { randomBytes } from "node:crypto";
+import { fileURLToPath } from "node:url";
 
-const ROOT = process.cwd();
+// Derive the project root from THIS file's location (scripts/ -> root) and
+// chdir to it up front. Some launchers (e.g. the preview runner) spawn this
+// process with a broken / inaccessible cwd, so `process.cwd()` throws
+// `EPERM uv_cwd`. chdir-ing to a known absolute path repairs the cwd before
+// Next — or anything else — ever reads it.
+const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
+try {
+  process.chdir(ROOT);
+} catch {
+  // best-effort: ROOT is still correct for the paths computed below.
+}
 const DEV_DIR = join(ROOT, ".next", "dev");
 const SERVER_DIR = join(DEV_DIR, "server");
 
@@ -132,7 +143,7 @@ const child = spawn(
     "dev",
     mode,
   ],
-  { stdio: "inherit", env: process.env },
+  { stdio: "inherit", env: process.env, cwd: ROOT },
 );
 
 function shutdown(code) {
