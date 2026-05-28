@@ -6,16 +6,16 @@
  */
 
 export const colors = {
-  // Backgrounds & surfaces
-  abyss: "#08090c",
-  base: "#0e1014",
-  surface1: "#161922",
-  surface2: "#1f2330",
-  surface3: "#2a2f3f",
+  // Backgrounds & surfaces — "stade nocturne" (green-dark)
+  abyss: "#050605",
+  base: "#0c0f0c",
+  surface1: "#11160f",
+  surface2: "#192119",
+  surface3: "#253024",
 
   // Borders
-  borderSubtle: "#262b38",
-  borderStrong: "#3a4055",
+  borderSubtle: "#2b362a",
+  borderStrong: "#4c5a47",
 
   // Primary — pelouse irradiée
   primary400: "#3fe599",
@@ -46,12 +46,12 @@ export const colors = {
 } as const;
 
 export const radii = {
-  xs: 4,
-  sm: 6,
-  md: 10,
-  lg: 14,
+  xs: 6,
+  sm: 8,
+  md: 12,
+  lg: 16,
   xl: 20,
-  "2xl": 28,
+  "2xl": 24,
   full: 9999,
 } as const;
 

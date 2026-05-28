@@ -5,24 +5,24 @@ type Accent = "primary" | "gold" | "violet" | "neutral";
 
 const ACCENT: Record<Accent, { border: string; bg: string; chip: string }> = {
   primary: {
-    border: "border-white/[0.08]",
-    bg: "bg-surface-1/[0.6]",
-    chip: "bg-primary-500/[0.06] text-primary-300",
+    border: "border-border-subtle",
+    bg: "bg-surface-1",
+    chip: "bg-primary-500/12 text-primary-300",
   },
   gold: {
     border: "border-gold-500/30",
-    bg: "bg-gradient-to-br from-gold-500/[0.08] via-surface-1/[0.6] to-transparent",
-    chip: "bg-gold-500/[0.1] text-gold-300",
+    bg: "bg-gradient-to-br from-gold-500/[0.08] via-surface-1 to-surface-1",
+    chip: "bg-gold-500/15 text-gold-300",
   },
   violet: {
     border: "border-violet-500/25",
-    bg: "bg-gradient-to-br from-violet-500/[0.08] via-surface-1/[0.6] to-transparent",
-    chip: "bg-violet-500/[0.1] text-violet-300",
+    bg: "bg-gradient-to-br from-violet-500/[0.08] via-surface-1 to-surface-1",
+    chip: "bg-violet-500/15 text-violet-300",
   },
   neutral: {
-    border: "border-white/[0.06]",
-    bg: "bg-surface-1/[0.4]",
-    chip: "bg-white/[0.04] text-text-tertiary",
+    border: "border-border-subtle",
+    bg: "bg-surface-1",
+    chip: "bg-white/[0.06] text-text-tertiary",
   },
 };
 
