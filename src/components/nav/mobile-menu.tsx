@@ -34,10 +34,10 @@ const GROUPS: Array<{
     ],
   },
   {
-    fr: "Tournoi",
-    en: "Tournament",
+    fr: "Pronostics",
+    en: "Predict",
     items: [
-      { href: "/predict", icon: Sparkles, fr: "Pronostique", en: "Predict" },
+      { href: "/predict", icon: Sparkles, fr: "Pronostiquer", en: "Predict" },
       { href: "/matches", icon: CalendarDays, fr: "Calendrier", en: "Calendar" },
     ],
   },

@@ -10,6 +10,11 @@ import {
 } from "@/components/ui/how-to-callout";
 import { LockCountdown } from "@/components/ui/lock-countdown";
 import { useToast } from "@/components/ui/toast-provider";
+import { Segmented } from "@/components/ui/segmented";
+import { ProgressBar } from "@/components/ui/progress-bar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   pruneOrphanedKnockoutPicks,
   type BracketMatchInfo,
@@ -448,13 +453,15 @@ export function PredictBoard({
   const groupsFilledCount = Object.values(groups).filter(
     (g) => g.length === 4,
   ).length;
-  const totalGroups = Object.keys(groupTeams).length;
   const knockoutPickedCount = Object.keys(knockouts).length;
   const totalKnockouts = knockoutSchedule.length;
   const matchWinnersCount = Array.from(matchPicks.values()).filter(
     (p) => p.winner != null,
   ).length;
   const totalMatches = groupMatches.length + knockoutSchedule.length;
+  const groupWinnersCount = groupMatches.filter(
+    (m) => matchPicks.get(m.id)?.winner != null,
+  ).length;
 
   // ---- HowTo steps -----------------------------------------------------------
 
@@ -523,21 +530,30 @@ export function PredictBoard({
       />
 
       {/* Sticky control strip: segment switcher + progress + countdown */}
-      <section className="sticky top-[64px] z-30 rounded-[12px] border border-white/[0.1] bg-abyss/[0.88] p-3 shadow-[0_10px_30px_rgba(0,0,0,0.32)] backdrop-blur-xl sm:p-4">
+      <section className="sticky top-[64px] z-30 rounded-md border border-border-strong/50 bg-abyss/90 p-3 shadow-raised backdrop-blur-md sm:p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <SegmentSwitcher
-            tab={tab}
+          <Segmented
+            items={[
+              {
+                key: "groupes",
+                label: locale === "fr" ? "Groupes" : "Groups",
+                icon: ListOrdered,
+                badge: `${groupWinnersCount}/${groupMatches.length}`,
+              },
+              {
+                key: "finale",
+                label: locale === "fr" ? "Phase finale" : "Knockouts",
+                icon: Trophy,
+                badge: `${knockoutPickedCount}/${totalKnockouts}`,
+              },
+            ]}
+            value={tab}
             onChange={(t) => {
               setTab(t);
               const url = new URL(window.location.href);
               url.searchParams.set("tab", t);
               window.history.replaceState({}, "", url.toString());
             }}
-            locale={locale}
-            groupsCount={groupsFilledCount}
-            totalGroups={totalGroups}
-            knockoutCount={knockoutPickedCount}
-            totalKnockouts={totalKnockouts}
           />
 
           <div className="flex items-center gap-2">
@@ -550,27 +566,17 @@ export function PredictBoard({
           </div>
         </div>
 
-        {/* Global progress micro-bar */}
-        <div className="mt-3 grid grid-cols-3 items-center gap-3 text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
-          <ProgressMini
-            label={locale === "fr" ? "Groupes" : "Groups"}
-            done={groupsFilledCount}
-            total={totalGroups}
-            accent="primary"
-          />
-          <ProgressMini
-            label={locale === "fr" ? "Vainqueurs match" : "Match winners"}
-            done={matchWinnersCount}
-            total={totalMatches}
-            accent="violet"
-          />
-          <ProgressMini
-            label={locale === "fr" ? "Phase finale" : "Bracket"}
-            done={knockoutPickedCount}
-            total={totalKnockouts}
-            accent="gold"
-          />
-        </div>
+        <ProgressBar
+          className="mt-3"
+          value={matchWinnersCount + knockoutPickedCount}
+          max={totalMatches + totalKnockouts}
+          accent="primary"
+          label={
+            locale === "fr"
+              ? "Progression de ton pronostic"
+              : "Prediction progress"
+          }
+        />
       </section>
 
       {/* Segment body */}
@@ -619,154 +625,47 @@ export function PredictBoard({
         (groupsFilledCount > 0 ||
           knockoutPickedCount > 0 ||
           matchWinnersCount > 0) && (
-          <section className="mt-6 flex flex-col items-center gap-2 rounded-[12px] border border-error/25 bg-error/[0.04] p-4 text-center backdrop-blur-xl sm:flex-row sm:justify-between sm:text-left">
-            <div>
-              <div className="font-display text-sm font-semibold text-text-primary">
-                {locale === "fr"
-                  ? "Tout effacer mon pronostic"
-                  : "Wipe my whole prediction"}
+          <Card className="mt-2 border-error/25 bg-error/[0.04]" padded="md">
+            <div className="flex flex-col items-center gap-3 text-center sm:flex-row sm:justify-between sm:text-left">
+              <div>
+                <div className="font-display text-sm font-semibold text-text-primary">
+                  {locale === "fr"
+                    ? "Tout effacer mon pronostic"
+                    : "Wipe my whole prediction"}
+                </div>
+                <p className="mt-0.5 text-xs leading-5 text-text-tertiary">
+                  {locale === "fr"
+                    ? "Efface les groupes + phase finale + champion. Les pronos par match (winner/buts/buteurs) restent — utilise les boutons par section pour les retoucher."
+                    : "Clears groups + knockouts + champion. Per-match picks stay — use per-section buttons to tweak them."}
+                </p>
               </div>
-              <p className="mt-0.5 text-xs leading-5 text-text-tertiary">
-                {locale === "fr"
-                  ? "Efface les groupes + phase finale + champion. Les pronos par match (winner/buts/buteurs) restent — utilise les boutons par section pour les retoucher."
-                  : "Clears groups + knockouts + champion. Per-match picks stay — use per-section buttons to tweak them."}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                if (
-                  confirm(
-                    locale === "fr"
-                      ? "Effacer toute la prédiction tournoi ? Irréversible."
-                      : "Wipe the whole tournament prediction? This can't be undone.",
+              <Button
+                variant="danger"
+                size="sm"
+                icon={Trash2}
+                onClick={() => {
+                  if (
+                    confirm(
+                      locale === "fr"
+                        ? "Effacer toute la prédiction tournoi ? Irréversible."
+                        : "Wipe the whole tournament prediction? This can't be undone.",
+                    )
                   )
-                )
-                  reset("all");
-              }}
-              className="inline-flex items-center gap-2 rounded-[8px] border border-error/40 bg-error/[0.1] px-4 py-2 text-xs font-bold uppercase tracking-wider text-error transition hover:bg-error/[0.18]"
-            >
-              <Trash2 className="size-3.5" strokeWidth={2.5} />
-              {locale === "fr" ? "Tout effacer" : "Wipe all"}
-            </button>
-          </section>
+                    reset("all");
+                }}
+              >
+                {locale === "fr" ? "Tout effacer" : "Wipe all"}
+              </Button>
+            </div>
+          </Card>
         )}
     </div>
   );
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Segment switcher                                                          */
+/*  Champion pill                                                             */
 /* -------------------------------------------------------------------------- */
-
-function SegmentSwitcher({
-  tab,
-  onChange,
-  locale,
-  groupsCount,
-  totalGroups,
-  knockoutCount,
-  totalKnockouts,
-}: {
-  tab: Tab;
-  onChange: (t: Tab) => void;
-  locale: Locale;
-  groupsCount: number;
-  totalGroups: number;
-  knockoutCount: number;
-  totalKnockouts: number;
-}) {
-  const items: { key: Tab; icon: typeof Trophy; fr: string; en: string; done: number; total: number }[] = [
-    {
-      key: "groupes",
-      icon: ListOrdered,
-      fr: "Groupes",
-      en: "Groups",
-      done: groupsCount,
-      total: totalGroups,
-    },
-    {
-      key: "finale",
-      icon: Trophy,
-      fr: "Phase finale",
-      en: "Knockouts",
-      done: knockoutCount,
-      total: totalKnockouts,
-    },
-  ];
-  return (
-    <div className="inline-flex rounded-[8px] border border-white/[0.1] bg-abyss/[0.55] p-1">
-      {items.map((it) => {
-        const isActive = tab === it.key;
-        const Icon = it.icon;
-        return (
-          <button
-            key={it.key}
-            type="button"
-            onClick={() => onChange(it.key)}
-            className={cn(
-              "inline-flex items-center gap-1.5 rounded-[7px] px-3 py-1.5 text-xs font-semibold transition",
-              isActive
-                ? "bg-primary-500 text-abyss shadow-glow-primary"
-                : "text-text-secondary hover:bg-white/[0.05] hover:text-text-primary",
-            )}
-          >
-            <Icon className="size-3.5" strokeWidth={2} />
-            {locale === "fr" ? it.fr : it.en}
-            <span
-              className={cn(
-                "rounded-full px-1.5 py-0.5 font-mono text-[9px] tabular-nums",
-                isActive
-                  ? "bg-abyss/25 text-abyss"
-                  : "bg-white/[0.07] text-text-tertiary",
-              )}
-            >
-              {it.done}/{it.total}
-            </span>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-function ProgressMini({
-  label,
-  done,
-  total,
-  accent,
-}: {
-  label: string;
-  done: number;
-  total: number;
-  accent: "primary" | "gold" | "violet";
-}) {
-  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-  const tone = {
-    primary: "from-primary-500 to-primary-400",
-    gold: "from-gold-500 to-gold-400",
-    violet: "from-violet-500 to-violet-400",
-  }[accent];
-  return (
-    <div>
-      <div className="mb-1 flex items-center justify-between gap-2">
-        <span className="truncate">{label}</span>
-        <span className="font-mono tabular-nums text-text-secondary">
-          {done}/{total}
-        </span>
-      </div>
-      <div className="h-1 overflow-hidden rounded-full bg-white/[0.06]">
-        <div
-          className={cn(
-            "h-full rounded-full bg-gradient-to-r transition-[width] duration-300",
-            tone,
-          )}
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-    </div>
-  );
-}
 
 function ChampionPill({
   championId,
@@ -780,18 +679,17 @@ function ChampionPill({
   const t = championId ? teamById.get(championId) : null;
   if (!t) {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.1] bg-white/[0.04] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
-        <Crown className="size-3" strokeWidth={2} />
+      <Badge tone="outline" icon={Crown}>
         {locale === "fr" ? "Champion ?" : "Champion ?"}
-      </span>
+      </Badge>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-gold-500/45 bg-gold-500/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-gold-300 shadow-glow-gold">
+    <Badge tone="gold" className="shadow-glow-gold">
       <Crown className="size-3" strokeWidth={2.5} />
       <Flag isoCode={t.iso_code} size="xs" />
       {locale === "fr" ? t.name_fr : t.name_en}
-    </span>
+    </Badge>
   );
 }
 
