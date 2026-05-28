@@ -13,6 +13,7 @@ import {
 import { getMyPicksByMatch, type MyPick } from "@/lib/bets/my-picks";
 import { picksToExisting } from "@/lib/bets/picks-to-existing";
 import { getMyBuyInStatus } from "@/lib/profile/buy-in";
+import { getMyTournamentPrediction } from "@/lib/predictions/queries";
 import { BuyInBanner } from "@/components/paywall/buy-in-banner";
 import { LockCountdown } from "@/components/ui/lock-countdown";
 import { WorldTrophyMark } from "@/components/brand/sport-icons";
@@ -27,8 +28,11 @@ import { ProgressBar } from "@/components/ui/progress-bar";
 import {
   ArrowRight,
   CalendarClock,
+  CalendarDays,
   Coins,
   Crown,
+  Globe,
+  HelpCircle,
   Receipt,
   Sparkles,
   Ticket,
@@ -57,6 +61,7 @@ export default async function DashboardPage({
     standings,
     myPicksByMatch,
     buyIn,
+    prediction,
   ] = await Promise.all([
     getCurrentUser(),
     getMyStats(),
@@ -66,7 +71,22 @@ export default async function DashboardPage({
     getGlobalStandings(6),
     getMyPicksByMatch(),
     getMyBuyInStatus(),
+    getMyTournamentPrediction(),
   ]);
+
+  // Resolve the user's predicted champion from the teams present in the
+  // fixtures we already loaded (group matches carry real team rows).
+  const teamMap = new Map<
+    string,
+    { name_fr: string; name_en: string; iso_code: string | null }
+  >();
+  for (const m of allMatches) {
+    if (m.home_team) teamMap.set(m.home_team.id, m.home_team);
+    if (m.away_team) teamMap.set(m.away_team.id, m.away_team);
+  }
+  const championTeam = prediction.champion_team_id
+    ? (teamMap.get(prediction.champion_team_id) ?? null)
+    : null;
 
   const now = Date.now();
   const activeBets = myBets.filter((b) => b.status === "validated");
@@ -226,6 +246,22 @@ export default async function DashboardPage({
           />
         </div>
       </section>
+
+      {/* Quick actions */}
+      <QuickActions locale={L} />
+
+      {/* Feature row: champion · pot · tournament */}
+      <div className="grid gap-5 md:grid-cols-3">
+        <ChampionCard team={championTeam} canBet={buyIn.can_bet} locale={L} />
+        <CagnotteCard
+          amountCents={buyIn.amount_cents}
+          currency={buyIn.settings.currency}
+          shares={buyIn.settings.prize_distribution.shares ?? []}
+          rakePct={buyIn.settings.prize_distribution.house_rake_pct ?? 0}
+          locale={L}
+        />
+        <TournamentCard startAt={buyIn.settings.tournament_start_at} locale={L} />
+      </div>
 
       {/* ===================== MAIN: 2fr / 1fr ====================== */}
       <div className="grid gap-5 lg:grid-cols-3">
@@ -868,6 +904,272 @@ function TicketsCard({
           ))}
         </ul>
       )}
+    </Card>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Quick actions + feature cards                                             */
+/* -------------------------------------------------------------------------- */
+
+const ACTION_ACCENT: Record<"primary" | "violet" | "gold", string> = {
+  primary: "bg-primary-500/15 text-primary-300 ring-primary-500/30",
+  violet: "bg-violet-500/15 text-violet-300 ring-violet-500/30",
+  gold: "bg-gold-500/15 text-gold-300 ring-gold-500/35",
+};
+
+function QuickActions({ locale }: { locale: Locale }) {
+  const fr = locale === "fr";
+  const actions: {
+    href: string;
+    icon: LucideIcon;
+    label: string;
+    sub: string;
+    accent: "primary" | "violet" | "gold";
+  }[] = [
+    {
+      href: "/predict",
+      icon: Sparkles,
+      label: fr ? "Pronostiquer" : "Predict",
+      sub: fr ? "Groupes + phase finale" : "Groups + bracket",
+      accent: "primary",
+    },
+    {
+      href: "/matches",
+      icon: CalendarDays,
+      label: fr ? "Calendrier" : "Calendar",
+      sub: fr ? "Les 104 matchs" : "All 104 fixtures",
+      accent: "violet",
+    },
+    {
+      href: "/leagues",
+      icon: Users,
+      label: fr ? "Inviter des amis" : "Invite friends",
+      sub: fr ? "Ligues privées" : "Private leagues",
+      accent: "gold",
+    },
+    {
+      href: "/how-it-works",
+      icon: HelpCircle,
+      label: fr ? "Comment ça marche" : "How it works",
+      sub: fr ? "Règles + points" : "Rules + scoring",
+      accent: "primary",
+    },
+  ];
+  return (
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      {actions.map((a) => {
+        const Icon = a.icon;
+        return (
+          <Card key={a.href} href={a.href} padded="md" className="group">
+            <div className="flex items-center gap-3">
+              <span
+                className={cn(
+                  "flex size-9 shrink-0 items-center justify-center rounded-sm ring-1",
+                  ACTION_ACCENT[a.accent],
+                )}
+              >
+                <Icon className="size-4" strokeWidth={1.8} />
+              </span>
+              <div className="min-w-0">
+                <div className="truncate font-display text-sm font-semibold text-text-primary">
+                  {a.label}
+                </div>
+                <div className="truncate text-xs text-text-tertiary">
+                  {a.sub}
+                </div>
+              </div>
+              <ArrowRight
+                className="ml-auto size-4 shrink-0 text-text-tertiary transition group-hover:translate-x-0.5 group-hover:text-text-primary"
+                strokeWidth={1.6}
+              />
+            </div>
+          </Card>
+        );
+      })}
+    </div>
+  );
+}
+
+function ChampionCard({
+  team,
+  canBet,
+  locale,
+}: {
+  team: { name_fr: string; name_en: string; iso_code: string | null } | null;
+  canBet: boolean;
+  locale: Locale;
+}) {
+  const fr = locale === "fr";
+  return (
+    <Card accent="gold" padded="lg" className="relative overflow-hidden">
+      <Image
+        src="/assets/lucarne/exports/bracket-network.png"
+        alt=""
+        width={110}
+        height={110}
+        className="pointer-events-none absolute -bottom-3 -right-3 size-24 opacity-20"
+      />
+      <div className="relative">
+        <Badge tone="gold" icon={Crown}>
+          {fr ? "Ton champion" : "Your champion"}
+        </Badge>
+        {team ? (
+          <div className="mt-4 flex items-center gap-3">
+            <Flag isoCode={team.iso_code} size="xl" />
+            <div className="min-w-0">
+              <div className="truncate font-display text-xl font-bold text-text-primary">
+                {fr ? team.name_fr : team.name_en}
+              </div>
+              <div className="text-xs text-text-tertiary">
+                {fr
+                  ? "Vainqueur prédit du Mondial"
+                  : "Predicted World Cup winner"}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <p className="mt-3 text-sm leading-6 text-text-secondary">
+              {fr
+                ? "Qui soulèvera le trophée ? Désigne ton champion en bâtissant ta phase finale."
+                : "Who lifts the trophy? Crown your champion by building your bracket."}
+            </p>
+            <Button
+              href={canBet ? "/predict?tab=finale" : "/buy-in"}
+              variant="gold"
+              size="md"
+              iconRight={ArrowRight}
+              className="mt-4"
+            >
+              {fr ? "Choisir mon champion" : "Pick my champion"}
+            </Button>
+          </>
+        )}
+      </div>
+    </Card>
+  );
+}
+
+function CagnotteCard({
+  amountCents,
+  currency,
+  shares,
+  rakePct,
+  locale,
+}: {
+  amountCents: number;
+  currency: string;
+  shares: number[];
+  rakePct: number;
+  locale: Locale;
+}) {
+  const fr = locale === "fr";
+  const amount = (amountCents / 100).toLocaleString(fr ? "fr-CA" : "en-CA", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  });
+  const redistributed = 100 - (rakePct ?? 0);
+  const podium = shares.slice(0, 3);
+  return (
+    <Card accent="primary" padded="lg" className="relative overflow-hidden">
+      <Image
+        src="/assets/lucarne/exports/trophy-gold.png"
+        alt=""
+        width={96}
+        height={96}
+        className="pointer-events-none absolute -right-2 -top-2 size-20 opacity-25"
+      />
+      <div className="relative">
+        <Badge tone="primary" icon={Coins}>
+          {fr ? "La cagnotte" : "The pot"}
+        </Badge>
+        <div className="mt-3 flex items-baseline gap-1.5">
+          <span className="font-display text-3xl font-bold tabular-nums text-text-primary">
+            {amount}
+          </span>
+          <span className="text-xs text-text-tertiary">
+            / {fr ? "joueur" : "player"}
+          </span>
+        </div>
+        <p className="mt-1 text-xs leading-5 text-text-secondary">
+          {fr
+            ? `${redistributed}% redistribué — la cagnotte grandit à chaque place vendue.`
+            : `${redistributed}% paid back — the pot grows with every seat sold.`}
+        </p>
+        {podium.length > 0 && (
+          <div className="mt-4 flex gap-2">
+            {podium.map((pct, i) => (
+              <div
+                key={i}
+                className="flex flex-1 flex-col items-center rounded-sm border border-border-subtle bg-white/[0.03] py-2"
+              >
+                <span
+                  className={cn(
+                    "font-display text-sm font-bold tabular-nums",
+                    i === 0
+                      ? "text-gold-300"
+                      : i === 1
+                        ? "text-text-primary"
+                        : "text-amber-400",
+                  )}
+                >
+                  {i + 1}
+                </span>
+                <span className="text-[10px] tabular-nums text-text-tertiary">
+                  {pct}%
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+}
+
+function TournamentCard({
+  startAt,
+  locale,
+}: {
+  startAt: string;
+  locale: Locale;
+}) {
+  const fr = locale === "fr";
+  const facts: { value: string; label: string }[] = [
+    { value: "48", label: fr ? "équipes" : "teams" },
+    { value: "104", label: fr ? "matchs" : "matches" },
+    { value: "16", label: fr ? "villes" : "cities" },
+  ];
+  return (
+    <Card accent="violet" padded="lg" className="relative overflow-hidden">
+      <Badge tone="violet" icon={Globe}>
+        {fr ? "Le Mondial 2026" : "World Cup 2026"}
+      </Badge>
+      <div className="mt-4 grid grid-cols-3 gap-2">
+        {facts.map((f) => (
+          <div
+            key={f.label}
+            className="rounded-sm border border-border-subtle bg-white/[0.03] py-2.5 text-center"
+          >
+            <div className="font-display text-xl font-bold tabular-nums text-text-primary">
+              {f.value}
+            </div>
+            <div className="text-[10px] uppercase tracking-wider text-text-tertiary">
+              {f.label}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-4">
+        <LockCountdown
+          targetAt={startAt}
+          locale={locale}
+          prefix={{ fr: "Coup d'envoi dans", en: "Kicks off in" }}
+          pastLabel={{ fr: "Tournoi en cours", en: "Tournament live" }}
+        />
+      </div>
     </Card>
   );
 }

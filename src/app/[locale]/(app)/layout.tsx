@@ -7,6 +7,7 @@ import { ToastProvider } from "@/components/ui/toast-provider";
 import { QuickBetProvider } from "@/components/bet/quick-bet-provider";
 import { MobileQuickBetFab } from "@/components/nav/mobile-quick-bet-fab";
 import { OnboardingTour } from "@/components/onboarding/onboarding-tour";
+import { ChunkReloadGuard } from "@/components/system/chunk-reload-guard";
 import { listMatches } from "@/lib/matches/queries";
 import type { Locale } from "@/i18n/routing";
 
@@ -47,6 +48,7 @@ export default async function AppLayout({
   return (
     <div className="relative isolate flex min-h-dvh flex-col overflow-hidden">
       <AppAtmosphere />
+      <ChunkReloadGuard />
       <ToastProvider>
         <QuickBetProvider locale={locale}>
           <AppHeader user={user} locale={locale} />
