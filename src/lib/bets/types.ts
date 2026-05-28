@@ -29,16 +29,18 @@ export const firstScorerPayloadSchema = z.object({
   team_id: z.string().uuid(),
 });
 
-// anytime_scorer: { players: [{ name, team_id? }] } — team_id optional pour MVP
+// anytime_scorer: { players: [{ player_id?, player_name, team_id? }] }
+// Empty array is allowed = "no scorer predicted" (lets the user clear/remove
+// scorers). player_id is kept so the auto-scoring can match by id.
 export const anytimeScorerPayloadSchema = z.object({
   players: z
     .array(
       z.object({
-        player_name: z.string().min(2).max(80),
+        player_id: z.string().uuid().optional(),
+        player_name: z.string().min(1).max(80),
         team_id: z.string().uuid().optional(),
       }),
     )
-    .min(1)
     .max(4),
 });
 
