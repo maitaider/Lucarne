@@ -1,14 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
-import { useRouter } from "@/i18n/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import { getSupabaseBrowser } from "@/lib/supabase/client";
 import { Loader2 } from "lucide-react";
 
 export function LoginForm() {
   const t = useTranslations("auth");
-  const router = useRouter();
+  const locale = useLocale();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,8 +29,10 @@ export function LoginForm() {
       return;
     }
 
-    router.push("/dashboard");
-    router.refresh();
+    // Hard navigation: forces a full request so the server receives the
+    // freshly-set auth cookies. A soft router.push can race the cookie write
+    // and bounce back to /login.
+    window.location.assign(`/${locale}/dashboard`);
   }
 
   return (

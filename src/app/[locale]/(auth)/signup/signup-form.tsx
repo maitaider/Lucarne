@@ -2,15 +2,14 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { useTranslations } from "next-intl";
-import { useRouter } from "@/i18n/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import { getSupabaseBrowser } from "@/lib/supabase/client";
 import { callRedeemInvitation } from "@/lib/supabase/rpc";
 import { Loader2 } from "lucide-react";
 
 export function SignupForm() {
   const t = useTranslations("auth");
-  const router = useRouter();
+  const locale = useLocale();
   const searchParams = useSearchParams();
   const prefilledCode = (searchParams.get("code") ?? "").toUpperCase();
   const [isLoading, setIsLoading] = useState(false);
@@ -63,8 +62,8 @@ export function SignupForm() {
       return;
     }
 
-    router.push("/dashboard");
-    router.refresh();
+    // Hard navigation so the server receives the freshly-set auth cookies.
+    window.location.assign(`/${locale}/dashboard`);
   }
 
   return (
