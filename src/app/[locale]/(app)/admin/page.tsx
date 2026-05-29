@@ -6,6 +6,8 @@ import {
   computePrizePool,
   formatMoney,
 } from "@/lib/admin/economy";
+import { listMyLeagues } from "@/lib/leagues/queries";
+import { AdminInviteTool } from "@/components/admin/admin-invite-tool";
 import { PageHero } from "@/components/layout/page-hero";
 import {
   AlertCircle,
@@ -32,9 +34,10 @@ export default async function AdminOverviewPage({
   setRequestLocale(locale);
   const L = locale as Locale;
 
-  const [stats, settings] = await Promise.all([
+  const [stats, settings, leagues] = await Promise.all([
     getOverviewStats(),
     getAppSettings(),
+    listMyLeagues(),
   ]);
 
   const seatsSold = stats.paying_users_count;
@@ -112,6 +115,12 @@ export default async function AdminOverviewPage({
           href="/admin/payments"
         />
       </section>
+
+      {/* Invite players (create pool + generate code in one place) */}
+      <AdminInviteTool
+        leagues={leagues.map((l) => ({ id: l.id, name: l.name }))}
+        locale={L}
+      />
 
       {/* Deadline + prize pool */}
       <section className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">
