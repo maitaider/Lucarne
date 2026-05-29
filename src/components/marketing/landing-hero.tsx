@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { LucarneLogo } from "@/components/brand/lucarne-mark";
 import { Countdown } from "./countdown";
+import { CountUp } from "@/components/ui/count-up";
 import {
   ArrowRight,
   BadgeCheck,
@@ -55,7 +56,7 @@ export async function LandingHero() {
         </nav>
 
         <div className="flex flex-1 flex-col justify-center py-16 sm:py-20 lg:py-24">
-          <div className="max-w-3xl">
+          <div className="lk-stagger max-w-3xl">
             <div className="mb-5 inline-flex items-center gap-2 rounded-[8px] border border-gold-500/[0.35] bg-abyss/[0.45] px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-gold-400 backdrop-blur">
               <Trophy className="size-3.5" strokeWidth={2} />
               {t("heroEyebrow")}
@@ -107,19 +108,19 @@ export async function LandingHero() {
         <div className="grid gap-3 pb-8 sm:grid-cols-3">
           <StatStripItem
             icon={Users}
-            value="48"
+            value={<CountUp value={48} />}
             label={t("statTeams")}
             color="text-primary-400"
           />
           <StatStripItem
             icon={Trophy}
-            value="104"
+            value={<CountUp value={104} />}
             label={t("statMatches")}
             color="text-gold-400"
           />
           <StatStripItem
             icon={CalendarDays}
-            value="40"
+            value={<CountUp value={40} />}
             label={t("statDays")}
             color="text-violet-400"
           />
@@ -136,7 +137,7 @@ function StatStripItem({
   color,
 }: {
   icon: typeof Users;
-  value: string;
+  value: React.ReactNode;
   label: string;
   color: string;
 }) {

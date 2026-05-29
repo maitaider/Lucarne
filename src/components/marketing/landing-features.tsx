@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import Image from "next/image";
+import { Reveal } from "@/components/ui/reveal";
 import {
   Banknote,
   ChevronRight,
@@ -35,43 +36,22 @@ export async function LandingFeatures() {
   ] as const;
 
   const steps = [
-    {
-      title: t("workflow1Title"),
-      body: t("workflow1Body"),
-    },
-    {
-      title: t("workflow2Title"),
-      body: t("workflow2Body"),
-    },
-    {
-      title: t("workflow3Title"),
-      body: t("workflow3Body"),
-    },
+    { title: t("workflow1Title"), body: t("workflow1Body") },
+    { title: t("workflow2Title"), body: t("workflow2Body") },
+    { title: t("workflow3Title"), body: t("workflow3Body") },
   ] as const;
 
   const trustItems = [
-    {
-      icon: ShieldCheck,
-      title: t("trust1Title"),
-      body: t("trust1Body"),
-    },
-    {
-      icon: Banknote,
-      title: t("trust2Title"),
-      body: t("trust2Body"),
-    },
-    {
-      icon: UsersRound,
-      title: t("trust3Title"),
-      body: t("trust3Body"),
-    },
+    { icon: ShieldCheck, title: t("trust1Title"), body: t("trust1Body") },
+    { icon: Banknote, title: t("trust2Title"), body: t("trust2Body") },
+    { icon: UsersRound, title: t("trust3Title"), body: t("trust3Body") },
   ] as const;
 
   return (
     <>
       <section id="features" className="border-b border-border-subtle bg-base">
         <div className="mx-auto grid max-w-6xl gap-12 px-6 py-20 lg:grid-cols-[0.85fr_1.15fr] lg:px-8 lg:py-24">
-          <div>
+          <Reveal>
             <p className="mb-4 text-xs font-bold uppercase tracking-wider text-primary-400">
               {t("featuresEyebrow")}
             </p>
@@ -81,33 +61,32 @@ export async function LandingFeatures() {
             <p className="mt-5 max-w-md text-base leading-relaxed text-text-secondary">
               {t("featuresIntro")}
             </p>
-          </div>
+          </Reveal>
 
           <div className="grid gap-4 sm:grid-cols-3 lg:gap-5">
-            {features.map(({ icon: Icon, title, body, accent }) => (
-              <article
-                key={title}
-                className="group relative overflow-hidden rounded-[8px] border border-white/[0.08] bg-surface-1/[0.76] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] p-5 transition hover:border-primary-500/35 hover:bg-surface-2/70"
-              >
-                <div
-                  aria-hidden
-                  className={`mb-5 inline-flex size-11 items-center justify-center rounded-[8px] ${
-                    accent === "primary"
-                      ? "bg-primary-500/10 text-primary-500 ring-1 ring-primary-500/20"
-                      : accent === "violet"
-                        ? "bg-violet-500/10 text-violet-400 ring-1 ring-violet-500/20"
-                        : "bg-gold-500/10 text-gold-400 ring-1 ring-gold-500/20"
-                  }`}
-                >
-                  <Icon className="size-5" strokeWidth={1.6} />
-                </div>
-                <h3 className="mb-2 font-display text-lg font-semibold text-text-primary">
-                  {title}
-                </h3>
-                <p className="text-sm leading-relaxed text-text-secondary">
-                  {body}
-                </p>
-              </article>
+            {features.map(({ icon: Icon, title, body, accent }, i) => (
+              <Reveal key={title} delayMs={i * 110} className="h-full">
+                <article className="group relative h-full overflow-hidden rounded-md border border-white/[0.08] bg-surface-1/[0.76] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition duration-200 hover:-translate-y-1 hover:border-primary-500/35 hover:bg-surface-2/70">
+                  <div
+                    aria-hidden
+                    className={`mb-5 inline-flex size-11 items-center justify-center rounded-md transition group-hover:scale-110 ${
+                      accent === "primary"
+                        ? "bg-primary-500/10 text-primary-500 ring-1 ring-primary-500/20"
+                        : accent === "violet"
+                          ? "bg-violet-500/10 text-violet-400 ring-1 ring-violet-500/20"
+                          : "bg-gold-500/10 text-gold-400 ring-1 ring-gold-500/20"
+                    }`}
+                  >
+                    <Icon className="size-5" strokeWidth={1.6} />
+                  </div>
+                  <h3 className="mb-2 font-display text-lg font-semibold text-text-primary">
+                    {title}
+                  </h3>
+                  <p className="text-sm leading-relaxed text-text-secondary">
+                    {body}
+                  </p>
+                </article>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -116,38 +95,37 @@ export async function LandingFeatures() {
       <section className="bg-[#f3f7f2] text-[#11160f]">
         <div className="mx-auto max-w-6xl px-6 py-20 lg:px-8">
           <div className="grid gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:items-start">
-            <div>
+            <Reveal>
               <p className="mb-4 text-xs font-bold uppercase tracking-wider text-[#176943]">
                 {t("workflowEyebrow")}
               </p>
               <h2 className="font-display text-3xl font-semibold leading-tight sm:text-4xl">
                 {t("workflowTitle")}
               </h2>
-            </div>
+            </Reveal>
             <div className="grid gap-4 md:grid-cols-3">
               {steps.map((step, index) => (
-                <article
-                  key={step.title}
-                  className="border-t border-[#c9d6c6] pt-5"
-                >
-                  <div className="mb-4 flex items-center justify-between">
-                    <span className="font-mono text-sm font-semibold text-[#176943]">
-                      0{index + 1}
-                    </span>
-                    {index < steps.length - 1 && (
-                      <ChevronRight
-                        className="hidden size-4 text-[#789071] md:block"
-                        strokeWidth={1.6}
-                      />
-                    )}
-                  </div>
-                  <h3 className="font-display text-xl font-semibold">
-                    {step.title}
-                  </h3>
-                  <p className="mt-3 text-sm leading-relaxed text-[#52604e]">
-                    {step.body}
-                  </p>
-                </article>
+                <Reveal key={step.title} delayMs={index * 110}>
+                  <article className="border-t border-[#c9d6c6] pt-5">
+                    <div className="mb-4 flex items-center justify-between">
+                      <span className="font-mono text-sm font-semibold text-[#176943]">
+                        0{index + 1}
+                      </span>
+                      {index < steps.length - 1 && (
+                        <ChevronRight
+                          className="hidden size-4 text-[#789071] md:block"
+                          strokeWidth={1.6}
+                        />
+                      )}
+                    </div>
+                    <h3 className="font-display text-xl font-semibold">
+                      {step.title}
+                    </h3>
+                    <p className="mt-3 text-sm leading-relaxed text-[#52604e]">
+                      {step.body}
+                    </p>
+                  </article>
+                </Reveal>
               ))}
             </div>
           </div>
@@ -164,7 +142,7 @@ export async function LandingFeatures() {
         />
         <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(5,6,5,0.98)_0%,rgba(5,6,5,0.9)_42%,rgba(5,6,5,0.55)_100%)]" />
         <div className="mx-auto grid max-w-6xl gap-10 px-6 py-20 lg:grid-cols-[0.85fr_1.15fr] lg:px-8 lg:py-24">
-          <div>
+          <Reveal>
             <p className="mb-4 text-xs font-bold uppercase tracking-wider text-gold-400">
               {t("trustEyebrow")}
             </p>
@@ -174,21 +152,23 @@ export async function LandingFeatures() {
             <p className="mt-5 max-w-md text-base leading-relaxed text-text-secondary">
               {t("trustIntro")}
             </p>
-          </div>
+          </Reveal>
           <div className="grid gap-3 sm:grid-cols-3">
-            {trustItems.map(({ icon: Icon, title, body }) => (
-              <article
-                key={title}
-                className="rounded-[8px] border border-white/[0.12] bg-white/[0.06] p-5 backdrop-blur"
-              >
-                <Icon className="mb-4 size-5 text-primary-400" strokeWidth={1.6} />
-                <h3 className="font-display text-lg font-semibold text-text-primary">
-                  {title}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-                  {body}
-                </p>
-              </article>
+            {trustItems.map(({ icon: Icon, title, body }, i) => (
+              <Reveal key={title} delayMs={i * 110} className="h-full">
+                <article className="h-full rounded-md border border-white/[0.12] bg-white/[0.06] p-5 backdrop-blur transition duration-200 hover:-translate-y-1 hover:border-primary-500/35">
+                  <Icon
+                    className="mb-4 size-5 text-primary-400"
+                    strokeWidth={1.6}
+                  />
+                  <h3 className="font-display text-lg font-semibold text-text-primary">
+                    {title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-text-secondary">
+                    {body}
+                  </p>
+                </article>
+              </Reveal>
             ))}
           </div>
         </div>
