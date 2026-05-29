@@ -119,7 +119,11 @@ export default async function LeaguesPage({
                 <LeagueCardMetric
                   icon={Users}
                   label={locale === "fr" ? "Membres" : "Members"}
-                  value={`${league.member_count}/${league.member_limit}`}
+                  value={
+                    league.member_limit
+                      ? `${league.member_count}/${league.member_limit}`
+                      : `${league.member_count}`
+                  }
                 />
                 <LeagueCardMetric
                   icon={Trophy}

@@ -34,7 +34,7 @@ export type LeagueListItem = {
   description: string | null;
   visibility: string;
   owner_id: string;
-  member_limit: number;
+  member_limit: number | null;
   allows_real_money: boolean;
   member_count: number;
 };
@@ -103,7 +103,7 @@ export type LeagueWithMembers = {
   description: string | null;
   visibility: string;
   owner_id: string;
-  member_limit: number;
+  member_limit: number | null;
   allows_real_money: boolean;
   members: { user_id: string; role: string; joined_at: string; status: string }[];
 };

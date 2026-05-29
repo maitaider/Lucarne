@@ -97,7 +97,8 @@ export default async function LeagueDetailPage({
         </div>
         <div className="mt-3 flex items-center gap-2 text-xs text-text-tertiary">
           <Users className="size-3" />
-          {league.members.length} / {league.member_limit}
+          {league.members.length}
+          {league.member_limit ? ` / ${league.member_limit}` : ""}
         </div>
       </header>
 
@@ -105,7 +106,11 @@ export default async function LeagueDetailPage({
         <LeagueDetailMetric
           icon={Users}
           label={locale === "fr" ? "Membres" : "Members"}
-          value={`${league.members.length}/${league.member_limit}`}
+          value={
+            league.member_limit
+              ? `${league.members.length}/${league.member_limit}`
+              : `${league.members.length}`
+          }
           detail={locale === "fr" ? "dans le salon" : "in room"}
           accent="primary"
         />

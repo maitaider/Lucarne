@@ -873,7 +873,8 @@ function LeaguesCard({
                     {l.name}
                   </div>
                   <div className="text-xs text-text-tertiary">
-                    {l.member_count}/{l.member_limit}{" "}
+                    {l.member_count}
+                    {l.member_limit ? `/${l.member_limit}` : ""}{" "}
                     {fr ? "membres" : "members"}
                   </div>
                 </div>
