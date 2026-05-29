@@ -7,17 +7,21 @@ import {
   formatMoney,
 } from "@/lib/admin/economy";
 import { listMyLeagues } from "@/lib/leagues/queries";
+import { listRecentSignups, type RecentSignup } from "@/lib/admin/signups";
 import { AdminInviteTool } from "@/components/admin/admin-invite-tool";
 import { PageHero } from "@/components/layout/page-hero";
 import {
   AlertCircle,
   ArrowRight,
   CalendarClock,
+  CheckCircle2,
+  Clock,
   Coins,
   Crown,
   ShieldCheck,
   Ticket,
   Trophy,
+  UserPlus,
   Users,
   Wallet,
   type LucideIcon,
@@ -34,10 +38,11 @@ export default async function AdminOverviewPage({
   setRequestLocale(locale);
   const L = locale as Locale;
 
-  const [stats, settings, leagues] = await Promise.all([
+  const [stats, settings, leagues, signupData] = await Promise.all([
     getOverviewStats(),
     getAppSettings(),
     listMyLeagues(),
+    listRecentSignups(),
   ]);
 
   const seatsSold = stats.paying_users_count;
@@ -121,6 +126,9 @@ export default async function AdminOverviewPage({
         leagues={leagues.map((l) => ({ id: l.id, name: l.name }))}
         locale={L}
       />
+
+      {/* New-player tracker */}
+      <RecentSignups data={signupData} locale={L} />
 
       {/* Deadline + prize pool */}
       <section className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">
@@ -335,6 +343,100 @@ export default async function AdminOverviewPage({
         </section>
       )}
     </div>
+  );
+}
+
+function RecentSignups({
+  data,
+  locale,
+}: {
+  data: { signups: RecentSignup[]; totalPlayers: number; paidPlayers: number };
+  locale: Locale;
+}) {
+  const fr = locale === "fr";
+  const { signups, totalPlayers, paidPlayers } = data;
+
+  return (
+    <section className="rounded-[12px] border border-white/[0.08] bg-surface-1/[0.5] p-5 backdrop-blur-xl">
+      <header className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <UserPlus className="size-4 text-primary-300" strokeWidth={1.8} />
+          <h2 className="font-display text-base font-semibold text-text-primary">
+            {fr ? "Nouveaux joueurs" : "New players"}
+          </h2>
+        </div>
+        <div className="flex items-center gap-3 text-xs">
+          <span className="text-text-tertiary">
+            {totalPlayers} {fr ? "inscrits" : "signed up"} ·{" "}
+            <span className="font-semibold text-primary-300">
+              {paidPlayers} {fr ? "payés" : "paid"}
+            </span>
+          </span>
+          <Link
+            href="/admin/users"
+            className="font-semibold text-text-secondary transition hover:text-text-primary"
+          >
+            {fr ? "Gérer" : "Manage"} →
+          </Link>
+        </div>
+      </header>
+
+      {signups.length === 0 ? (
+        <div className="rounded-[10px] border border-dashed border-white/[0.1] px-4 py-8 text-center">
+          <p className="text-sm text-text-secondary">
+            {fr ? "Aucune inscription pour l'instant." : "No sign-ups yet."}
+          </p>
+          <p className="mt-1 text-xs text-text-tertiary">
+            {fr
+              ? "Partage ton code d'invitation ci-dessus pour faire venir des joueurs."
+              : "Share your invite code above to bring players in."}
+          </p>
+        </div>
+      ) : (
+        <ul className="divide-y divide-white/[0.05]">
+          {signups.map((s) => {
+            const initials = (s.display_name ?? s.username)
+              .slice(0, 2)
+              .toUpperCase();
+            const joined = new Date(s.created_at).toLocaleDateString(
+              fr ? "fr-FR" : "en-US",
+              { day: "numeric", month: "short" },
+            );
+            const tokens = Math.floor(s.balance_cents / 100);
+            return (
+              <li key={s.id} className="flex items-center gap-3 py-2.5">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary-500/30 to-violet-500/30 font-mono text-[10px] font-bold uppercase text-text-primary ring-1 ring-white/10">
+                  {initials}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-semibold text-text-primary">
+                    {s.display_name ?? s.username}
+                  </div>
+                  <div className="truncate text-xs text-text-tertiary">
+                    @{s.username} · {fr ? "inscrit le" : "joined"} {joined}
+                  </div>
+                </div>
+                <span className="hidden font-mono text-xs tabular-nums text-text-tertiary sm:inline">
+                  {tokens.toLocaleString(fr ? "fr-FR" : "en-US")}{" "}
+                  {fr ? "jetons" : "tokens"}
+                </span>
+                {s.paid ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-primary-500/12 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-300 ring-1 ring-primary-500/25">
+                    <CheckCircle2 className="size-3" strokeWidth={2.5} />
+                    {fr ? "Payé" : "Paid"}
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-gold-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-gold-300 ring-1 ring-gold-500/25">
+                    <Clock className="size-3" strokeWidth={2.5} />
+                    {fr ? "À payer" : "Unpaid"}
+                  </span>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
   );
 }
 

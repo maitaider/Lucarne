@@ -5,6 +5,7 @@ import { generateUserInvitation } from "@/lib/leagues/actions";
 import {
   Check,
   Copy,
+  Infinity as InfinityIcon,
   Link2,
   Loader2,
   Share2,
@@ -19,8 +20,7 @@ import {
  */
 export function InviteFriendsCard({ locale }: { locale: "fr" | "en" }) {
   const fr = locale === "fr";
-  const [days, setDays] = useState(14);
-  const [maxUses, setMaxUses] = useState(1);
+  const [days, setDays] = useState(30);
   const [code, setCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<"code" | "link" | null>(null);
@@ -34,7 +34,7 @@ export function InviteFriendsCard({ locale }: { locale: "fr" | "en" }) {
     setError(null);
     setCode(null);
     startTransition(async () => {
-      const res = await generateUserInvitation(days, maxUses);
+      const res = await generateUserInvitation(days);
       if (!res.ok) {
         setError(res.message ?? "Erreur");
         return;
@@ -82,8 +82,8 @@ export function InviteFriendsCard({ locale }: { locale: "fr" | "en" }) {
       </div>
       <p className="mb-4 text-sm text-text-secondary">
         {fr
-          ? "Choisis la durée et le nombre d'utilisations, puis partage le code ou le lien."
-          : "Pick a duration and number of uses, then share the code or link."}
+          ? "Un seul code, réutilisable autant de fois que tu veux. Chaque ami qui s'inscrit rejoint automatiquement la ligue."
+          : "One code, reusable as many times as you like. Every friend who signs up automatically joins the league."}
       </p>
 
       <div className="grid grid-cols-2 gap-3">
@@ -96,29 +96,22 @@ export function InviteFriendsCard({ locale }: { locale: "fr" | "en" }) {
             onChange={(e) => setDays(Number(e.target.value))}
             className={fieldCls}
           >
-            {[1, 7, 14, 30].map((d) => (
+            {[7, 14, 30, 90].map((d) => (
               <option key={d} value={d}>
                 {d}
               </option>
             ))}
           </select>
         </label>
-        <label className="block">
+        <div className="block">
           <span className="mb-1.5 block text-xs font-semibold text-text-secondary">
             {fr ? "Utilisations" : "Uses"}
           </span>
-          <select
-            value={maxUses}
-            onChange={(e) => setMaxUses(Number(e.target.value))}
-            className={fieldCls}
-          >
-            {[1, 5, 10, 25].map((u) => (
-              <option key={u} value={u}>
-                {u === 1 ? (fr ? "1 personne" : "1 person") : `${u}`}
-              </option>
-            ))}
-          </select>
-        </label>
+          <div className="inline-flex w-full items-center gap-1.5 rounded-[8px] border border-primary-500/25 bg-primary-500/[0.06] px-3 py-2 text-sm font-semibold text-primary-200">
+            <InfinityIcon className="size-4" strokeWidth={2.2} />
+            {fr ? "Illimitées" : "Unlimited"}
+          </div>
+        </div>
       </div>
 
       {code && (

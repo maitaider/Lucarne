@@ -69,22 +69,21 @@ export async function generateInvitation(
 }
 
 /**
- * Account-level invitation that ANY authenticated user can create to invite a
- * friend to open an account and play (no league required — the invitee joins
- * the global pool). League-scoped invites stay owner/admin-only above.
+ * Invitation that ANY authenticated user can create to bring a friend in. The
+ * code is unlimited-use by default (a permanent link) and is stamped with the
+ * house (default) league, so every redeemer auto-joins the admin's pool.
  */
 export async function generateUserInvitation(
-  expiresDays = 14,
-  maxUses = 1,
+  expiresDays = 30,
 ): Promise<{ ok: boolean; code?: string; message?: string }> {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
     return { ok: false, message: "Supabase non configuré" };
   }
 
   const supabase = await getSupabaseServer();
+  // Omit p_max_uses → SQL default NULL → unlimited uses.
   const { data, error } = await supabase.rpc("generate_user_invitation", {
     p_expires_days: expiresDays,
-    p_max_uses: maxUses,
   });
 
   if (error) return { ok: false, message: error.message };

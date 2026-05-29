@@ -60,8 +60,8 @@ export default async function InvitePage({
 
       <p className="mt-4 text-center text-xs text-text-tertiary">
         {fr
-          ? "Chaque code peut expirer et a un nombre d'utilisations limité, pour garder le salon entre gens de confiance."
-          : "Each code can expire and has a limited number of uses, to keep the room trusted."}
+          ? "Tes amis rejoignent automatiquement la ligue en s'inscrivant. Le code reste valable jusqu'à son expiration."
+          : "Your friends automatically join the league when they sign up. The code stays valid until it expires."}
       </p>
     </main>
   );
