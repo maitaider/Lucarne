@@ -27,7 +27,8 @@ export function GroupTableCard({
         </span>
       </header>
 
-      <table className="w-full text-sm">
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[440px] text-sm">
         <thead>
           <tr className="text-[10px] uppercase tracking-wider text-text-tertiary">
             <th className="px-3 pt-2.5 pb-1.5 text-left font-medium">#</th>
@@ -114,7 +115,8 @@ export function GroupTableCard({
             );
           })}
         </tbody>
-      </table>
+        </table>
+      </div>
 
       {/* Legend */}
       <footer className="flex items-center gap-3 border-t border-white/[0.08] bg-white/[0.035] px-3 py-1.5 text-[10px] text-text-tertiary">
