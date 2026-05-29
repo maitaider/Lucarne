@@ -832,76 +832,147 @@ function FinaleSection({
   ) => void;
   locale: Locale;
 }) {
-  const stages: Array<{
-    key: "r32" | "r16" | "qf" | "sf" | "third_place" | "final";
-    fr: string;
-    en: string;
-  }> = [
-    { key: "r32", fr: "1/16ᵉ de finale", en: "Round of 32" },
-    { key: "r16", fr: "1/8ᵉ", en: "Round of 16" },
-    { key: "qf", fr: "Quarts", en: "Quarter-finals" },
-    { key: "sf", fr: "Demi-finales", en: "Semi-finals" },
-    { key: "third_place", fr: "3ᵉ place", en: "3rd place" },
-    { key: "final", fr: "Finale", en: "Final" },
-  ];
+  const fr = locale === "fr";
+  const ROUNDS: Array<{ key: "r32" | "r16" | "qf" | "sf" | "final"; label: string }> =
+    [
+      { key: "r32", label: fr ? "16ᵉ de finale" : "Round of 32" },
+      { key: "r16", label: fr ? "8ᵉ de finale" : "Round of 16" },
+      { key: "qf", label: fr ? "Quarts" : "Quarter-finals" },
+      { key: "sf", label: fr ? "Demi-finales" : "Semi-finals" },
+      { key: "final", label: fr ? "Finale" : "Final" },
+    ];
+  const thirdPlace = byStage["third_place"] ?? [];
+  const finalMatch = (byStage["final"] ?? [])[0];
+  const championId = finalMatch
+    ? (knockouts[String(finalMatch.match_number)] ?? null)
+    : null;
+  const champion = championId ? (teamById.get(championId) ?? null) : null;
+
+  function Tie(m: KnockoutScheduleItem) {
+    return (
+      <KnockoutTie
+        key={m.match_number}
+        match={m}
+        groups={groups}
+        knockouts={knockouts}
+        thirdAssign={thirdAssign}
+        matchPicks={matchPicks}
+        playersByTeam={playersByTeam}
+        teamById={teamById}
+        canEdit={canEdit}
+        canBet={canBet}
+        onPickWinner={onPickWinner}
+        onPickThirdPlace={onPickThirdPlace}
+        onSavePerMatch={onSavePerMatch}
+        locale={locale}
+      />
+    );
+  }
+
   return (
-    <section className="grid gap-4 lg:grid-cols-2">
-      {stages.map(({ key, fr, en }) => {
-        const matches = byStage[key] ?? [];
-        const picked = matches.filter(
-          (m) => knockouts[String(m.match_number)],
-        ).length;
-        return (
-          <article
-            key={key}
-            className={cn(
-              "rounded-[12px] border border-white/[0.08] bg-surface-1/[0.6] p-4 backdrop-blur-xl",
-              key === "final" && "border-gold-500/40 bg-gold-500/[0.06]",
-            )}
-          >
-            <h3 className="mb-3 flex items-center justify-between gap-2 text-xs font-bold uppercase tracking-wider text-text-tertiary">
-              <span className="flex items-center gap-2">
-                {key === "final" && (
-                  <Crown
-                    className="size-3.5 text-gold-300"
-                    strokeWidth={2}
-                  />
+    <section className="space-y-4">
+      <Card padded="sm" className="border-gold-500/20 bg-gold-500/[0.05]">
+        <p className="flex items-start gap-2.5 text-xs leading-5 text-text-secondary">
+          <Trophy className="mt-0.5 size-4 shrink-0 text-gold-400" strokeWidth={2} />
+          <span>
+            {fr
+              ? "L'arbre se remplit depuis tes groupes. Tape l'équipe qui passe à chaque tour — de gauche à droite — jusqu'à couronner ton champion. Tout se met à jour tout seul."
+              : "The bracket fills from your groups. Tap the team that advances in each tie — left to right — all the way to your champion. Everything updates automatically."}
+          </span>
+        </p>
+      </Card>
+
+      {/* Horizontal bracket: rounds flow left → right to the trophy. */}
+      <div className="-mx-1 overflow-x-auto px-1 pb-3">
+        <div className="flex min-w-max items-stretch gap-3">
+          {ROUNDS.map((round) => {
+            const matches = byStage[round.key] ?? [];
+            const picked = matches.filter(
+              (m) => knockouts[String(m.match_number)],
+            ).length;
+            return (
+              <div key={round.key} className="flex w-60 shrink-0 flex-col">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-1.5 font-display text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+                    {round.key === "final" && (
+                      <Crown
+                        className="size-3.5 text-gold-300"
+                        strokeWidth={2}
+                      />
+                    )}
+                    {round.label}
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="rounded-full bg-white/[0.05] px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-text-tertiary">
+                      {picked}/{matches.length}
+                    </span>
+                    <ResetButton
+                      disabled={!canEdit || picked === 0}
+                      onClick={() => onResetStage(round.key)}
+                      locale={locale}
+                      size="xs"
+                    />
+                  </span>
+                </div>
+                <ul className="flex flex-1 flex-col justify-around gap-2">
+                  {matches.map((m) => Tie(m))}
+                </ul>
+              </div>
+            );
+          })}
+
+          {/* Champion column */}
+          <div className="flex w-48 shrink-0 flex-col">
+            <div className="mb-2 flex items-center gap-1.5 font-display text-[11px] font-bold uppercase tracking-wider text-gold-300">
+              <Trophy className="size-3.5" strokeWidth={2} />
+              Champion
+            </div>
+            <div className="flex flex-1 items-center justify-center">
+              <div
+                className={cn(
+                  "flex w-full flex-col items-center gap-3 rounded-md border p-4 text-center shadow-card",
+                  champion
+                    ? "border-gold-500/45 bg-gradient-to-b from-gold-500/[0.18] to-surface-1"
+                    : "border-dashed border-white/[0.12] bg-surface-1",
                 )}
-                {locale === "fr" ? fr : en}
-                <span className="rounded-full bg-white/[0.05] px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-text-tertiary">
-                  {picked}/{matches.length}
-                </span>
-              </span>
-              <ResetButton
-                disabled={!canEdit || picked === 0}
-                onClick={() => onResetStage(key)}
-                locale={locale}
-                size="xs"
-              />
-            </h3>
-            <ul className="space-y-1.5">
-              {matches.map((m) => (
-                <KnockoutTie
-                  key={m.match_number}
-                  match={m}
-                  groups={groups}
-                  knockouts={knockouts}
-                  thirdAssign={thirdAssign}
-                  matchPicks={matchPicks}
-                  playersByTeam={playersByTeam}
-                  teamById={teamById}
-                  canEdit={canEdit}
-                  canBet={canBet}
-                  onPickWinner={onPickWinner}
-                  onPickThirdPlace={onPickThirdPlace}
-                  onSavePerMatch={onSavePerMatch}
-                  locale={locale}
+              >
+                <Trophy
+                  className={cn(
+                    "size-9",
+                    champion ? "text-gold-300" : "text-text-tertiary",
+                  )}
+                  strokeWidth={1.5}
                 />
-              ))}
-            </ul>
-          </article>
-        );
-      })}
+                {champion ? (
+                  <>
+                    <Flag isoCode={champion.iso_code} size="2xl" />
+                    <div className="font-display text-base font-bold leading-tight text-text-primary">
+                      {fr ? champion.name_fr : champion.name_en}
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-[11px] leading-5 text-text-tertiary">
+                    {fr
+                      ? "Gagne la finale pour couronner ton champion."
+                      : "Win the final to crown your champion."}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 3rd-place playoff */}
+      {thirdPlace.length > 0 && (
+        <div className="max-w-sm">
+          <div className="mb-2 flex items-center gap-1.5 font-display text-[11px] font-bold uppercase tracking-wider text-text-tertiary">
+            <Trophy className="size-3.5 text-amber-400" strokeWidth={2} />
+            {fr ? "Match pour la 3ᵉ place" : "Third-place playoff"}
+          </div>
+          <ul className="space-y-2">{thirdPlace.map((m) => Tie(m))}</ul>
+        </div>
+      )}
     </section>
   );
 }

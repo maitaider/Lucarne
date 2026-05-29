@@ -10,7 +10,7 @@ import {
   type KnockoutWinners,
 } from "@/lib/predictions/resolve-bracket";
 import type { PlayerOption } from "@/components/picks/player-combobox";
-import { CheckCircle2, ChevronDown, ChevronRight } from "lucide-react";
+import { CheckCircle2, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
 import type {
@@ -83,9 +83,9 @@ export function KnockoutTie({
   const matchIdMissing = true;
 
   return (
-    <li className="rounded-[8px] border border-white/[0.06] bg-white/[0.03]">
-      {/* Tie row */}
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 px-2 py-1.5">
+    <li className="overflow-hidden rounded-md border border-white/[0.08] bg-surface-2/70 shadow-card transition hover:border-white/[0.16]">
+      {/* Tie — two stacked team slots; tap one to send it to the next round. */}
+      <div className="flex flex-col divide-y divide-white/[0.06]">
         <KnockoutSlot
           teamId={home.team_id}
           isThirdPool={home.is_third_place_pool}
@@ -101,7 +101,6 @@ export function KnockoutTie({
           onPickThirdPlace={onPickThirdPlace}
           locale={locale}
         />
-        <ChevronRight className="size-3 text-text-tertiary" strokeWidth={2} />
         <KnockoutSlot
           teamId={away.team_id}
           isThirdPool={away.is_third_place_pool}
@@ -116,7 +115,6 @@ export function KnockoutTie({
           onPickWinner={(id) => onPickWinner(match.match_number, id)}
           onPickThirdPlace={onPickThirdPlace}
           locale={locale}
-          rightAligned
         />
       </div>
 
@@ -236,7 +234,6 @@ function KnockoutSlot({
   onPickWinner,
   onPickThirdPlace,
   locale,
-  rightAligned = false,
 }: {
   teamId: string | null;
   isThirdPool: boolean;
@@ -255,7 +252,6 @@ function KnockoutSlot({
     teamId: string,
   ) => void;
   locale: Locale;
-  rightAligned?: boolean;
 }) {
   const placeholder =
     side === "home" ? match.home_placeholder : match.away_placeholder;
@@ -267,12 +263,7 @@ function KnockoutSlot({
       .map((id) => teamById.get(id))
       .filter((t): t is TeamLite => !!t);
     return (
-      <div
-        className={cn(
-          "flex min-w-0 items-center gap-1 text-xs",
-          rightAligned && "justify-end",
-        )}
-      >
+      <div className="flex w-full min-w-0 items-center gap-1 px-2 py-1.5 text-xs">
         <Tooltip
           content={
             locale === "fr"
@@ -286,7 +277,7 @@ function KnockoutSlot({
               onPickThirdPlace(match.match_number, side, e.target.value)
             }
             disabled={!canEdit || options.length === 0}
-            className="max-w-[7.5rem] rounded-[6px] border border-violet-500/30 bg-abyss/[0.5] px-1.5 py-1 text-[10px] text-text-secondary outline-none focus:border-violet-500/50 disabled:opacity-50"
+            className="w-full rounded-[6px] border border-violet-500/30 bg-abyss/[0.5] px-1.5 py-1 text-[10px] text-text-secondary outline-none focus:border-violet-500/50 disabled:opacity-50"
           >
             <option value="">
               {locale === "fr"
@@ -306,12 +297,7 @@ function KnockoutSlot({
 
   if (!teamId) {
     return (
-      <div
-        className={cn(
-          "flex min-w-0 items-center gap-2 text-xs text-text-tertiary",
-          rightAligned && "justify-end",
-        )}
-      >
+      <div className="flex w-full min-w-0 items-center gap-2 px-2.5 py-2 text-xs text-text-tertiary">
         <span className="truncate font-mono text-[10px] italic">
           {placeholder ?? "—"}
         </span>
@@ -336,12 +322,11 @@ function KnockoutSlot({
           : undefined
       }
       className={cn(
-        "flex min-w-0 items-center gap-2 rounded-[6px] px-1.5 py-1 text-xs transition disabled:cursor-not-allowed",
-        rightAligned && "flex-row-reverse justify-end text-right",
+        "flex w-full min-w-0 items-center gap-2 px-2.5 py-2 text-xs transition disabled:cursor-not-allowed",
         picked
-          ? "bg-primary-500/[0.16] font-bold text-primary-200 ring-1 ring-primary-500/40"
+          ? "bg-primary-500/[0.18] font-bold text-primary-100"
           : canEdit
-            ? "text-text-secondary hover:bg-white/[0.05] hover:text-text-primary"
+            ? "text-text-secondary hover:bg-white/[0.06] hover:text-text-primary"
             : "text-text-secondary",
       )}
     >
