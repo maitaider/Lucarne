@@ -381,6 +381,12 @@ function RecentSignups({
         </div>
       </header>
 
+      <p className="mb-3 rounded-[8px] border border-white/[0.06] bg-white/[0.025] px-3 py-2 text-xs text-text-tertiary">
+        {fr
+          ? "Les joueurs « À payer » sont bien dans la ligue, mais ne peuvent pas pronostiquer tant qu'ils n'ont pas réglé leur place."
+          : "“Unpaid” players are in the league but can't make picks until they've paid their seat."}
+      </p>
+
       {signups.length === 0 ? (
         <div className="rounded-[10px] border border-dashed border-white/[0.1] px-4 py-8 text-center">
           <p className="text-sm text-text-secondary">
