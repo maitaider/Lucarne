@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
+import { Reveal } from "@/components/ui/reveal";
 import {
   getAppSettings,
   formatMoney,
@@ -82,78 +83,94 @@ export default async function HowItWorksPage({
       </header>
 
       <ol className="space-y-4">
-        <Step
-          n={1}
-          icon={Ticket}
-          accent="gold"
-          title={L === "fr" ? "Achète ta place" : "Buy your seat"}
-          body={
-            L === "fr"
-              ? `Une seule fois. ${buyInLabel} via Stripe, débloque l'accès complet aux pronos sur les 104 matchs. Fenêtre d'achat ouverte jusqu'au ${lockLabel}. Pas d'abonnement, pas de relance.`
-              : `One-time. ${buyInLabel} via Stripe, unlocks full picking access on all 104 matches. Sales open until ${lockLabel}. No subscription, no upsell.`
-          }
-          cta={{
-            href: "/buy-in",
-            label: L === "fr" ? "Acheter ma place" : "Buy my seat",
-          }}
-        />
+        <Reveal>
+          <Step
+            n={1}
+            icon={Ticket}
+            accent="gold"
+            title={L === "fr" ? "Achète ta place" : "Buy your seat"}
+            body={
+              L === "fr"
+                ? `Une seule fois. ${buyInLabel} via Stripe, débloque l'accès complet aux pronos sur les 104 matchs. Fenêtre d'achat jusqu'au ${lockLabel}. Pas d'abonnement.`
+                : `One-time. ${buyInLabel} via Stripe, unlocks full picking on all 104 matches. Sales open until ${lockLabel}. No subscription.`
+            }
+            cta={{
+              href: "/buy-in",
+              label: L === "fr" ? "Acheter ma place" : "Buy my seat",
+            }}
+          />
+        </Reveal>
 
-        <Step
-          n={2}
-          icon={Trophy}
-          accent="gold"
-          title={L === "fr" ? "Bâtis ton scénario du Mondial" : "Build your World Cup scenario"}
-          body={
-            L === "fr"
-              ? "Étape stratégique, une seule fois. Classe les 12 groupes de la 1ʳᵉ à la 4ᵉ place, fais avancer tes équipes de tour en tour jusqu'à ton champion. Modifiable jusqu'au coup d'envoi du 1ᵉʳ match — après, plus de modif."
-              : "Strategic step, one-shot. Rank the 12 groups 1st to 4th, drive your teams through every knockout round to your champion. Editable until the first kickoff — locked after that."
-          }
-          cta={{
-            href: "/predict?tab=finale",
-            label: L === "fr" ? "Ouvrir la phase finale" : "Open knockouts",
-          }}
-          bullets={
-            L === "fr"
-              ? [
-                  "1ᵉʳ et 2ᵉ de chaque groupe se qualifient automatiquement",
-                  "Les 8 meilleurs 3ᵉ aussi (tu choisis lequel remplit chaque slot R32)",
-                  "Cascade auto : si tu changes ton vainqueur R32, R16/QF/SF se ré-évaluent",
-                ]
-              : [
-                  "Group 1st + 2nd qualify automatically",
-                  "Best 8 third-placed too (you pick which fills each R32 slot)",
-                  "Auto-cascade: change a R32 winner and R16/QF/SF re-resolve",
-                ]
-          }
-        />
+        <Reveal delayMs={90}>
+          <Step
+            n={2}
+            icon={Sparkles}
+            accent="primary"
+            title={
+              L === "fr"
+                ? "Pronostique les matchs de groupe"
+                : "Predict the group matches"
+            }
+            body={
+              L === "fr"
+                ? "Pour chaque match, entre le score des deux équipes (ex. 2-1). Le classement de chaque groupe se calcule tout seul à partir de tes résultats."
+                : "For each match, enter both teams' score (e.g. 2-1). Each group's standings are computed automatically from your results."
+            }
+            cta={{
+              href: "/predict?tab=groupes",
+              label: L === "fr" ? "Pronostiquer les groupes" : "Predict groups",
+            }}
+            bullets={
+              L === "fr"
+                ? [
+                    "Les 2 premiers de chaque groupe se qualifient",
+                    "Plus les 8 meilleurs 3ᵉ (repêchage)",
+                    "Égalités tranchées au goal-average",
+                  ]
+                : [
+                    "Top 2 of each group qualify",
+                    "Plus the 8 best third-placed (playoff)",
+                    "Ties broken on goal difference",
+                  ]
+            }
+          />
+        </Reveal>
 
-        <Step
-          n={3}
-          icon={Sparkles}
-          accent="primary"
-          title={L === "fr" ? "Affine match par match (Pronos)" : "Refine match by match (Picks)"}
-          body={
-            L === "fr"
-              ? "Étape tactique, en continu pendant le tournoi. Sur chaque match : vainqueur 1/N/2, total de buts, jusqu'à 4 buteurs. Modifiable jusqu'à 1 h avant chaque coup d'envoi. Tap = sauvegardé."
-              : "Tactical step, ongoing through the tournament. For each match: winner 1/N/2, total goals, up to 4 scorers. Editable up to 1 h before each kickoff. Tap = saved."
-          }
-          cta={{
-            href: "/predict?tab=groupes",
-            label: L === "fr" ? "Ouvrir mes pronos" : "Open my picks",
-          }}
-        />
+        <Reveal delayMs={180}>
+          <Step
+            n={3}
+            icon={Trophy}
+            accent="gold"
+            title={L === "fr" ? "Bâtis ta phase finale" : "Build your bracket"}
+            body={
+              L === "fr"
+                ? "L'arbre se remplit depuis tes groupes. Tape l'équipe qui passe à chaque tour — de gauche à droite — jusqu'à ton champion. Re-tape une équipe pour annuler. Verrouillé au coup d'envoi du 1ᵉʳ match."
+                : "The bracket fills from your groups. Tap the team that advances each round — left to right — to your champion. Re-tap to cancel. Locked at the very first kickoff."
+            }
+            cta={{
+              href: "/predict?tab=finale",
+              label: L === "fr" ? "Ouvrir la phase finale" : "Open knockouts",
+            }}
+          />
+        </Reveal>
 
-        <Step
-          n={4}
-          icon={Target}
-          accent="violet"
-          title={L === "fr" ? "Les points tombent automatiquement" : "Points settle automatically"}
-          body={
-            L === "fr"
-              ? "Dès qu'un match finit, le moteur de scoring lit les buts et clôture tes paris. Pas d'admin à attendre. Voir les barèmes ci-dessous."
-              : "As soon as a match ends, the scoring engine reads the goals and settles your bets. No admin wait. Scoring breakdown below."
-          }
-        />
+        <Reveal delayMs={270}>
+          <Step
+            n={4}
+            icon={Target}
+            accent="violet"
+            title={
+              L === "fr"
+                ? "Buteurs + points automatiques"
+                : "Scorers + automatic points"
+            }
+            body={
+              L === "fr"
+                ? "Ajoute jusqu'à 4 buteurs par match pour des points bonus. Dès qu'un match finit, le moteur lit les buts et clôture tes paris — aucun admin à attendre. Barème ci-dessous."
+                : "Add up to 4 scorers per match for bonus points. As soon as a match ends, the engine reads the goals and settles your bets — no admin wait. Scoring below."
+            }
+          />
+        </Reveal>
       </ol>
 
       {/* Scoring breakdown */}
