@@ -10,11 +10,13 @@ import { useEffect, useRef, useState } from "react";
 export function CountUp({
   value,
   durationMs = 850,
-  format,
+  locale,
 }: {
   value: number;
   durationMs?: number;
-  format?: (n: number) => string;
+  /** BCP-47 locale tag for number formatting (e.g. "fr-FR"). A plain
+   *  string so it can cross the server→client boundary. */
+  locale?: string;
 }) {
   const [display, setDisplay] = useState(value);
   const fromRef = useRef(0);
@@ -48,5 +50,5 @@ export function CountUp({
   }, [value, durationMs]);
 
   const n = Math.round(display);
-  return <>{format ? format(n) : n.toLocaleString()}</>;
+  return <>{n.toLocaleString(locale)}</>;
 }

@@ -199,9 +199,7 @@ export default async function DashboardPage({
                 value={
                   <CountUp
                     value={balanceTokens}
-                    format={(n) =>
-                      n.toLocaleString(L === "fr" ? "fr-FR" : "en-US")
-                    }
+                    locale={L === "fr" ? "fr-FR" : "en-US"}
                   />
                 }
                 detail={L === "fr" ? "jetons" : "tokens"}
