@@ -67,3 +67,30 @@ export async function generateInvitation(
   revalidatePath(`/leagues/${leagueId}/invite`);
   return { ok: true, code: row.code };
 }
+
+/**
+ * Account-level invitation that ANY authenticated user can create to invite a
+ * friend to open an account and play (no league required — the invitee joins
+ * the global pool). League-scoped invites stay owner/admin-only above.
+ */
+export async function generateUserInvitation(
+  expiresDays = 14,
+  maxUses = 1,
+): Promise<{ ok: boolean; code?: string; message?: string }> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    return { ok: false, message: "Supabase non configuré" };
+  }
+
+  const supabase = await getSupabaseServer();
+  const { data, error } = await supabase.rpc("generate_user_invitation", {
+    p_expires_days: expiresDays,
+    p_max_uses: maxUses,
+  });
+
+  if (error) return { ok: false, message: error.message };
+
+  const row = data?.[0];
+  if (!row) return { ok: false, message: "Aucune ligne retournée" };
+
+  return { ok: true, code: row.code };
+}

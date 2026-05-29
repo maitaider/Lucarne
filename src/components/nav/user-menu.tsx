@@ -12,6 +12,7 @@ import {
   Languages,
   HelpCircle,
   User,
+  UserPlus,
 } from "lucide-react";
 import { useRealtimeBalance } from "@/lib/hooks/use-realtime-balance";
 import { cn } from "@/lib/utils";
@@ -137,6 +138,12 @@ export function UserMenu({ user, locale }: Props) {
 
           {/* Menu items */}
           <div className="py-1">
+            <MenuItem
+              href="/invite"
+              icon={UserPlus}
+              label={locale === "fr" ? "Inviter des amis" : "Invite friends"}
+              onClick={() => setOpen(false)}
+            />
             <MenuItem
               href="/profile/wallet"
               icon={Wallet}

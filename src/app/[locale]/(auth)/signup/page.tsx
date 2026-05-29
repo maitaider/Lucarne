@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { SignupForm } from "./signup-form";
@@ -25,7 +26,9 @@ export default async function SignupPage({
           {t("loginButton")}
         </Link>
       </p>
-      <SignupForm />
+      <Suspense fallback={null}>
+        <SignupForm />
+      </Suspense>
     </>
   );
 }

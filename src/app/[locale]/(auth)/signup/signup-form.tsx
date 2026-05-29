@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { getSupabaseBrowser } from "@/lib/supabase/client";
@@ -10,6 +11,8 @@ import { Loader2 } from "lucide-react";
 export function SignupForm() {
   const t = useTranslations("auth");
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const prefilledCode = (searchParams.get("code") ?? "").toUpperCase();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -77,6 +80,7 @@ export function SignupForm() {
           id="code"
           name="code"
           required
+          defaultValue={prefilledCode}
           autoComplete="off"
           spellCheck={false}
           className="w-full rounded-lg border border-border-subtle bg-surface-2 px-3.5 py-2.5 font-mono text-sm uppercase tracking-wider text-text-primary placeholder-text-tertiary outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30"
