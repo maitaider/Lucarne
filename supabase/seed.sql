@@ -1,0 +1,7 @@
+-- Lucarne seed
+-- -----------------------------------------------------------------------------
+-- Intentionally empty: reference data (teams, matches, app_settings, players)
+-- is loaded by the versioned migrations in ./migrations, so `db push` alone
+-- fully populates a fresh database. This file exists only so `db reset`
+-- (which expects config.toml's db.seed.sql_paths) runs cleanly.
+-- Users and leagues are created post-deploy via the app (see DEPLOY.md).
