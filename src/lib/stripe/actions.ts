@@ -3,8 +3,10 @@
 import { z } from "zod";
 import { getStripe } from "./server";
 import { getSupabaseServer } from "@/lib/supabase/server";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { getAppSettings, effectiveBuyInDeadline } from "@/lib/admin/economy";
 import { redirect } from "@/i18n/navigation";
+import { revalidatePath } from "next/cache";
 
 const checkoutSchema = z.object({
   locale: z.enum(["fr", "en"]).default("fr"),
@@ -157,4 +159,52 @@ export async function redirectToCheckout(input: {
   if (res.ok) {
     redirect({ href: res.url, locale: input.locale ?? "fr" });
   }
+}
+
+/**
+ * Confirms a Stripe Checkout the moment the user returns from payment —
+ * without waiting for the webhook. Verifies the session is PAID and belongs
+ * to the signed-in user, then fulfills it (idempotent RPC, so the webhook
+ * firing later is harmless). This is what gives a payer *instant* access.
+ */
+export async function confirmStripeCheckout(
+  sessionId: string,
+): Promise<{ ok: boolean; code?: string }> {
+  if (!sessionId) return { ok: false, code: "no_session" };
+
+  const stripe = getStripe();
+  if (!stripe) return { ok: false, code: "no_stripe" };
+
+  const supabase = await getSupabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, code: "unauthenticated" };
+
+  let session;
+  try {
+    session = await stripe.checkout.sessions.retrieve(sessionId);
+  } catch {
+    return { ok: false, code: "retrieve_failed" };
+  }
+
+  // Security: only fulfill a PAID session that belongs to THIS user.
+  if (session.client_reference_id !== user.id) {
+    return { ok: false, code: "not_owner" };
+  }
+  if (session.payment_status !== "paid") {
+    return { ok: false, code: "not_paid" };
+  }
+
+  const admin = getSupabaseAdmin();
+  if (!admin) return { ok: false, code: "no_admin" };
+
+  const { error } = await admin.rpc("fulfill_stripe_checkout", {
+    p_session_id: sessionId,
+  });
+  if (error) return { ok: false, code: "fulfill_failed" };
+
+  // Bust the cached buy-in status so the next render sees the unlocked user.
+  revalidatePath("/", "layout");
+  return { ok: true };
 }

@@ -1,6 +1,8 @@
 import { setRequestLocale } from "next-intl/server";
+import { redirect } from "@/i18n/navigation";
 import { getMyBuyInStatus } from "@/lib/profile/buy-in";
 import { isStripeConfigured } from "@/lib/stripe/server";
+import { confirmStripeCheckout } from "@/lib/stripe/actions";
 import { formatMoney } from "@/lib/admin/economy";
 import { AppPageShell } from "@/components/layout/app-page-shell";
 import { PageHero } from "@/components/layout/page-hero";
@@ -21,12 +23,20 @@ export default async function BuyInPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ stripe?: string }>;
+  searchParams: Promise<{ stripe?: string; session_id?: string }>;
 }) {
   const { locale } = await params;
-  const { stripe } = await searchParams;
+  const { stripe, session_id } = await searchParams;
   setRequestLocale(locale);
   const L = locale as Locale;
+
+  // Direct access: the instant the user returns from a paid Stripe Checkout,
+  // fulfill it ourselves (don't wait for the webhook) and send them straight
+  // to predicting. fulfill is idempotent, so a later webhook is harmless.
+  if (stripe === "success" && session_id) {
+    const res = await confirmStripeCheckout(session_id);
+    if (res.ok) redirect({ href: "/predict", locale: L });
+  }
 
   const status = await getMyBuyInStatus();
   const stripeReady = isStripeConfigured();
