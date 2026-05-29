@@ -6,7 +6,8 @@
 set -euo pipefail
 
 SUPA_URL="${SUPABASE_URL:-http://127.0.0.1:54321}"
-SECRET="${SUPABASE_SECRET:-sb_secret_N7UND0UgjKTVK-Uodkm0Hg_xSvEMPvz}"
+# Local service_role key — never hardcode. Get it from `pnpm supabase status`.
+SECRET="${SUPABASE_SECRET:?Set SUPABASE_SECRET to your local Supabase service_role key (see: pnpm supabase status)}"
 DOCKER="${DOCKER_BIN:-/Applications/Docker.app/Contents/Resources/bin/docker}"
 DB_CONTAINER="${DB_CONTAINER:-supabase_db_lucarne}"
 
