@@ -460,6 +460,18 @@ function FeaturedMatch({
     timeZone: "Europe/Paris",
   });
   const hasPick = myPicks?.some((p) => p.status === "validated") ?? false;
+  const scorePick = myPicks?.find(
+    (p) => p.bet_type === "exact_score" && p.status === "validated",
+  );
+  const pred =
+    scorePick && scorePick.payload && typeof scorePick.payload === "object"
+      ? (() => {
+          const o = scorePick.payload as Record<string, unknown>;
+          return typeof o.home === "number" && typeof o.away === "number"
+            ? { home: o.home, away: o.away }
+            : null;
+        })()
+      : null;
 
   return (
     <Card
@@ -482,14 +494,14 @@ function FeaturedMatch({
         </span>
       </header>
 
-      <div className="flex items-center justify-between gap-3 sm:gap-6">
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-5">
         <FeaturedTeam
           name={home}
           iso={match.home_team?.iso_code ?? null}
-          align="left"
+          align="right"
         />
         {isLive || match.status === "finished" ? (
-          <div className="shrink-0 px-1 text-center">
+          <div className="flex shrink-0 flex-col items-center gap-1 px-1">
             <div
               className={cn(
                 "font-display text-4xl font-bold tabular-nums leading-none sm:text-5xl",
@@ -500,16 +512,35 @@ function FeaturedMatch({
               <span className="mx-2 text-text-tertiary">·</span>
               {match.away_score ?? 0}
             </div>
+            <span className="text-[9px] font-bold uppercase tracking-wider text-text-tertiary">
+              {isLive ? (fr ? "En cours" : "Live") : fr ? "Terminé" : "Final"}
+            </span>
+          </div>
+        ) : pred ? (
+          <div className="flex shrink-0 flex-col items-center gap-1 px-1">
+            <span className="rounded-full bg-primary-500/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary-300 ring-1 ring-primary-500/30">
+              {fr ? "Ton prono" : "Your pick"}
+            </span>
+            <div className="font-display text-4xl font-bold tabular-nums leading-none text-text-primary sm:text-5xl">
+              {pred.home}
+              <span className="mx-2 text-text-tertiary">–</span>
+              {pred.away}
+            </div>
           </div>
         ) : (
-          <span className="shrink-0 px-1 font-display text-2xl font-bold text-text-tertiary sm:text-3xl">
-            VS
-          </span>
+          <div className="flex shrink-0 flex-col items-center gap-1 px-1">
+            <span className="font-display text-2xl font-bold text-text-tertiary sm:text-3xl">
+              VS
+            </span>
+            <span className="text-[9px] font-medium uppercase tracking-wider text-text-tertiary">
+              {fr ? "À toi de jouer" : "Your call"}
+            </span>
+          </div>
         )}
         <FeaturedTeam
           name={away}
           iso={match.away_team?.iso_code ?? null}
-          align="right"
+          align="left"
         />
       </div>
 
@@ -563,7 +594,7 @@ function FeaturedTeam({
   return (
     <div
       className={cn(
-        "flex min-w-0 flex-1 flex-col gap-2",
+        "flex min-w-0 flex-col gap-2",
         align === "right" ? "items-end text-right" : "items-start text-left",
       )}
     >
