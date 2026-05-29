@@ -28,8 +28,9 @@ export async function AppHeader({
     <header className="sticky top-0 z-40 border-b border-white/[0.08] bg-abyss/[0.68] shadow-[0_16px_50px_rgba(0,0,0,0.18)] backdrop-blur-xl">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
         <Link
-          href="/dashboard"
-          className="transition hover:opacity-85"
+          href="/"
+          aria-label="Lucarne — accueil"
+          className="transition hover:opacity-85 active:scale-[0.97]"
         >
           <LucarneLogo markClassName="size-7" textClassName="text-base" />
         </Link>

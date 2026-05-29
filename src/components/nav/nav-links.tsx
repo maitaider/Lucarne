@@ -10,7 +10,6 @@ import {
   Newspaper,
   Radio,
   Receipt,
-  Sparkles,
   Trophy,
   Users,
   type LucideIcon,
@@ -54,28 +53,12 @@ const NAV: Top[] = [
     fr: "Pronostics",
     en: "Predict",
     icon: Trophy,
-    children: [
-      {
-        href: "/predict",
-        icon: Sparkles,
-        fr: "Pronostiquer",
-        en: "Predict",
-        body: {
-          fr: "Groupes + phase finale, en une page",
-          en: "Groups + bracket, one page",
-        },
-      },
-      {
-        href: "/matches",
-        icon: CalendarDays,
-        fr: "Calendrier",
-        en: "Calendar",
-        body: {
-          fr: "Les 104 matchs, groupes, arbre",
-          en: "All 104 fixtures, groups, bracket",
-        },
-      },
-    ],
+  },
+  {
+    href: "/matches",
+    fr: "Calendrier",
+    en: "Calendar",
+    icon: CalendarDays,
   },
   {
     href: "/live",
@@ -147,10 +130,10 @@ const NAV: Top[] = [
 
 function shellClasses(isActive: boolean): string {
   return cn(
-    "relative flex items-center rounded-sm border text-sm transition",
+    "relative flex items-center rounded-full border text-sm transition duration-200",
     isActive
-      ? "border-primary-500/30 bg-primary-500/[0.12] text-primary-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
-      : "border-transparent text-text-secondary hover:border-white/[0.08] hover:bg-white/[0.05] hover:text-text-primary",
+      ? "border-primary-500/40 bg-primary-500/15 text-primary-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_0_18px_rgba(34,217,130,0.12)]"
+      : "border-transparent text-text-secondary hover:border-white/[0.1] hover:bg-white/[0.06] hover:text-text-primary",
   );
 }
 
