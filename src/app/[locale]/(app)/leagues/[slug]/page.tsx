@@ -17,7 +17,6 @@ import {
   Crown,
   Globe,
   Lock,
-  Settings,
   ShieldCheck,
   Trophy,
   UserPlus,
@@ -84,13 +83,6 @@ export default async function LeagueDetailPage({
               >
                 <UserPlus className="size-3.5" />
                 {locale === "fr" ? "Inviter" : "Invite"}
-              </Link>
-              <Link
-                href={`/leagues/${slug}/settings`}
-                className="inline-flex items-center gap-1.5 rounded-[8px] border border-white/[0.08] bg-white/[0.05] px-3 py-1.5 text-xs font-semibold text-text-secondary shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition hover:border-primary-500/35"
-              >
-                <Settings className="size-3.5" />
-                {locale === "fr" ? "Réglages" : "Settings"}
               </Link>
             </div>
           )}

@@ -108,6 +108,8 @@ export async function setUserRole(input: {
 const settingsSchema = z.object({
   token_price_cents: z.number().int().min(1).max(100_000).optional(),
   buy_in_deadline: z.string().nullable().optional(),
+  tournament_start_at: z.string().nullable().optional(),
+  tournament_end_at: z.string().nullable().optional(),
   prize_distribution: z
     .object({
       shares: z.array(z.number().int().min(0).max(100)).min(1).max(10),
@@ -116,6 +118,7 @@ const settingsSchema = z.object({
       description_en: z.string().max(200).optional(),
     })
     .optional(),
+  contact_label: z.string().max(120).nullable().optional(),
   contact_info: z.string().max(500).nullable().optional(),
 });
 
@@ -144,12 +147,16 @@ export async function updateAppSettings(
   const { error } = await supabase.rpc("update_app_settings", {
     p_token_price_cents: parsed.data.token_price_cents,
     p_buy_in_deadline: parsed.data.buy_in_deadline ?? undefined,
+    p_tournament_start_at: parsed.data.tournament_start_at ?? undefined,
+    p_tournament_end_at: parsed.data.tournament_end_at ?? undefined,
     p_prize_distribution: parsed.data.prize_distribution,
+    p_contact_label: parsed.data.contact_label ?? undefined,
     p_contact_info: parsed.data.contact_info ?? undefined,
   });
   if (error) return { ok: false, message: error.message };
   revalidatePath("/admin", "layout");
   revalidatePath("/how-it-works");
+  revalidatePath("/", "layout");
   return { ok: true };
 }
 
