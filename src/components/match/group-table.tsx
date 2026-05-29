@@ -1,5 +1,6 @@
 import type { GroupTable } from "@/lib/matches/group-standings";
 import { Flag } from "@/components/team/flag";
+import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
 
@@ -69,17 +70,20 @@ export function GroupTableCard({
                   </span>
                 </td>
                 <td className="py-2.5">
-                  <div className="flex items-center gap-2">
+                  <Link
+                    href={`/teams/${s.team.fifa_code}`}
+                    className="group flex items-center gap-2"
+                  >
                     <Flag isoCode={s.team.iso_code ?? null} size="md" />
                     <span
                       className={cn(
-                        "truncate text-sm font-medium",
+                        "truncate text-sm font-medium underline-offset-2 transition group-hover:text-primary-200 group-hover:underline",
                         qualified ? "text-text-primary" : "text-text-secondary",
                       )}
                     >
                       {locale === "fr" ? s.team.name_fr : s.team.name_en}
                     </span>
-                  </div>
+                  </Link>
                 </td>
                 <td className="text-center font-mono text-xs tabular-nums text-text-tertiary">
                   {s.played}

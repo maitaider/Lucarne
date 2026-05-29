@@ -217,22 +217,15 @@ function TeamColumn({
   align: "left" | "right";
 }) {
   const right = align === "right";
-  return (
-    <div
-      className={cnAlign(
-        right,
-        "flex min-w-0 flex-col gap-3",
-      )}
-    >
-      <span className="relative">
-        <Flag
-          isoCode={team?.iso_code ?? null}
-          size="2xl"
-          className="!h-14 !w-20 rounded-[8px] ring-1 ring-white/15 sm:!h-16 sm:!w-24"
-        />
-      </span>
+  const inner = (
+    <>
+      <Flag
+        isoCode={team?.iso_code ?? null}
+        size="2xl"
+        className="!h-14 !w-20 rounded-[8px] ring-1 ring-white/15 transition group-hover:ring-primary-500/40 sm:!h-16 sm:!w-24"
+      />
       <div className={right ? "text-right" : "text-left"}>
-        <div className="truncate font-display text-lg font-semibold text-text-primary sm:text-2xl">
+        <div className="truncate font-display text-lg font-semibold text-text-primary transition group-hover:text-primary-200 sm:text-2xl">
           {name}
         </div>
         {team?.fifa_code && (
@@ -241,7 +234,16 @@ function TeamColumn({
           </div>
         )}
       </div>
-    </div>
+    </>
+  );
+  const cls = cnAlign(right, "flex min-w-0 flex-col gap-3");
+
+  return team?.fifa_code ? (
+    <Link href={`/teams/${team.fifa_code}`} className={`group ${cls}`}>
+      {inner}
+    </Link>
+  ) : (
+    <div className={cls}>{inner}</div>
   );
 }
 
