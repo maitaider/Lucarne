@@ -291,7 +291,14 @@ export function PredictBoard({
 
   function pickKnockoutWinner(matchNumber: number, teamId: string) {
     if (!canEdit) return;
-    const next = { ...knockouts, [String(matchNumber)]: teamId };
+    const key = String(matchNumber);
+    const next = { ...knockouts };
+    if (next[key] === teamId) {
+      // Re-tapping the chosen team cancels the selection.
+      delete next[key];
+    } else {
+      next[key] = teamId;
+    }
     const pruned = pruneOrphanedKnockoutPicks(
       knockoutSchedule,
       groups,

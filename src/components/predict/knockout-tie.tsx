@@ -10,7 +10,7 @@ import {
   type KnockoutWinners,
 } from "@/lib/predictions/resolve-bracket";
 import type { PlayerOption } from "@/components/picks/player-combobox";
-import { CheckCircle2, ChevronDown } from "lucide-react";
+import { CheckCircle2, ChevronDown, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
 import type {
@@ -315,28 +315,38 @@ function KnockoutSlot({
       onClick={() => canEdit && onPickWinner(teamId)}
       disabled={!canEdit}
       title={
-        canEdit
-          ? locale === "fr"
-            ? `Désigner ${name} vainqueur`
-            : `Pick ${name} to advance`
-          : undefined
+        !canEdit
+          ? undefined
+          : picked
+            ? locale === "fr"
+              ? "Cliquer pour annuler"
+              : "Click to cancel"
+            : locale === "fr"
+              ? `Désigner ${name} vainqueur`
+              : `Pick ${name} to advance`
       }
       className={cn(
-        "flex w-full min-w-0 items-center gap-2 px-2.5 py-2 text-xs transition disabled:cursor-not-allowed",
+        "group flex w-full min-w-0 items-center gap-2 px-2.5 py-2 text-xs transition disabled:cursor-not-allowed",
         picked
-          ? "bg-primary-500/[0.18] font-bold text-primary-100"
+          ? "bg-primary-500/[0.18] font-bold text-primary-100 hover:bg-error/[0.12]"
           : canEdit
             ? "text-text-secondary hover:bg-white/[0.06] hover:text-text-primary"
             : "text-text-secondary",
       )}
     >
       <Flag isoCode={t.iso_code} size="sm" />
-      <span className="truncate">{name}</span>
+      <span className="min-w-0 flex-1 truncate">{name}</span>
       {picked && (
-        <CheckCircle2
-          className="size-3 shrink-0 text-primary-300"
-          strokeWidth={2.5}
-        />
+        <span className="relative ml-auto inline-flex size-4 shrink-0">
+          <CheckCircle2
+            className="absolute inset-0 size-4 text-primary-300 transition group-hover:opacity-0"
+            strokeWidth={2.5}
+          />
+          <XCircle
+            className="absolute inset-0 size-4 text-error opacity-0 transition group-hover:opacity-100"
+            strokeWidth={2.5}
+          />
+        </span>
       )}
     </button>
   );
