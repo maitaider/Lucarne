@@ -1,0 +1,22 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Bracket network icon</title>
+  <desc id="desc">Premium tournament bracket icon for knockout views.</desc>
+  <defs>
+    <linearGradient id="green" x1="42" y1="46" x2="205" y2="216">
+      <stop stop-color="#84F6B6"/>
+      <stop offset=".52" stop-color="#22D982"/>
+      <stop offset="1" stop-color="#0B8F5C"/>
+    </linearGradient>
+    <linearGradient id="violet" x1="60" y1="42" x2="216" y2="218">
+      <stop stop-color="#B9A8FF"/>
+      <stop offset=".55" stop-color="#7C5CFF"/>
+      <stop offset="1" stop-color="#4932A6"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="54" fill="#07110D"/>
+  <path d="M82 76h46c20 0 30 10 30 30v22M82 180h46c20 0 30-10 30-30v-22M158 128h42" stroke="url(#green)" stroke-width="8" stroke-linecap="round"/>
+  <rect x="37" y="48" width="58" height="48" rx="12" fill="#22D982" fill-opacity=".12" stroke="url(#green)" stroke-width="6"/>
+  <rect x="37" y="160" width="58" height="48" rx="12" fill="#7C5CFF" fill-opacity=".13" stroke="url(#violet)" stroke-width="6"/>
+  <rect x="161" y="104" width="58" height="48" rx="12" fill="#F5C447" fill-opacity=".11" stroke="#F5C447" stroke-width="6"/>
+  <path d="M53 72h26M53 184h26M177 128h26" stroke="#FFFFFF" stroke-opacity=".65" stroke-width="5" stroke-linecap="round"/>
+</svg>

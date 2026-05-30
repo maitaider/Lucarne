@@ -1,0 +1,22 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Live console icon</title>
+  <desc id="desc">Premium dashboard console icon for live tournament analytics.</desc>
+  <defs>
+    <linearGradient id="green" x1="44" y1="50" x2="211" y2="206">
+      <stop stop-color="#86F6B5"/>
+      <stop offset=".55" stop-color="#22D982"/>
+      <stop offset="1" stop-color="#0B8F5C"/>
+    </linearGradient>
+    <linearGradient id="violet" x1="70" y1="44" x2="216" y2="210">
+      <stop stop-color="#B9A8FF"/>
+      <stop offset=".55" stop-color="#7C5CFF"/>
+      <stop offset="1" stop-color="#4932A6"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="54" fill="#07110D"/>
+  <rect x="47" y="58" width="162" height="140" rx="20" fill="#FFFFFF" fill-opacity=".035" stroke="url(#green)" stroke-width="7"/>
+  <path d="M47 94h162M91 58v140M147 58v140" stroke="#FFFFFF" stroke-opacity=".12" stroke-width="5"/>
+  <path d="M69 78h10M91 78h10M113 78h10" stroke="#F5C447" stroke-width="6" stroke-linecap="round"/>
+  <path d="M69 122h45M69 150h29M69 176h54M112 122h69M112 150h46M112 176h69" stroke="#CFFFE0" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="181" cy="78" r="8" fill="url(#violet)"/>
+</svg>

@@ -1,0 +1,22 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Gold trophy icon</title>
+  <desc id="desc">Premium gold trophy icon for World Cup actions.</desc>
+  <defs>
+    <linearGradient id="gold" x1="74" y1="30" x2="182" y2="226">
+      <stop stop-color="#FFF5B5"/>
+      <stop offset=".45" stop-color="#F5C447"/>
+      <stop offset="1" stop-color="#9D6911"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="7" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 .96 0 0 0 0 .77 0 0 0 0 .28 0 0 0 .7 0"/>
+      <feBlend in="SourceGraphic"/>
+    </filter>
+  </defs>
+  <rect width="256" height="256" rx="54" fill="#07110D"/>
+  <circle cx="128" cy="128" r="91" fill="#F5C447" fill-opacity=".06" stroke="#F5C447" stroke-opacity=".22"/>
+  <path d="M81 55h94v43c0 55-19 90-47 106-28-16-47-51-47-106V55Z" fill="#171309" stroke="url(#gold)" stroke-width="8" stroke-linejoin="round" filter="url(#glow)"/>
+  <path d="M81 76H54c0 45 17 78 53 94M175 76h27c0 45-17 78-53 94" stroke="url(#gold)" stroke-width="8" stroke-linecap="round"/>
+  <path d="M128 203v28M93 238h70M107 86h42M100 108h56" stroke="url(#gold)" stroke-width="8" stroke-linecap="round"/>
+  <path d="M128 83l12 24 27 4-20 19 5 27-24-13-24 13 5-27-20-19 27-4 12-24Z" fill="url(#gold)"/>
+</svg>

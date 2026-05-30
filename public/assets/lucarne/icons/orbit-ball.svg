@@ -1,0 +1,17 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Orbit ball icon</title>
+  <desc id="desc">Premium football icon with orbit rings for match intelligence.</desc>
+  <defs>
+    <linearGradient id="green" x1="58" y1="46" x2="198" y2="213">
+      <stop stop-color="#88F7B8"/>
+      <stop offset=".5" stop-color="#22D982"/>
+      <stop offset="1" stop-color="#0B8F5C"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="54" fill="#07110D"/>
+  <circle cx="128" cy="128" r="72" fill="#22D982" fill-opacity=".1" stroke="url(#green)" stroke-width="8"/>
+  <path d="M128 83l42 29-16 50h-52l-16-50 42-29Z" stroke="url(#green)" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M86 112 55 102M170 112l31-10M102 162l-19 24M154 162l19 24M128 83V52" stroke="#C8FFDD" stroke-opacity=".65" stroke-width="7" stroke-linecap="round"/>
+  <path d="M42 145c39 64 143 82 215 27" stroke="#F5C447" stroke-width="6" stroke-linecap="round" stroke-opacity=".5"/>
+  <path d="M215 111C176 47 72 29 0 84" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-opacity=".14"/>
+</svg>

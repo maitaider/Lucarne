@@ -1,0 +1,43 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Lucarne professional mark</title>
+  <desc id="desc">Premium shield mark with a goal-corner monogram and stadium light accents.</desc>
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="12%" r="88%">
+      <stop offset="0" stop-color="#173526"/>
+      <stop offset="0.52" stop-color="#07110D"/>
+      <stop offset="1" stop-color="#030605"/>
+    </radialGradient>
+    <linearGradient id="green" x1="139" y1="96" x2="380" y2="410" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#86F6B5"/>
+      <stop offset="0.48" stop-color="#22D982"/>
+      <stop offset="1" stop-color="#0C8E5C"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="146" y1="82" x2="398" y2="432" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF4B0"/>
+      <stop offset="0.45" stop-color="#F5C447"/>
+      <stop offset="1" stop-color="#9E6F13"/>
+    </linearGradient>
+    <filter id="softGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.13 0 0 0 0 0.85 0 0 0 0 0.51 0 0 0 0.7 0"/>
+      <feBlend in="SourceGraphic"/>
+    </filter>
+    <filter id="goldGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.96 0 0 0 0 0.77 0 0 0 0 0.28 0 0 0 0.65 0"/>
+      <feBlend in="SourceGraphic"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+  <path d="M74 150c48-28 109-42 182-42s134 14 182 42" stroke="#FFFFFF" stroke-opacity=".06" stroke-width="2"/>
+  <path d="M63 333c82-54 305-54 386 0" stroke="#22D982" stroke-opacity=".08" stroke-width="18"/>
+  <path d="M256 54 397 104v122c0 91-54 162-141 200-87-38-141-109-141-200V104L256 54Z" fill="#07110D" stroke="url(#green)" stroke-width="11" filter="url(#softGlow)"/>
+  <path d="M256 80 371 121v100c0 77-43 134-115 168-72-34-115-91-115-168V121L256 80Z" fill="#0B1712" stroke="#FFFFFF" stroke-opacity=".16" stroke-width="3"/>
+  <path d="M180 317V165h175" stroke="url(#green)" stroke-width="34" stroke-linecap="square" stroke-linejoin="miter"/>
+  <path d="M214 202h119M214 248h99M212 166v142M259 166v104M306 166v77" stroke="#BFFFE0" stroke-opacity=".28" stroke-width="10"/>
+  <path d="M178 165h72l-72 72v-72Z" fill="url(#green)"/>
+  <circle cx="224" cy="213" r="29" fill="#06100C" stroke="url(#gold)" stroke-width="9" filter="url(#goldGlow)"/>
+  <path d="M224 197l6 11 12 2-9 8 2 12-11-6-11 6 2-12-9-8 12-2 6-11Z" fill="url(#gold)"/>
+  <path d="M118 112h44M350 112h44M118 392h68M326 392h68" stroke="#F5C447" stroke-opacity=".45" stroke-width="6" stroke-linecap="round"/>
+  <path d="M432 176c18 52 17 115-5 166" stroke="#FFFFFF" stroke-opacity=".1" stroke-width="3" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,42 @@
+<svg width="1200" height="800" viewBox="0 0 1200 800" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Lucarne empty state stadium</title>
+  <desc id="desc">Premium empty-state stadium illustration with dashboard placeholders and trophy signal.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="800">
+      <stop stop-color="#07110D"/>
+      <stop offset=".55" stop-color="#091521"/>
+      <stop offset="1" stop-color="#050706"/>
+    </linearGradient>
+    <linearGradient id="green" x1="230" y1="90" x2="950" y2="710">
+      <stop stop-color="#86F6B5"/>
+      <stop offset=".5" stop-color="#22D982"/>
+      <stop offset="1" stop-color="#0B8F5C"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="443" y1="176" x2="777" y2="662">
+      <stop stop-color="#FFF4B0"/>
+      <stop offset=".52" stop-color="#F5C447"/>
+      <stop offset="1" stop-color="#9A6710"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" rx="48" fill="url(#bg)"/>
+  <path d="M0 514c226-96 526-94 1200 0v286H0V514Z" fill="#22D982" fill-opacity=".055"/>
+  <path d="M118 472c248-92 585-91 964 0" stroke="#FFFFFF" stroke-opacity=".1" stroke-width="4"/>
+  <g transform="translate(227 122)">
+    <rect width="746" height="448" rx="32" fill="#FFFFFF" fill-opacity=".06" stroke="#FFFFFF" stroke-opacity=".16"/>
+    <rect x="48" y="50" width="650" height="348" rx="22" fill="#030706" fill-opacity=".75" stroke="#FFFFFF" stroke-opacity=".08"/>
+    <path d="M84 94h186M84 132h132" stroke="#FFFFFF" stroke-opacity=".26" stroke-width="12" stroke-linecap="round"/>
+    <rect x="84" y="188" width="165" height="92" rx="14" fill="#22D982" fill-opacity=".08" stroke="#22D982" stroke-opacity=".32"/>
+    <rect x="286" y="188" width="165" height="92" rx="14" fill="#F5C447" fill-opacity=".08" stroke="#F5C447" stroke-opacity=".32"/>
+    <rect x="488" y="188" width="165" height="92" rx="14" fill="#7C5CFF" fill-opacity=".08" stroke="#7C5CFF" stroke-opacity=".32"/>
+    <path d="M112 244h82M314 244h82M516 244h82" stroke="#FFFFFF" stroke-opacity=".34" stroke-width="9" stroke-linecap="round"/>
+    <path d="M85 333h566" stroke="#FFFFFF" stroke-opacity=".08" stroke-width="2"/>
+    <path d="M85 363h350" stroke="#22D982" stroke-opacity=".45" stroke-width="10" stroke-linecap="round"/>
+    <path d="M462 363h188" stroke="#F5C447" stroke-opacity=".55" stroke-width="10" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(522 512)">
+    <circle cx="78" cy="78" r="76" fill="#F5C447" fill-opacity=".09" stroke="url(#gold)" stroke-width="6"/>
+    <path d="M52 38h52v34c0 49-20 80-26 88-6-8-26-39-26-88V38Z" fill="#090A07" stroke="url(#gold)" stroke-width="6"/>
+    <path d="M52 58H31c0 33 11 57 38 71M104 58h21c0 33-11 57-38 71" stroke="url(#gold)" stroke-width="6" stroke-linecap="round"/>
+  </g>
+  <path d="M0 660h1200" stroke="#FFFFFF" stroke-opacity=".12"/>
+</svg>

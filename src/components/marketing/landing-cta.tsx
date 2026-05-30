@@ -1,6 +1,6 @@
 import { getLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { ArrowRight, KeyRound, Sparkles } from "lucide-react";
+import { ArrowRight, KeyRound, ShieldCheck, Sparkles } from "lucide-react";
 import { Reveal } from "@/components/ui/reveal";
 import { Countdown } from "./countdown";
 import { FloatingFlags } from "./floating-flags";
@@ -49,8 +49,8 @@ export async function LandingCta() {
 
             <p className="mx-auto mt-5 max-w-xl text-balance text-base leading-relaxed text-text-secondary sm:text-lg">
               {fr
-                ? "Un salon privé entre amis, un seul achat, toute la Coupe du Monde à pronostiquer. Le classement et la cagnotte se règlent tout seuls."
-                : "A private room with friends, one purchase, the whole World Cup to predict. Standings and the pot settle themselves."}
+                ? "Un salon privé entre amis, un paiement unique de 20 $, toute la Coupe du Monde à pronostiquer. Le classement et la cagnotte se règlent tout seuls."
+                : "A private room with friends, a single $20 payment, the whole World Cup to predict. Standings and the pot settle themselves."}
             </p>
 
             <div className="mt-9 flex justify-center">
@@ -73,6 +73,13 @@ export async function LandingCta() {
                 {fr ? "Se connecter" : "Sign in"}
               </Link>
             </div>
+
+            <p className="mt-5 inline-flex items-center gap-1.5 text-xs text-text-tertiary">
+              <ShieldCheck className="size-3.5 text-primary-400" strokeWidth={1.8} />
+              {fr
+                ? "Paiement unique de 20 $ via Stripe · accès immédiat"
+                : "One-time $20 payment via Stripe · instant access"}
+            </p>
 
             <div className="mx-auto mt-12 flex max-w-md items-stretch justify-center gap-3">
               {stats.map((s) => (

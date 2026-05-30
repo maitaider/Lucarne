@@ -1,0 +1,55 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Lucarne social preview</title>
+  <desc id="desc">Open graph style preview for Lucarne with stadium, dashboard console and gold trophy accents.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630">
+      <stop stop-color="#07110D"/>
+      <stop offset=".58" stop-color="#08141F"/>
+      <stop offset="1" stop-color="#0B0710"/>
+    </linearGradient>
+    <linearGradient id="green" x1="75" y1="70" x2="780" y2="580">
+      <stop stop-color="#86F6B5"/>
+      <stop offset=".52" stop-color="#22D982"/>
+      <stop offset="1" stop-color="#0B8F5C"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="770" y1="100" x2="1090" y2="560">
+      <stop stop-color="#FFF4B0"/>
+      <stop offset=".5" stop-color="#F5C447"/>
+      <stop offset="1" stop-color="#9A6710"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <path d="M0 445c233-85 563-84 1200 0v185H0V445Z" fill="#22D982" fill-opacity=".055"/>
+  <path d="M0 497h1200" stroke="#FFFFFF" stroke-opacity=".11"/>
+  <g transform="translate(70 68)">
+    <path d="M88 0 160 26v62c0 48-27 84-72 104-45-20-72-56-72-104V26L88 0Z" fill="#07110D" stroke="url(#green)" stroke-width="6"/>
+    <path d="M48 143V65h89" stroke="url(#green)" stroke-width="17" stroke-linecap="square"/>
+    <path d="M65 84h60M65 108h51M64 65v72M88 65v52M112 65v39" stroke="#CFFFE0" stroke-opacity=".3" stroke-width="5"/>
+    <path d="M47 65h37l-37 37V65Z" fill="url(#green)"/>
+    <circle cx="71" cy="89" r="14" fill="#07110D" stroke="#F5C447" stroke-width="5"/>
+  </g>
+  <text x="274" y="158" fill="#F8FAFC" font-family="Inter, Arial, sans-serif" font-size="78" font-weight="850">Lucarne</text>
+  <text x="78" y="289" fill="#F8FAFC" font-family="Inter, Arial, sans-serif" font-size="56" font-weight="820">Command center</text>
+  <text x="80" y="352" fill="#B8C3D2" font-family="Inter, Arial, sans-serif" font-size="27" font-weight="650">Paris prives, ligues et calendrier reel.</text>
+  <rect x="78" y="408" width="160" height="46" rx="14" fill="#22D982"/>
+  <text x="158" y="438" text-anchor="middle" fill="#07110D" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="900">WORLD CUP</text>
+  <rect x="260" y="408" width="152" height="46" rx="14" fill="#F5C447" fill-opacity=".12" stroke="#F5C447" stroke-opacity=".45"/>
+  <text x="336" y="438" text-anchor="middle" fill="#F5C447" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="900">104 MATCHS</text>
+  <g transform="translate(632 88)">
+    <rect width="470" height="402" rx="28" fill="#FFFFFF" fill-opacity=".08" stroke="#FFFFFF" stroke-opacity=".22"/>
+    <rect x="35" y="48" width="400" height="306" rx="18" fill="#030706" fill-opacity=".72" stroke="#FFFFFF" stroke-opacity=".1"/>
+    <rect x="58" y="72" width="96" height="10" rx="5" fill="#FFFFFF" fill-opacity=".28"/>
+    <circle cx="377" cy="78" r="5" fill="#22D982"/>
+    <circle cx="397" cy="78" r="5" fill="#F5C447"/>
+    <circle cx="417" cy="78" r="5" fill="#7C5CFF"/>
+    <rect x="58" y="112" width="106" height="74" rx="12" fill="#22D982" fill-opacity=".09" stroke="#22D982" stroke-opacity=".32"/>
+    <rect x="182" y="112" width="106" height="74" rx="12" fill="#F5C447" fill-opacity=".09" stroke="#F5C447" stroke-opacity=".32"/>
+    <rect x="306" y="112" width="106" height="74" rx="12" fill="#7C5CFF" fill-opacity=".09" stroke="#7C5CFF" stroke-opacity=".32"/>
+    <path d="M77 160h39M201 160h39M325 160h39" stroke="#FFFFFF" stroke-opacity=".34" stroke-width="6" stroke-linecap="round"/>
+    <rect x="58" y="214" width="176" height="108" rx="12" fill="#FFFFFF" fill-opacity=".035" stroke="#FFFFFF" stroke-opacity=".08"/>
+    <rect x="258" y="214" width="154" height="108" rx="12" fill="#FFFFFF" fill-opacity=".035" stroke="#FFFFFF" stroke-opacity=".08"/>
+    <path d="M82 248h102M82 278h78M282 286c26-42 55 37 100-28" stroke="url(#green)" stroke-width="6" stroke-linecap="round"/>
+  </g>
+  <circle cx="1034" cy="496" r="58" fill="#F5C447" fill-opacity=".1" stroke="url(#gold)" stroke-width="6"/>
+  <path d="M1034 470l12 24 27 4-20 19 5 27-24-13-24 13 5-27-20-19 27-4 12-24Z" fill="url(#gold)"/>
+</svg>

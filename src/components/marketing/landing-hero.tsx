@@ -6,12 +6,13 @@ import { Countdown } from "./countdown";
 import { CountUp } from "@/components/ui/count-up";
 import {
   ArrowRight,
-  BadgeCheck,
   CalendarDays,
   KeyRound,
   LockKeyhole,
+  ShieldCheck,
   Trophy,
   Users,
+  Zap,
 } from "lucide-react";
 
 export async function LandingHero() {
@@ -20,7 +21,7 @@ export async function LandingHero() {
 
   const proofItems = [
     { icon: LockKeyhole, label: t("heroProofPrivate") },
-    { icon: BadgeCheck, label: t("heroProofAdmin") },
+    { icon: Zap, label: t("heroProofInstant") },
     { icon: Trophy, label: t("heroProofCup") },
   ] as const;
 
@@ -102,6 +103,11 @@ export async function LandingHero() {
                 {t("ctaLearnMore")}
               </a>
             </div>
+
+            <p className="mt-4 inline-flex items-center gap-1.5 text-xs text-text-tertiary">
+              <ShieldCheck className="size-3.5 text-primary-400" strokeWidth={1.8} />
+              {t("ctaPaymentNote")}
+            </p>
           </div>
         </div>
 

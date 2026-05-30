@@ -1,0 +1,21 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Bet ticket icon</title>
+  <desc id="desc">Premium betting ticket icon with gold validation accent.</desc>
+  <defs>
+    <linearGradient id="green" x1="48" y1="50" x2="210" y2="208">
+      <stop stop-color="#86F6B5"/>
+      <stop offset=".55" stop-color="#22D982"/>
+      <stop offset="1" stop-color="#0B8F5C"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="80" y1="42" x2="210" y2="204">
+      <stop stop-color="#FFF4B0"/>
+      <stop offset=".5" stop-color="#F5C447"/>
+      <stop offset="1" stop-color="#9A6710"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="54" fill="#07110D"/>
+  <path d="M54 80c0-15 12-27 27-27h94c15 0 27 12 27 27v18c-15 0-27 12-27 27s12 27 27 27v24c0 15-12 27-27 27H81c-15 0-27-12-27-27v-24c15 0 27-12 27-27S69 98 54 98V80Z" fill="#FFFFFF" fill-opacity=".04" stroke="url(#green)" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M109 53v150" stroke="#FFFFFF" stroke-opacity=".12" stroke-width="5" stroke-dasharray="9 11"/>
+  <path d="M130 91h43M130 122h31M130 153h49" stroke="#CFFFE0" stroke-width="7" stroke-linecap="round"/>
+  <path d="m71 126 17 17 40-45" stroke="url(#gold)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

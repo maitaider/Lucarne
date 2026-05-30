@@ -1,0 +1,50 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Lucarne stadium night poster</title>
+  <desc id="desc">Premium dark stadium poster with gold trophy glow and negative space for page copy.</desc>
+  <defs>
+    <radialGradient id="sky" cx="50%" cy="0%" r="90%">
+      <stop stop-color="#102C45"/>
+      <stop offset=".5" stop-color="#06101A"/>
+      <stop offset="1" stop-color="#020403"/>
+    </radialGradient>
+    <linearGradient id="field" x1="0" y1="720" x2="1920" y2="1080">
+      <stop stop-color="#07120D"/>
+      <stop offset=".5" stop-color="#143C22"/>
+      <stop offset="1" stop-color="#07120D"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="840" y1="530" x2="1075" y2="980">
+      <stop stop-color="#FFF4B0"/>
+      <stop offset=".46" stop-color="#F5C447"/>
+      <stop offset="1" stop-color="#9A6710"/>
+    </linearGradient>
+    <filter id="lightBlur" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#sky)"/>
+  <path d="M0 668c386-116 812-116 1920 0v412H0V668Z" fill="url(#field)"/>
+  <path d="M122 571c358-142 961-138 1672 0" stroke="#FFFFFF" stroke-opacity=".11" stroke-width="5"/>
+  <path d="M132 602c358-95 949-94 1656 0" stroke="#22D982" stroke-opacity=".12" stroke-width="4"/>
+  <g filter="url(#lightBlur)" opacity=".88">
+    <circle cx="112" cy="215" r="25" fill="white"/>
+    <circle cx="193" cy="235" r="21" fill="white"/>
+    <circle cx="277" cy="251" r="17" fill="white"/>
+    <circle cx="1582" cy="173" r="17" fill="white"/>
+    <circle cx="1661" cy="146" r="21" fill="white"/>
+    <circle cx="1741" cy="116" r="25" fill="white"/>
+  </g>
+  <path d="M0 826h1920" stroke="#FFFFFF" stroke-opacity=".16"/>
+  <path d="M320 830 110 1080M705 828 602 1080M1180 829l117 251M1515 829l253 251" stroke="#FFFFFF" stroke-opacity=".11" stroke-width="3"/>
+  <ellipse cx="960" cy="906" rx="260" ry="54" fill="#F5C447" fill-opacity=".16" filter="url(#lightBlur)"/>
+  <g transform="translate(858 540)">
+    <rect x="8" y="8" width="188" height="250" rx="42" fill="#000" fill-opacity=".23" stroke="#F5C447" stroke-opacity=".26"/>
+    <path d="M55 36h94v56c0 80-34 128-47 142-13-14-47-62-47-142V36Z" fill="#100D06" stroke="url(#gold)" stroke-width="8"/>
+    <path d="M55 67H28c0 55 18 91 62 111M149 67h27c0 55-18 91-62 111" stroke="url(#gold)" stroke-width="8" stroke-linecap="round"/>
+    <path d="M102 234v34M68 281h68M52 311h100" stroke="url(#gold)" stroke-width="8" stroke-linecap="round"/>
+    <path d="M102 78l14 28 31 4-22 22 5 31-28-15-27 15 5-31-23-22 31-4 14-28Z" fill="url(#gold)"/>
+  </g>
+  <rect x="118" y="114" width="610" height="262" rx="34" fill="#000" fill-opacity=".12" stroke="#FFFFFF" stroke-opacity=".08"/>
+  <path d="M158 163h246M158 222h384M158 278h322" stroke="#FFFFFF" stroke-opacity=".24" stroke-width="18" stroke-linecap="round"/>
+  <path d="M158 341h182" stroke="#22D982" stroke-opacity=".55" stroke-width="12" stroke-linecap="round"/>
+  <path d="M370 341h124" stroke="#F5C447" stroke-opacity=".65" stroke-width="12" stroke-linecap="round"/>
+</svg>

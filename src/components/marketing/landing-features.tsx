@@ -2,9 +2,9 @@ import { getTranslations } from "next-intl/server";
 import Image from "next/image";
 import { Reveal } from "@/components/ui/reveal";
 import {
-  Banknote,
   ChevronRight,
   CircleDollarSign,
+  CreditCard,
   LockKeyhole,
   ShieldCheck,
   Trophy,
@@ -43,7 +43,7 @@ export async function LandingFeatures() {
 
   const trustItems = [
     { icon: ShieldCheck, title: t("trust1Title"), body: t("trust1Body") },
-    { icon: Banknote, title: t("trust2Title"), body: t("trust2Body") },
+    { icon: CreditCard, title: t("trust2Title"), body: t("trust2Body") },
     { icon: UsersRound, title: t("trust3Title"), body: t("trust3Body") },
   ] as const;
 

@@ -1,0 +1,88 @@
+{
+  "name": "Lucarne premium asset pack",
+  "created_at": "2026-05-22",
+  "style": "premium dark stadium, glass dashboard, pitch green, World Cup gold",
+  "exports_folder": "/assets/lucarne/exports",
+  "assets": [
+    {
+      "type": "logo",
+      "path": "/assets/lucarne/logo/lucarne-mark-pro.svg",
+      "usage": "app icon, favicon source, compact nav mark"
+    },
+    {
+      "type": "logo",
+      "path": "/assets/lucarne/logo/lucarne-logo-horizontal.svg",
+      "usage": "landing hero, pitch decks, external docs"
+    },
+    {
+      "type": "logo",
+      "path": "/assets/lucarne/logo/lucarne-badge-gold.svg",
+      "usage": "World Cup mode, trophies, premium status"
+    },
+    {
+      "type": "icon",
+      "path": "/assets/lucarne/icons/trophy-gold.svg",
+      "usage": "leaderboard, prizes, World Cup calls to action"
+    },
+    {
+      "type": "icon",
+      "path": "/assets/lucarne/icons/orbit-ball.svg",
+      "usage": "matches, football intelligence, live analysis"
+    },
+    {
+      "type": "icon",
+      "path": "/assets/lucarne/icons/stadium-beam.svg",
+      "usage": "venues, night matches, atmosphere"
+    },
+    {
+      "type": "icon",
+      "path": "/assets/lucarne/icons/bracket-network.svg",
+      "usage": "knockout bracket and tournament progression"
+    },
+    {
+      "type": "icon",
+      "path": "/assets/lucarne/icons/bet-ticket.svg",
+      "usage": "bets, validation, ticket states"
+    },
+    {
+      "type": "icon",
+      "path": "/assets/lucarne/icons/live-console.svg",
+      "usage": "dashboard analytics, live console"
+    },
+    {
+      "type": "image",
+      "path": "/assets/lucarne/images/dashboard-command-center.svg",
+      "usage": "dashboard hero, marketing hero, feature panel"
+    },
+    {
+      "type": "image",
+      "path": "/assets/lucarne/images/stadium-night-poster.svg",
+      "usage": "landing sections, background poster, auth atmosphere"
+    },
+    {
+      "type": "image",
+      "path": "/assets/lucarne/images/social-preview.svg",
+      "usage": "Open Graph, sharing cards, campaign preview"
+    },
+    {
+      "type": "image",
+      "path": "/assets/lucarne/images/empty-state-stadium.svg",
+      "usage": "empty states for bets, leagues, leaderboard, admin"
+    }
+  ],
+  "png_exports": [
+    "/assets/lucarne/exports/lucarne-mark-pro.png",
+    "/assets/lucarne/exports/lucarne-logo-horizontal.png",
+    "/assets/lucarne/exports/lucarne-badge-gold.png",
+    "/assets/lucarne/exports/trophy-gold.png",
+    "/assets/lucarne/exports/orbit-ball.png",
+    "/assets/lucarne/exports/stadium-beam.png",
+    "/assets/lucarne/exports/bracket-network.png",
+    "/assets/lucarne/exports/bet-ticket.png",
+    "/assets/lucarne/exports/live-console.png",
+    "/assets/lucarne/exports/dashboard-command-center.png",
+    "/assets/lucarne/exports/stadium-night-poster.png",
+    "/assets/lucarne/exports/social-preview.png",
+    "/assets/lucarne/exports/empty-state-stadium.png"
+  ]
+}

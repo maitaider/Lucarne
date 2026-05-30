@@ -1,0 +1,47 @@
+<svg width="1600" height="420" viewBox="0 0 1600 420" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Lucarne horizontal logo</title>
+  <desc id="desc">Horizontal Lucarne logo with premium shield mark and broadcast dashboard styling.</desc>
+  <defs>
+    <linearGradient id="panel" x1="0" y1="0" x2="1600" y2="420">
+      <stop stop-color="#07110D"/>
+      <stop offset=".6" stop-color="#08100E"/>
+      <stop offset="1" stop-color="#0E0B13"/>
+    </linearGradient>
+    <linearGradient id="green" x1="122" y1="52" x2="316" y2="352" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#86F6B5"/>
+      <stop offset=".48" stop-color="#22D982"/>
+      <stop offset="1" stop-color="#0C8E5C"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="1106" y1="80" x2="1394" y2="332" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF4B0"/>
+      <stop offset=".45" stop-color="#F5C447"/>
+      <stop offset="1" stop-color="#9E6F13"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-50%" width="140%" height="200%">
+      <feGaussianBlur stdDeviation="18" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.13 0 0 0 0 0.85 0 0 0 0 0.51 0 0 0 .45 0"/>
+      <feBlend in="SourceGraphic"/>
+    </filter>
+  </defs>
+  <rect width="1600" height="420" rx="64" fill="url(#panel)"/>
+  <path d="M0 326c310-90 845-92 1600 0v94H0V326Z" fill="#22D982" fill-opacity=".045"/>
+  <path d="M0 0h1600v420H0z" fill="url(#panel)" opacity=".2"/>
+  <g transform="translate(70 42)" filter="url(#glow)">
+    <path d="M170 0 299 46v111c0 84-49 149-129 184C90 306 41 241 41 157V46L170 0Z" fill="#07110D" stroke="url(#green)" stroke-width="10"/>
+    <path d="M98 254V114h160" stroke="url(#green)" stroke-width="31" stroke-linecap="square" stroke-linejoin="miter"/>
+    <path d="M128 148h108M128 190h91M126 115v130M169 115v95M213 115v70" stroke="#CFFFF0" stroke-opacity=".3" stroke-width="9"/>
+    <path d="M96 114h66l-66 66v-66Z" fill="url(#green)"/>
+    <circle cx="139" cy="158" r="26" fill="#06100C" stroke="#F5C447" stroke-width="8"/>
+  </g>
+  <text x="450" y="214" fill="#F8FAFC" font-family="Inter, Satoshi, Arial, sans-serif" font-size="124" font-weight="800" letter-spacing="0">Lucarne</text>
+  <text x="457" y="276" fill="#AEB8C8" font-family="Inter, Arial, sans-serif" font-size="32" font-weight="650" letter-spacing="8">WORLD CUP PREDICTION COMMAND CENTER</text>
+  <g opacity=".95">
+    <rect x="1150" y="112" width="270" height="132" rx="22" fill="#FFFFFF" fill-opacity=".04" stroke="#FFFFFF" stroke-opacity=".12"/>
+    <circle cx="1218" cy="178" r="42" fill="#F5C447" fill-opacity=".1" stroke="url(#gold)" stroke-width="6"/>
+    <path d="M1218 152l10 19 21 3-15 15 4 21-20-10-19 10 4-21-16-15 22-3 9-19Z" fill="url(#gold)"/>
+    <path d="M1285 156h84M1285 186h62M1285 216h108" stroke="#22D982" stroke-width="9" stroke-linecap="round"/>
+  </g>
+  <path d="M72 350h1456" stroke="#FFFFFF" stroke-opacity=".08"/>
+  <path d="M72 350h360" stroke="#22D982" stroke-opacity=".55" stroke-width="3"/>
+  <path d="M1244 350h284" stroke="#F5C447" stroke-opacity=".55" stroke-width="3"/>
+</svg>
