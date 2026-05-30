@@ -130,21 +130,38 @@ export async function createCheckoutSession(input: {
     return { ok: false, message: err.message, code: "stripe_error" };
   }
 
-  // Pre-register the checkout so the webhook can complete it.
-  await supabase
-    .from("stripe_checkouts")
-    .insert({
-      user_id: user.id,
-      session_id: session.id,
-      payment_intent_id:
-        typeof session.payment_intent === "string"
-          ? session.payment_intent
-          : null,
-      amount_cents: amountCents,
-      currency: settings.currency,
-      tokens_to_credit: tokensToCredit,
-      status: "pending",
-    });
+  // Pre-register the checkout so fulfillment can complete it. This MUST use the
+  // service-role client: RLS on stripe_checkouts only permits admin writes, and
+  // the amount / tokens must stay server-controlled (a player must not be able
+  // to forge them). Without this row, fulfill_stripe_checkout raises
+  // `checkout_not_found` and the payment is never recognized.
+  const admin = getSupabaseAdmin();
+  if (!admin) {
+    return {
+      ok: false,
+      message: "Paiement indisponible (configuration serveur manquante).",
+      code: "no_admin",
+    };
+  }
+  const { error: registerError } = await admin.from("stripe_checkouts").insert({
+    user_id: user.id,
+    session_id: session.id,
+    payment_intent_id:
+      typeof session.payment_intent === "string"
+        ? session.payment_intent
+        : null,
+    amount_cents: amountCents,
+    currency: settings.currency,
+    tokens_to_credit: tokensToCredit,
+    status: "pending",
+  });
+  if (registerError) {
+    return {
+      ok: false,
+      message: "Impossible d'enregistrer le paiement. Réessaie.",
+      code: "register_failed",
+    };
+  }
 
   if (!session.url) {
     return { ok: false, message: "Stripe session sans URL", code: "no_url" };

@@ -31,6 +31,16 @@ pnpm db:types     # régénère src/lib/supabase/types.generated.ts
 4. **Codes d'invitation** : `gen_random_bytes(16)` base32 lisible, expiration max 30j.
 5. **Balances** : `transactions` append-only, trigger recompute `profiles.balance_cents`.
 
+## Débogage — leçons de prod (À LIRE avant de deviner)
+
+Quand un comportement est cassé **sans message d'erreur** (login qui reboucle, données vides, paiement non reconnu), c'est presque toujours la **couche base de données**, pas la logique app. Ne pas supposer — vérifier la DB d'abord.
+
+1. **Permissions `public` après reconstruction du remote.** `db reset --linked` applique les migrations mais **pas** les grants par défaut que Supabase configure en local. Si le schéma initial ne fait qu'un `grant usage on schema public` (sans `grant select/insert/... on all tables`), **chaque table renvoie `42501 permission denied`** pour anon/authenticated/service_role. Symptôme : `getCurrentUser()` lit `profiles`, la lecture est refusée → `null` → l'app croit l'utilisateur déconnecté → rebouclage `/login` **sans erreur**. Toujours grant explicitement les tables `public` aux rôles PostgREST (cf. migration `20260530140000`), comme c'est déjà fait pour `ref`.
+2. **Une lecture refusée renvoie `null`, pas une exception** côté supabase-js (le code fait souvent `const { data } = await ...` sans checker `.error`). Donc « pas d'erreur affichée » ≠ « tout va bien ».
+3. **Écritures côté client = RLS obligatoire.** Une fonctionnalité qui `insert/update` en tant qu'utilisateur `authenticated` a besoin d'une policy RLS correspondante. Si les valeurs doivent être **contrôlées par le serveur** (montants, crédits, statuts), faire l'écriture avec le **client service-role** (`getSupabaseAdmin()`), pas le client de l'utilisateur. Ex. : `stripe_checkouts` n'a qu'une policy write admin → le pré-enregistrement du checkout doit passer par le service-role, sinon `fulfill_stripe_checkout` lève `checkout_not_found` et le paiement n'est jamais reconnu.
+4. **Vérifier, ne pas affirmer.** Avant de dire « c'est réglé », reproduire l'opération exacte qui échoue (ex. lire `profiles` avec un vrai jeton `authenticated`, vérifier l'état réel des tables avec la clé service-role). Diagnostiquer la cause racine soi-même plutôt que de demander à l'utilisateur d'intervenir.
+5. **`NEXT_PUBLIC_*` sur Vercel** : type `encrypted` (jamais `sensitive`) sinon non inliné au build → `undefined` côté client/serveur. Les vars server-only peuvent rester `sensitive`. Les ajouter via l'API REST Vercel (le CLI `vercel env add` stocke des valeurs vides dans cet environnement).
+
 ## Phase actuelle
 
 Sprint 0 livré : scaffold + design + auth + migration. Prochain : Sprint 1 (intégration API-Football + import matchs).

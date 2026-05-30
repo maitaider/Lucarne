@@ -94,7 +94,8 @@ export default async function DashboardPage({
   const balanceTokens = Math.floor((user?.balance_cents ?? 0) / 100);
   const winRatePct = Math.round(stats.win_rate * 100);
   const myRank = user && standings.find((s) => s.user_id === user.id)?.rank;
-  const firstName = user?.display_name?.split(" ")[0] ?? "";
+  const firstName =
+    (user?.display_name?.trim() || user?.username || "").split(" ")[0] ?? "";
 
   // Featured: a live match, else the next scheduled one (>1h buffer).
   const liveMatch = allMatches.find((m) => m.status === "live") ?? null;
