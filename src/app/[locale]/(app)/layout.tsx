@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { cookies } from "next/headers";
 import { redirect } from "@/i18n/navigation";
 import { getLocale } from "next-intl/server";
 import { getCurrentUser } from "@/lib/profile/queries";
@@ -33,7 +34,17 @@ export default async function AppLayout({
   }
 
   const user = await getCurrentUser();
-  if (!user) redirect({ href: "/login", locale });
+  if (!user) {
+    const ck = await cookies();
+    console.error(
+      "[AUTHDBG] layout → /login. cookies=" +
+        (ck
+          .getAll()
+          .map((c) => c.name)
+          .join(",") || "NONE"),
+    );
+    redirect({ href: "/login", locale });
+  }
 
   // Pre-fetch the next openable match for the mobile FAB shortcut.
   const allMatches = await listMatches();
