@@ -46,6 +46,8 @@ export default async function BuyInPage({
     status.settings.currency,
     moneyLocale,
   );
+  const rakePct = status.settings.prize_distribution?.house_rake_pct ?? 6;
+  const poolPct = 100 - rakePct;
 
   return (
     <AppPageShell width="wide">
@@ -60,8 +62,8 @@ export default async function BuyInPage({
         }
         description={
           L === "fr"
-            ? `Pour ${priceLabel}, tu débloques tous les pronostics sur les 104 matchs. Pas d'abonnement, pas de relance, pas de mise minimale. Le top 3 du classement final se partage la cagnotte.`
-            : `For ${priceLabel} you unlock predictions on all 104 matches. No subscription, no upsell, no minimum stake. The top 3 split the prize pool at the end.`
+            ? `Pour ${priceLabel}, tu débloques tous les pronostics sur les 104 matchs. ${poolPct}% de ta place va dans la cagnotte (les ${rakePct}% restants couvrent les frais Stripe et l'hébergement) — plus il y a de joueurs, plus elle grossit. Le top 3 du classement final se la partage.`
+            : `For ${priceLabel} you unlock predictions on all 104 matches. ${poolPct}% of your seat funds the prize pool (the other ${rakePct}% covers Stripe fees and hosting) — the more players, the bigger it grows. The top 3 split it at the end.`
         }
         visual={{
           src: "/assets/lucarne/claude-pack-20260525/svg/07-buy-in-gold-seat.svg",

@@ -29,7 +29,9 @@ const DEFAULT: AppSettings = {
   tournament_end_at: "2026-07-19T21:00:00Z",
   prize_distribution: {
     shares: [50, 30, 20],
-    house_rake_pct: 0,
+    // 6% rake covers Stripe processing + hosting; the remaining 94% funds the
+    // prize pool, split 50/30/20 among the top 3.
+    house_rake_pct: 6,
     description_fr: "50% au champion · 30% au 2ᵉ · 20% au 3ᵉ",
     description_en: "50% to champion · 30% to 2nd · 20% to 3rd",
   },

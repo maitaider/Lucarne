@@ -1132,8 +1132,8 @@ function CagnotteCard({
         </div>
         <p className="mt-1 text-xs leading-5 text-text-secondary">
           {fr
-            ? `${redistributed}% redistribué — la cagnotte grandit à chaque place vendue.`
-            : `${redistributed}% paid back — the pot grows with every seat sold.`}
+            ? `${redistributed}% part dans la cagnotte ; les ${rakePct}% restants couvrent les frais Stripe et l'hébergement. Plus il y a de joueurs, plus la cagnotte grossit.`
+            : `${redistributed}% goes to the pot; the other ${rakePct}% covers Stripe fees and hosting. The more players, the bigger the pot.`}
         </p>
         {podium.length > 0 && (
           <div className="mt-4 flex gap-2">

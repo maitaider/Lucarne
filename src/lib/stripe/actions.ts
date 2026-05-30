@@ -216,6 +216,23 @@ export async function confirmStripeCheckout(
   const admin = getSupabaseAdmin();
   if (!admin) return { ok: false, code: "no_admin" };
 
+  // Self-heal: guarantee the checkout row exists before fulfilling. It is
+  // normally pre-registered in createCheckoutSession, but if that ever didn't
+  // happen (older sessions, race with a webhook), recreate it from the
+  // *verified* paid session so fulfillment can always complete. ignoreDuplicates
+  // leaves an existing row untouched; fulfill_stripe_checkout is idempotent.
+  await admin.from("stripe_checkouts").upsert(
+    {
+      user_id: user.id,
+      session_id: sessionId,
+      amount_cents: session.amount_total ?? 2000,
+      currency: (session.currency ?? "cad").toUpperCase(),
+      tokens_to_credit: 1,
+      status: "pending",
+    },
+    { onConflict: "session_id", ignoreDuplicates: true },
+  );
+
   const { error } = await admin.rpc("fulfill_stripe_checkout", {
     p_session_id: sessionId,
   });

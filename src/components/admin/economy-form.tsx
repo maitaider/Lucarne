@@ -63,8 +63,10 @@ export function EconomyForm({ initial, totalCollectedCents, locale }: Props) {
   const toast = useToast();
 
   const sumShares = shares.reduce((a, b) => a + b, 0);
-  const totalPct = sumShares + housePct;
-  const isValid = totalPct === 100;
+  // Payout shares split the POOL (what remains after the rake), so they must
+  // sum to 100 on their own. The rake (Stripe fees + hosting) is independent.
+  const totalPct = sumShares;
+  const isValid = sumShares === 100 && housePct >= 0 && housePct <= 100;
 
   // Live projection
   const projectedPool = Math.floor(
@@ -171,8 +173,8 @@ export function EconomyForm({ initial, totalCollectedCents, locale }: Props) {
         title={locale === "fr" ? "Répartition de la cagnotte" : "Prize distribution"}
         body={
           locale === "fr"
-            ? `Définis la part de chaque place. Le total (parts + commission) doit faire 100%. Actuel : ${totalPct}%`
-            : `Set each placement's share. Total (shares + rake) must equal 100%. Current: ${totalPct}%`
+            ? `Définis la part de chaque place. Les parts se partagent la cagnotte (après commission) et doivent totaliser 100%. Actuel : ${totalPct}%`
+            : `Set each placement's share. Shares split the pool (after rake) and must total 100%. Current: ${totalPct}%`
         }
       >
         <ul className="space-y-2">

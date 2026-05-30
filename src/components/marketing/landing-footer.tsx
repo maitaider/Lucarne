@@ -20,6 +20,10 @@ export async function LandingFooter() {
           <span className="text-sm text-text-tertiary">
             © {new Date().getFullYear()} · {t("footerRights")}
           </span>
+          <span className="text-sm text-text-tertiary">
+            · {locale === "fr" ? "conçu " : "built "}
+            <span className="font-semibold text-primary-300">by Mehdi</span>
+          </span>
         </div>
         <div className="flex items-center gap-6 text-sm">
           <Link

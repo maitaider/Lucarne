@@ -8,6 +8,7 @@ import { QuickBetProvider } from "@/components/bet/quick-bet-provider";
 import { MobileQuickBetFab } from "@/components/nav/mobile-quick-bet-fab";
 import { OnboardingTour } from "@/components/onboarding/onboarding-tour";
 import { ChunkReloadGuard } from "@/components/system/chunk-reload-guard";
+import { SiteFooter } from "@/components/layout/site-footer";
 import { listMatches } from "@/lib/matches/queries";
 import type { Locale } from "@/i18n/routing";
 
@@ -53,6 +54,7 @@ export default async function AppLayout({
         <QuickBetProvider locale={locale}>
           <AppHeader user={user} locale={locale} />
           <div className="relative flex-1 pb-20 md:pb-0">{children}</div>
+          <SiteFooter locale={locale} />
           <MobileQuickBetFab locale={locale} nextMatch={nextOpenMatch} />
           <OnboardingTour locale={locale} />
         </QuickBetProvider>
