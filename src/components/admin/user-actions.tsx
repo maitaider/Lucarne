@@ -101,7 +101,7 @@ export function AdjustBalanceButton({
             className="absolute inset-0 bg-abyss/80 backdrop-blur-sm"
           />
           <div className="absolute left-1/2 top-1/2 w-full max-w-md -translate-x-1/2 -translate-y-1/2 px-4">
-            <div className="overflow-hidden rounded-[14px] border border-white/[0.1] bg-abyss/95 shadow-2xl backdrop-blur-2xl">
+            <div className="max-h-[88dvh] overflow-y-auto rounded-[14px] border border-white/[0.1] bg-abyss/95 shadow-2xl backdrop-blur-2xl">
               <header className="border-b border-white/[0.08] px-5 py-4">
                 <h3 className="font-display text-lg font-semibold text-text-primary">
                   {locale === "fr" ? "Gérer" : "Manage"} @{username}
