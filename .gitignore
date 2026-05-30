@@ -58,3 +58,6 @@ Icon
 .idea/
 *.swp
 *.swo
+
+# Local Claude Code tooling state (plans, session config)
+.claude/

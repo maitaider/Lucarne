@@ -21,20 +21,8 @@ export async function signInWithPasswordAction(
   password: string,
 ): Promise<{ error: string } | void> {
   const supabase = await getSupabaseServer();
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-  if (error) {
-    console.error("[AUTHDBG] signIn ERROR:", error.message);
-    return { error: error.message };
-  }
-  console.error(
-    "[AUTHDBG] signIn OK user=" +
-      (data.user?.id ?? "null") +
-      " session=" +
-      (data.session ? "yes" : "no"),
-  );
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) return { error: error.message };
   const locale = await getLocale();
   redirect({ href: "/dashboard", locale });
 }
