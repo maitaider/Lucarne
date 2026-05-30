@@ -6,7 +6,6 @@ import { getSupabaseServer } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { getAppSettings, effectiveBuyInDeadline } from "@/lib/admin/economy";
 import { redirect } from "@/i18n/navigation";
-import { revalidatePath } from "next/cache";
 
 const checkoutSchema = z.object({
   locale: z.enum(["fr", "en"]).default("fr"),
@@ -238,7 +237,11 @@ export async function confirmStripeCheckout(
   });
   if (error) return { ok: false, code: "fulfill_failed" };
 
-  // Bust the cached buy-in status so the next render sees the unlocked user.
-  revalidatePath("/", "layout");
+  // IMPORTANT: do NOT call revalidatePath() here. confirmStripeCheckout runs
+  // during the /buy-in Server Component render, and revalidatePath throws when
+  // called during render ("used revalidatePath during render which is not
+  // allowed") — which surfaced as the post-payment error screen even though the
+  // payment had already been fulfilled. The page redirects to /predict on
+  // success (a fresh navigation), so the unlocked status is read fresh anyway.
   return { ok: true };
 }
