@@ -1,6 +1,7 @@
 "use server";
 
 import { getSupabaseServer } from "@/lib/supabase/server";
+import { isAdmin } from "@/lib/admin/queries";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -26,6 +27,12 @@ export async function createLeague(
   }
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
     return { ok: false, message: "Supabase non configuré" };
+  }
+
+  // Admin-only for now (matches the gated /leagues/new page). Defense-in-depth
+  // so the action can't be called directly by a non-admin.
+  if (!(await isAdmin())) {
+    return { ok: false, message: "Réservé aux admins pour l'instant." };
   }
 
   const supabase = await getSupabaseServer();
