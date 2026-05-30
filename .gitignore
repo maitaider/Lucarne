@@ -44,7 +44,9 @@ next-env.d.ts
 supabase/.branches
 supabase/.temp
 supabase/.env
-src/lib/supabase/types.generated.ts
+# types.generated.ts IS committed so the GitHub-integration build (which can't
+# run `db:types`) is self-contained. Regenerate with `pnpm db:types` after
+# migrations and commit the result.
 
 # OS
 .DS_Store
