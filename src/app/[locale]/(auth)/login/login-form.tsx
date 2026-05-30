@@ -1,13 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useLocale, useTranslations } from "next-intl";
-import { getSupabaseBrowser } from "@/lib/supabase/client";
+import { useTranslations } from "next-intl";
+import { signInWithPasswordAction } from "@/lib/auth/actions";
 import { Loader2 } from "lucide-react";
 
 export function LoginForm() {
   const t = useTranslations("auth");
-  const locale = useLocale();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -20,19 +19,13 @@ export function LoginForm() {
     const email = String(formData.get("email"));
     const password = String(formData.get("password"));
 
-    const supabase = getSupabaseBrowser();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-
-    if (error) {
-      setError(error.message);
+    const res = await signInWithPasswordAction(email, password);
+    if (res?.error) {
+      setError(res.error);
       setIsLoading(false);
-      return;
     }
-
-    // Hard navigation: forces a full request so the server receives the
-    // freshly-set auth cookies. A soft router.push can race the cookie write
-    // and bounce back to /login.
-    window.location.assign(`/${locale}/dashboard`);
+    // On success the server action sets the session cookies and redirects to
+    // /dashboard server-side — nothing else to do here.
   }
 
   return (

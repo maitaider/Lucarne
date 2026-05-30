@@ -2,14 +2,12 @@
 
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { useLocale, useTranslations } from "next-intl";
-import { getSupabaseBrowser } from "@/lib/supabase/client";
-import { callRedeemInvitation } from "@/lib/supabase/rpc";
+import { useTranslations } from "next-intl";
+import { signUpWithInviteAction } from "@/lib/auth/actions";
 import { Loader2 } from "lucide-react";
 
 export function SignupForm() {
   const t = useTranslations("auth");
-  const locale = useLocale();
   const searchParams = useSearchParams();
   const prefilledCode = (searchParams.get("code") ?? "").toUpperCase();
   const [isLoading, setIsLoading] = useState(false);
@@ -32,38 +30,17 @@ export function SignupForm() {
       return;
     }
 
-    const supabase = getSupabaseBrowser();
-    const { error: signupError } = await supabase.auth.signUp({
+    const res = await signUpWithInviteAction({
       email,
       password,
-      options: {
-        data: { username, invitation_code: code },
-        emailRedirectTo: `${location.origin}/api/auth/callback`,
-      },
+      username,
+      code,
     });
-
-    if (signupError) {
-      setError(signupError.message);
+    if (res?.error) {
+      setError(res.error);
       setIsLoading(false);
-      return;
     }
-
-    // After signup, redeem invitation code server-side
-    const { error: rpcError } = await callRedeemInvitation(supabase, {
-      p_code: code,
-    });
-
-    if (rpcError) {
-      // Account created but code invalid — show actionable error
-      setError(
-        `Compte créé, mais le code d'invitation est invalide ou expiré : ${rpcError.message}`,
-      );
-      setIsLoading(false);
-      return;
-    }
-
-    // Hard navigation so the server receives the freshly-set auth cookies.
-    window.location.assign(`/${locale}/dashboard`);
+    // On success the server action signs in, redeems the code, and redirects.
   }
 
   return (
