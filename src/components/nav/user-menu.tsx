@@ -12,6 +12,7 @@ import {
   Languages,
   HelpCircle,
   User,
+  UserRound,
   UserPlus,
 } from "lucide-react";
 import { useRealtimeBalance } from "@/lib/hooks/use-realtime-balance";
@@ -138,6 +139,12 @@ export function UserMenu({ user, locale }: Props) {
 
           {/* Menu items */}
           <div className="py-1">
+            <MenuItem
+              href="/profile"
+              icon={UserRound}
+              label={locale === "fr" ? "Mon profil" : "My profile"}
+              onClick={() => setOpen(false)}
+            />
             <MenuItem
               href="/invite"
               icon={UserPlus}

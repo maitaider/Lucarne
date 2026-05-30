@@ -3,6 +3,7 @@
 import { Link, usePathname } from "@/i18n/navigation";
 import {
   Coins,
+  Goal,
   LayoutDashboard,
   Settings,
   Shirt,
@@ -24,6 +25,7 @@ const ITEMS: {
   { href: "/admin/payments", icon: Wallet, fr: "Paiements", en: "Payments" },
   { href: "/admin/economy", icon: Coins, fr: "Économie", en: "Economy" },
   { href: "/admin/players", icon: Shirt, fr: "Effectifs", en: "Rosters" },
+  { href: "/admin/matches", icon: Goal, fr: "Résultats", en: "Results" },
   { href: "/admin/users", icon: Users, fr: "Usagers", en: "Users" },
   { href: "/admin/settings", icon: Settings, fr: "Réglages", en: "Settings" },
 ];
