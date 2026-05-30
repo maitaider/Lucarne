@@ -22,15 +22,28 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 
   const {
     data: { user },
+    error: userErr,
   } = await supabase.auth.getUser();
+  console.error(
+    "[AUTHDBG] getCU getUser user=" +
+      (user?.id ?? "null") +
+      " err=" +
+      (userErr?.message ?? "none"),
+  );
   if (!user) return null;
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profErr } = await supabase
     .from("profiles")
     .select("username, display_name, avatar_url, locale, role, balance_cents")
     .eq("id", user.id)
     .maybeSingle();
 
+  console.error(
+    "[AUTHDBG] getCU profile=" +
+      (profile ? profile.username : "null") +
+      " err=" +
+      (profErr?.message ?? "none"),
+  );
   if (!profile) return null;
 
   return {
