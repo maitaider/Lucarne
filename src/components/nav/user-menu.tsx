@@ -5,7 +5,6 @@ import { Link, useRouter, usePathname } from "@/i18n/navigation";
 import { signOut } from "@/lib/auth/actions";
 import {
   ChevronDown,
-  Wallet,
   Receipt,
   ShieldCheck,
   LogOut,
@@ -15,7 +14,6 @@ import {
   UserRound,
   UserPlus,
 } from "lucide-react";
-import { useRealtimeBalance } from "@/lib/hooks/use-realtime-balance";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
 
@@ -60,8 +58,6 @@ export function UserMenu({ user, locale }: Props) {
     .toUpperCase();
 
   const isAdmin = user.role === "admin" || user.role === "super_admin";
-  const liveBalanceCents = useRealtimeBalance(user.id, user.balance_cents);
-  const balanceTokens = Math.floor(liveBalanceCents / 100);
 
   function switchLocale() {
     const next: Locale = locale === "fr" ? "en" : "fr";
@@ -83,15 +79,9 @@ export function UserMenu({ user, locale }: Props) {
         )}
       >
         <Avatar initials={initials} src={user.avatar_url} />
-        <div className="hidden flex-col items-start leading-tight sm:flex">
-          <span className="text-xs font-medium text-text-primary">
-            {user.display_name ?? user.username}
-          </span>
-          <span className="font-mono text-[10px] tabular-nums text-primary-400">
-            {balanceTokens.toLocaleString(locale === "fr" ? "fr-FR" : "en-US")}{" "}
-            {locale === "fr" ? "jetons" : "tokens"}
-          </span>
-        </div>
+        <span className="hidden text-sm font-medium leading-tight text-text-primary sm:block">
+          {user.display_name ?? user.username}
+        </span>
         <ChevronDown
           className={cn(
             "size-4 text-text-tertiary transition-transform",
@@ -124,17 +114,6 @@ export function UserMenu({ user, locale }: Props) {
                 </span>
               )}
             </div>
-            <div className="mt-3 flex items-center justify-between rounded-[8px] border border-white/[0.08] bg-white/[0.05] px-3 py-2">
-              <span className="text-xs text-text-tertiary">
-                {locale === "fr" ? "Solde" : "Balance"}
-              </span>
-              <span className="font-display text-base font-semibold tabular-nums text-primary-400">
-                {balanceTokens.toLocaleString(locale === "fr" ? "fr-FR" : "en-US")}
-                <span className="ml-1 text-xs font-normal text-text-secondary">
-                  {locale === "fr" ? "jetons" : "tokens"}
-                </span>
-              </span>
-            </div>
           </div>
 
           {/* Menu items */}
@@ -149,12 +128,6 @@ export function UserMenu({ user, locale }: Props) {
               href="/invite"
               icon={UserPlus}
               label={locale === "fr" ? "Inviter des amis" : "Invite friends"}
-              onClick={() => setOpen(false)}
-            />
-            <MenuItem
-              href="/profile/wallet"
-              icon={Wallet}
-              label={locale === "fr" ? "Mon portefeuille" : "My wallet"}
               onClick={() => setOpen(false)}
             />
             <MenuItem
@@ -263,7 +236,7 @@ function MenuItem({
   accent,
 }: {
   href: string;
-  icon: typeof Wallet;
+  icon: typeof UserRound;
   label: string;
   onClick: () => void;
   accent?: boolean;

@@ -98,7 +98,7 @@ function BetStatusConsole({
   settledWins: number;
 }) {
   return (
-    <section className="mb-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <section className="mb-8 grid gap-3 sm:grid-cols-3">
       <BetMetric
         icon={ShieldCheck}
         label={locale === "fr" ? "Actifs" : "Active"}
@@ -112,13 +112,6 @@ function BetStatusConsole({
         value={settled}
         detail={`${settledWins} ${locale === "fr" ? "gagnés" : "won"}`}
         accent="gold"
-      />
-      <BetMetric
-        icon={Coins}
-        label={locale === "fr" ? "Exposition" : "Exposure"}
-        value={activeStake}
-        detail={locale === "fr" ? "jetons engagés" : "tokens staked"}
-        accent="primary"
       />
       <BetMetric
         icon={Sparkles}

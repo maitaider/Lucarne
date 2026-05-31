@@ -91,7 +91,6 @@ export default async function DashboardPage({
 
   const now = Date.now();
   const activeBets = myBets.filter((b) => b.status === "validated");
-  const balanceTokens = Math.floor((user?.balance_cents ?? 0) / 100);
   const winRatePct = Math.round(stats.win_rate * 100);
   const myRank = user && standings.find((s) => s.user_id === user.id)?.rank;
   const firstName =
@@ -193,20 +192,7 @@ export default async function DashboardPage({
                 : "Your World Cup HQ: follow matches, predict, climb the leaderboard."}
             </p>
 
-            <div className="mt-6 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-              <Stat
-                icon={Coins}
-                label={L === "fr" ? "Solde" : "Balance"}
-                value={
-                  <CountUp
-                    value={balanceTokens}
-                    locale={L === "fr" ? "fr-FR" : "en-US"}
-                  />
-                }
-                detail={L === "fr" ? "jetons" : "tokens"}
-                accent="primary"
-                href="/profile/wallet"
-              />
+            <div className="mt-6 grid grid-cols-3 gap-2.5">
               <Stat
                 icon={Receipt}
                 label={L === "fr" ? "Pronos actifs" : "Active picks"}

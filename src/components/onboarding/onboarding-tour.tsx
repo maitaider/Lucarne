@@ -38,8 +38,8 @@ const STEPS: Step[] = [
       en: "Welcome to Lucarne 🏆",
     },
     body: {
-      fr: "Lucarne, c'est ton terrain de pronostics privé pour la Coupe du Monde 2026. 48 équipes, 104 matchs, des ligues entre amis. Tu démarres avec 1 000 jetons.",
-      en: "Lucarne is your private prediction arena for the 2026 World Cup. 48 teams, 104 matches, leagues with friends. You start with 1,000 tokens.",
+      fr: "Lucarne, c'est ton terrain de pronostics privé pour la Coupe du Monde 2026. 48 équipes, 104 matchs, des ligues entre amis. Gratuit, sans mise — tu joues pour les points.",
+      en: "Lucarne is your private prediction arena for the 2026 World Cup. 48 teams, 104 matches, leagues with friends. Free, no stake — you play for points.",
     },
     illustration: <BalanceIllustration />,
   },
@@ -64,8 +64,8 @@ const STEPS: Step[] = [
       en: "Quick-bet in 1 tap",
     },
     body: {
-      fr: "Sur une fiche match : bouton 'Pronostiquer'. Choisis 1, N ou 2. Ajuste la mise au slider. Valide. C'est fait.",
-      en: "On a match card: tap 'Quick bet'. Pick 1, X or 2. Drag the stake slider. Confirm. Done.",
+      fr: "Va dans l'onglet Pronostics. Mets le score de chaque match et tes buteurs — c'est gratuit et modifiable jusqu'à 1h avant le coup d'envoi.",
+      en: "Open the Predictions tab. Set each match score and your scorers — it's free and editable up to 1h before kickoff.",
     },
     illustration: <QuickBetIllustration />,
   },
@@ -86,12 +86,12 @@ const STEPS: Step[] = [
     icon: ShieldCheck,
     tone: "gold",
     title: {
-      fr: "Encaisse tes gains",
-      en: "Collect your winnings",
+      fr: "Marque des points",
+      en: "Score points",
     },
     body: {
-      fr: "Au coup de sifflet final, les paris se résolvent automatiquement. Tes gains tombent direct sur ton solde. Le tableau classement se met à jour.",
-      en: "At the final whistle, bets settle automatically. Winnings drop on your balance. The leaderboard updates in real-time.",
+      fr: "Au coup de sifflet final, tes pronos se règlent automatiquement : tu marques des points et le classement se met à jour. Le top 3 final se partage la cagnotte.",
+      en: "At the final whistle, your predictions settle automatically: you score points and the leaderboard updates. The top 3 split the pot at the end.",
     },
     illustration: <WinIllustration />,
   },
