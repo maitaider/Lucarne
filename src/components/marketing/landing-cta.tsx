@@ -49,8 +49,8 @@ export async function LandingCta() {
 
             <p className="mx-auto mt-5 max-w-xl text-balance text-base leading-relaxed text-text-secondary sm:text-lg">
               {fr
-                ? "Un salon privé entre amis, un paiement unique de 20 $, toute la Coupe du Monde à pronostiquer. Le classement et la cagnotte se règlent tout seuls."
-                : "A private room with friends, a single $20 payment, the whole World Cup to predict. Standings and the pot settle themselves."}
+                ? "Un salon privé entre amis, un accès unique à 20 $, toute la Coupe du Monde à suivre et à pronostiquer. Le classement se met à jour tout seul, et le pot du groupe récompense les meilleurs."
+                : "A private room with friends, a single $20 access, the whole World Cup to follow and predict. The standings update on their own, and the group pot rewards the best."}
             </p>
 
             <div className="mt-9 flex justify-center">

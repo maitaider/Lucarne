@@ -23,8 +23,8 @@ export default async function RulesPage() {
           p: "Le concours est gratuit et basé sur l'adresse : aucune mise, aucun jeton, rien à perdre. Tu pronostiques le résultat des matchs et les buteurs ; tu marques des points selon un barème (bon vainqueur, score exact, buteurs, etc.). Le classement se fait sur le total de points.",
         },
         {
-          h: "4. La cagnotte",
-          p: "À la fin du tournoi, le top 3 du classement se partage la cagnotte du groupe (50 % / 30 % / 20 %). Il s'agit d'une cagnotte privée partagée entre des personnes qui se connaissent, dans un cadre amical — pas d'un service commercial de jeu.",
+          h: "4. Le pot commun du groupe",
+          p: "Une partie des accès alimente un pot commun. En fin de tournoi, l'organisateur peut le répartir, à l'amiable, entre les membres les mieux classés. Il s'agit d'une entente amicale et privée entre personnes qui se connaissent, laissée à la discrétion de l'organisateur — ce n'est ni un prix garanti, ni une loterie, ni un service de jeu d'argent. La participation se fait à titre récréatif.",
         },
         {
           h: "5. Caractère privé",
@@ -49,8 +49,8 @@ export default async function RulesPage() {
           p: "The game is free and skill-based: no stake, no tokens, nothing to lose. You predict match results and scorers, and earn points on a fixed scheme (correct winner, exact score, scorers, etc.). The standings are based on total points.",
         },
         {
-          h: "4. The pot",
-          p: "At the end of the tournament, the top 3 split the group pot (50% / 30% / 20%). It is a private pot shared among people who know each other, in a friendly setting — not a commercial gambling service.",
+          h: "4. The group pot",
+          p: "Part of the access fees forms a common pot. At the end of the tournament, the organizer may share it, informally, among the top-ranked members. It is a friendly, private arrangement between people who know each other, at the organizer's discretion — not a guaranteed prize, a lottery, or a money-gambling service. Participation is purely recreational.",
         },
         {
           h: "5. Private by design",

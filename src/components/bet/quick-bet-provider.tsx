@@ -470,8 +470,8 @@ function QuickBetSheet({
                 </button>
                 <p className="mt-2 text-center text-[10px] leading-4 text-text-tertiary">
                   {fr
-                    ? "Gratuit · modifiable jusqu'à 1h avant · top 3 partage la cagnotte"
-                    : "Free · editable up to 1h before · top 3 share the pot"}
+                    ? "Gratuit · modifiable jusqu'à 1h avant · le pot récompense les meilleurs"
+                    : "Free · editable up to 1h before · the pot rewards the best"}
                 </p>
               </div>
             </>

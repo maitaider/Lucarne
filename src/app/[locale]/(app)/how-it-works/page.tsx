@@ -76,8 +76,8 @@ export default async function HowItWorksPage({
           </h1>
           <p className="mt-2 text-sm leading-6 text-text-secondary">
             {L === "fr"
-              ? `Un seul paiement, deux niveaux de pronostic, top 3 du classement final partage la cagnotte. Tournoi du ${tournamentStart} au ${tournamentEnd}.`
-              : `One payment, two levels of prediction, top 3 split the pot. Tournament runs ${tournamentStart} to ${tournamentEnd}.`}
+              ? `Un seul paiement pour l'accès, deux niveaux de pronostic, et un pot commun qui récompense les meilleurs entre amis. Tournoi du ${tournamentStart} au ${tournamentEnd}.`
+              : `One payment for access, two levels of prediction, and a group pot that rewards the best among friends. Tournament runs ${tournamentStart} to ${tournamentEnd}.`}
           </p>
         </div>
       </header>
@@ -227,13 +227,13 @@ export default async function HowItWorksPage({
           <div className="min-w-0">
             <h2 className="font-display text-xl font-semibold text-text-primary">
               {L === "fr"
-                ? "Le top 3 se partage la cagnotte"
-                : "Top 3 split the pot"}
+                ? "Le pot du groupe récompense les meilleurs"
+                : "The group pot rewards the best"}
             </h2>
             <p className="mt-1 text-sm leading-6 text-text-secondary">
               {L === "fr"
-                ? `À la fin du tournoi (${tournamentEnd}), le total des places vendues — moins la commission maison (${settings.prize_distribution.house_rake_pct}%) — est partagé selon ${settings.prize_distribution.description_fr || `${settings.prize_distribution.shares.join("% / ")}%`}.`
-                : `When the tournament ends (${tournamentEnd}), every paid seat — minus the house cut (${settings.prize_distribution.house_rake_pct}%) — is split per ${settings.prize_distribution.description_en || `${settings.prize_distribution.shares.join("% / ")}%`}.`}
+                ? `À la fin du tournoi (${tournamentEnd}), le pot commun (les accès, moins ${settings.prize_distribution.house_rake_pct}% de frais Stripe et d'hébergement) peut être réparti entre les membres les mieux classés — à l'amiable, à la discrétion de l'organisateur. À titre indicatif : ${settings.prize_distribution.description_fr || `${settings.prize_distribution.shares.join("% / ")}%`}.`
+                : `When the tournament ends (${tournamentEnd}), the group pot (access fees, minus ${settings.prize_distribution.house_rake_pct}% Stripe and hosting costs) may be shared among the top-ranked members — informally, at the organizer's discretion. As a guide: ${settings.prize_distribution.description_en || `${settings.prize_distribution.shares.join("% / ")}%`}.`}
             </p>
             <Link
               href="/leaderboard/global"

@@ -1118,8 +1118,8 @@ function CagnotteCard({
         </div>
         <p className="mt-1 text-xs leading-5 text-text-secondary">
           {fr
-            ? `${redistributed}% part dans la cagnotte ; les ${rakePct}% restants couvrent les frais Stripe et l'hébergement. Plus il y a de joueurs, plus la cagnotte grossit.`
-            : `${redistributed}% goes to the pot; the other ${rakePct}% covers Stripe fees and hosting. The more players, the bigger the pot.`}
+            ? `Un pot commun du groupe : ${redistributed}% des accès l'alimentent (les ${rakePct}% restants couvrent Stripe et l'hébergement). En fin de tournoi, il récompense les meilleurs — entre amis. Plus on est nombreux, plus il grossit.`
+            : `A shared group pot: ${redistributed}% of access fees fund it (the other ${rakePct}% covers Stripe + hosting). At the end, it rewards the best — among friends. The more of us, the bigger it gets.`}
         </p>
         {podium.length > 0 && (
           <div className="mt-4 flex gap-2">

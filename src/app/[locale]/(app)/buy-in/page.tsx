@@ -62,8 +62,8 @@ export default async function BuyInPage({
         }
         description={
           L === "fr"
-            ? `Pour ${priceLabel}, tu débloques tous les pronostics sur les 104 matchs. ${poolPct}% de ta place va dans la cagnotte (les ${rakePct}% restants couvrent les frais Stripe et l'hébergement) — plus il y a de joueurs, plus elle grossit. Le top 3 du classement final se la partage.`
-            : `For ${priceLabel} you unlock predictions on all 104 matches. ${poolPct}% of your seat funds the prize pool (the other ${rakePct}% covers Stripe fees and hosting) — the more players, the bigger it grows. The top 3 split it at the end.`
+            ? `Pour ${priceLabel}, accède à toute la Coupe du Monde 2026 sur Lucarne : les 104 matchs, scores en direct, news et analyses — et le concours de pronostics entre amis. ${poolPct}% de ton accès alimente le pot commun du groupe (les ${rakePct}% restants couvrent Stripe et l'hébergement) ; en fin de tournoi, il récompense les meilleurs, à l'amiable. Plus on est nombreux, plus il grossit.`
+            : `For ${priceLabel}, get full World Cup 2026 access on Lucarne: all 104 matches, live scores, news and analysis — plus the friends' prediction game. ${poolPct}% of your access funds the group pot (the other ${rakePct}% covers Stripe and hosting); at the end it rewards the best, informally. The more of us, the bigger it grows.`
         }
         visual={{
           src: "/assets/lucarne/claude-pack-20260525/svg/07-buy-in-gold-seat.svg",
@@ -152,8 +152,8 @@ export default async function BuyInPage({
             title={L === "fr" ? "Podium" : "Podium"}
             body={
               L === "fr"
-                ? "Top 3 du classement final se partage la cagnotte."
-                : "Top 3 split the prize pool at the end."
+                ? "Le pot du groupe récompense les meilleurs, à l'amiable."
+                : "The group pot rewards the best, informally."
             }
           />
         </ol>

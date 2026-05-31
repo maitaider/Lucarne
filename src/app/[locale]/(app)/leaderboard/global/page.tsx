@@ -61,8 +61,8 @@ export default async function GlobalLeaderboardPage({
         }
         description={
           L === "fr"
-            ? "Tous les joueurs Lucarne, leurs points et leur progression vers le podium Coupe du Monde. Cagnotte réelle partagée entre les 3 premiers."
-            : "All Lucarne players, their points, and their progression toward the World Cup podium. Real prize pool split among the top 3."
+            ? "Tous les joueurs Lucarne, leurs points et leur progression vers le podium Coupe du Monde. En fin de tournoi, le pot du groupe récompense les meilleurs, à l'amiable."
+            : "All Lucarne players, their points, and their progression toward the World Cup podium. At the end, the group pot rewards the best, informally."
         }
         stats={
           <>
