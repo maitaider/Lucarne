@@ -1267,6 +1267,7 @@ export type Database = {
         Returns: undefined
       }
       admin_delete_player: { Args: { p_id: string }; Returns: undefined }
+      admin_recompute_match: { Args: { p_match_id: string }; Returns: number }
       admin_set_match_result: {
         Args: {
           p_away_score?: number

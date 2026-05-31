@@ -5,6 +5,7 @@ import { AppPageShell } from "@/components/layout/app-page-shell";
 import { PageHero } from "@/components/layout/page-hero";
 import { LiveScores } from "@/components/live/live-scores";
 import { LiveNews } from "@/components/live/live-news";
+import { LiveRefresh } from "@/components/live/live-refresh";
 import { DataSourceBadge } from "@/components/ui/data-source-badge";
 import { Newspaper, Radio } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -77,6 +78,7 @@ export default async function LivePage({
 
   return (
     <AppPageShell width="ultra">
+      <LiveRefresh intervalMs={30000} />
       <PageHero
         kicker={L === "fr" ? "Live" : "Live"}
         kickerIcon={Radio}

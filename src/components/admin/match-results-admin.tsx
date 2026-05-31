@@ -3,11 +3,14 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useToast } from "@/components/ui/toast-provider";
-import { setMatchResultAction } from "@/lib/matches/admin-actions";
+import {
+  setMatchResultAction,
+  recomputeMatchAction,
+} from "@/lib/matches/admin-actions";
 import type { MatchListItem, TeamSnippet } from "@/lib/matches/shared";
 import type { Locale } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
-import { Goal, Loader2, Plus, Search, Trash2 } from "lucide-react";
+import { Goal, Loader2, Plus, RefreshCw, Search, Trash2 } from "lucide-react";
 
 type EventType = "goal" | "penalty_goal" | "own_goal";
 type Scorer = {
@@ -16,6 +19,9 @@ type Scorer = {
   minute: string;
   event_type: EventType;
 };
+
+/** Pre-fill shape passed from the server (existing match_events). */
+export type ExistingScorer = Scorer;
 
 const STATUSES = [
   "scheduled",
@@ -44,9 +50,13 @@ function teamName(
 
 export function MatchResultsAdmin({
   matches,
+  scorersByMatch = {},
+  rosterByTeam = {},
   locale,
 }: {
   matches: MatchListItem[];
+  scorersByMatch?: Record<string, ExistingScorer[]>;
+  rosterByTeam?: Record<string, string[]>;
   locale: Locale;
 }) {
   const fr = locale === "fr";
@@ -93,6 +103,9 @@ export function MatchResultsAdmin({
             fr={fr}
             open={openId === m.id}
             onToggle={() => setOpenId((id) => (id === m.id ? null : m.id))}
+            existingScorers={scorersByMatch[m.id] ?? []}
+            homeRoster={m.home_team?.id ? rosterByTeam[m.home_team.id] ?? [] : []}
+            awayRoster={m.away_team?.id ? rosterByTeam[m.away_team.id] ?? [] : []}
           />
         ))}
         {filtered.length === 0 && (
@@ -110,11 +123,17 @@ function MatchRow({
   fr,
   open,
   onToggle,
+  existingScorers,
+  homeRoster,
+  awayRoster,
 }: {
   match: MatchListItem;
   fr: boolean;
   open: boolean;
   onToggle: () => void;
+  existingScorers: Scorer[];
+  homeRoster: string[];
+  awayRoster: string[];
 }) {
   const home = teamName(match.home_team, match.home_placeholder, fr);
   const away = teamName(match.away_team, match.away_placeholder, fr);
@@ -150,7 +169,16 @@ function MatchRow({
         </span>
         <StatusBadge status={match.status} fr={fr} />
       </button>
-      {open && <MatchEditor match={match} fr={fr} onDone={onToggle} />}
+      {open && (
+        <MatchEditor
+          match={match}
+          fr={fr}
+          onDone={onToggle}
+          initialScorers={existingScorers}
+          homeRoster={homeRoster}
+          awayRoster={awayRoster}
+        />
+      )}
     </li>
   );
 }
@@ -179,10 +207,16 @@ function MatchEditor({
   match,
   fr,
   onDone,
+  initialScorers,
+  homeRoster,
+  awayRoster,
 }: {
   match: MatchListItem;
   fr: boolean;
   onDone: () => void;
+  initialScorers: Scorer[];
+  homeRoster: string[];
+  awayRoster: string[];
 }) {
   const [home, setHome] = useState(
     match.home_score != null ? String(match.home_score) : "",
@@ -191,10 +225,20 @@ function MatchEditor({
     match.away_score != null ? String(match.away_score) : "",
   );
   const [status, setStatus] = useState<string>(match.status);
-  const [scorers, setScorers] = useState<Scorer[]>([]);
+  // Pre-fill from existing match_events so re-saving never wipes scorers.
+  const [scorers, setScorers] = useState<Scorer[]>(() =>
+    initialScorers.map((s) => ({ ...s })),
+  );
   const [isPending, start] = useTransition();
+  const [isRecomputing, startRecompute] = useTransition();
   const router = useRouter();
   const toast = useToast();
+
+  const rosterListId = `roster-${match.id}`;
+  const rosterNames = useMemo(
+    () => Array.from(new Set([...homeRoster, ...awayRoster])).sort(),
+    [homeRoster, awayRoster],
+  );
 
   const teams = [
     { id: match.home_team?.id ?? null, label: teamName(match.home_team, match.home_placeholder, fr) },
@@ -231,11 +275,31 @@ function MatchEditor({
           })),
       });
       if (res.ok) {
-        toast.success(
-          fr ? "Résultat enregistré." : "Result saved.",
-        );
+        toast.success(fr ? "Résultat enregistré." : "Result saved.");
         router.refresh();
         onDone();
+      } else {
+        toast.error(res.error);
+      }
+    });
+  }
+
+  function recompute() {
+    const ok = window.confirm(
+      fr
+        ? "Recalculer les points de tous les pronostics de ce match avec le score et les buteurs actuels ?"
+        : "Recompute every prediction's points for this match using the current score and scorers?",
+    );
+    if (!ok) return;
+    startRecompute(async () => {
+      const res = await recomputeMatchAction(match.id);
+      if (res.ok) {
+        toast.success(
+          fr
+            ? `Points recalculés (${res.count} pronostic${res.count > 1 ? "s" : ""}).`
+            : `Points recomputed (${res.count} prediction${res.count > 1 ? "s" : ""}).`,
+        );
+        router.refresh();
       } else {
         toast.error(res.error);
       }
@@ -288,12 +352,20 @@ function MatchEditor({
             <Plus className="size-3" /> {fr ? "Ajouter" : "Add"}
           </button>
         </div>
+        {rosterNames.length > 0 && (
+          <datalist id={rosterListId}>
+            {rosterNames.map((n) => (
+              <option key={n} value={n} />
+            ))}
+          </datalist>
+        )}
         {scorers.map((s, i) => (
           <div key={i} className="flex flex-wrap items-center gap-2">
             <input
               value={s.player_name}
               onChange={(e) => updateScorer(i, { player_name: e.target.value })}
               placeholder={fr ? "Nom du buteur" : "Scorer name"}
+              list={rosterNames.length > 0 ? rosterListId : undefined}
               className="min-w-[8rem] flex-1 rounded-[7px] border border-white/[0.1] bg-surface-2 px-2.5 py-1.5 text-sm text-text-primary outline-none focus:border-primary-500"
             />
             <select
@@ -339,7 +411,7 @@ function MatchEditor({
         ))}
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
           onClick={save}
@@ -349,6 +421,21 @@ function MatchEditor({
           {isPending && <Loader2 className="size-4 animate-spin" />}
           {fr ? "Enregistrer le résultat" : "Save result"}
         </button>
+        {match.status === "finished" && (
+          <button
+            type="button"
+            onClick={recompute}
+            disabled={isRecomputing}
+            className="inline-flex items-center gap-2 rounded-[8px] border border-white/[0.12] px-3 py-2 text-sm font-medium text-text-secondary transition hover:border-primary-500/40 hover:text-text-primary disabled:opacity-60"
+          >
+            {isRecomputing ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <RefreshCw className="size-4" />
+            )}
+            {fr ? "Recalculer les points" : "Recompute points"}
+          </button>
+        )}
         <button
           type="button"
           onClick={onDone}
@@ -359,8 +446,8 @@ function MatchEditor({
         {status === "finished" && (
           <span className="text-[11px] text-text-tertiary">
             {fr
-              ? "« Terminé » règle automatiquement les pronostics."
-              : "“Finished” settles predictions automatically."}
+              ? "« Terminé » règle automatiquement les pronostics (et recalcule si tu corriges)."
+              : "“Finished” settles predictions automatically (and recomputes on correction)."}
           </span>
         )}
       </div>

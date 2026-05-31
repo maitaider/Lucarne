@@ -23,6 +23,7 @@ import type { Locale } from "@/i18n/routing";
 import { Flag } from "@/components/team/flag";
 import { TeamEmblem } from "@/components/team/team-emblem";
 import { Reveal } from "@/components/ui/reveal";
+import { LiveRefresh } from "@/components/live/live-refresh";
 
 export default async function MatchDetailPage({
   params,
@@ -87,6 +88,7 @@ export default async function MatchDetailPage({
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-8 lg:px-8">
+      <LiveRefresh intervalMs={30000} />
       <Link
         href="/matches"
         className="mb-5 inline-flex items-center gap-1.5 text-sm text-text-secondary transition hover:text-text-primary"

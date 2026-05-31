@@ -54,3 +54,34 @@ export async function setMatchResultAction(
   revalidatePath("/matches");
   return { ok: true };
 }
+
+/**
+ * Admin-only: re-score every bet of an already-finished match after a score or
+ * scorer correction. The settle trigger only fires on the transition to
+ * 'finished', so corrections need this explicit recompute.
+ */
+export async function recomputeMatchAction(
+  matchId: string,
+): Promise<{ ok: true; count: number } | { ok: false; error: string }> {
+  const parsed = z.string().uuid().safeParse(matchId);
+  if (!parsed.success) return { ok: false, error: "ID de match invalide" };
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    return { ok: false, error: "Supabase non configuré" };
+  }
+  const supabase = await getSupabaseServer();
+  const { data, error } = await supabase.rpc("admin_recompute_match", {
+    p_match_id: parsed.data,
+  });
+  if (error) {
+    const msg = error.message.toLowerCase();
+    if (msg.includes("not_authorized"))
+      return { ok: false, error: "Accès admin requis." };
+    return { ok: false, error: error.message };
+  }
+  revalidatePath("/admin/matches");
+  revalidatePath("/dashboard");
+  revalidatePath("/live");
+  revalidatePath("/matches");
+  revalidatePath("/leaderboard", "layout");
+  return { ok: true, count: (data as number) ?? 0 };
+}

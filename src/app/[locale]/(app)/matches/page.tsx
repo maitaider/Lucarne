@@ -8,6 +8,7 @@ import { BuyInBanner } from "@/components/paywall/buy-in-banner";
 import { MatchCard } from "@/components/match/match-card";
 import { GroupTableCard } from "@/components/match/group-table";
 import { Bracket } from "@/components/match/bracket";
+import { LiveRefresh } from "@/components/live/live-refresh";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
@@ -55,6 +56,7 @@ export default async function MatchesPage({
 
   return (
     <main className="lk-stagger mx-auto max-w-[1600px] px-4 py-8 sm:px-6 lg:px-8">
+      <LiveRefresh />
       {!buyIn.can_bet && (
         <BuyInBanner
           amountCents={buyIn.amount_cents}
