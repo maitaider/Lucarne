@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { addComment, deleteComment } from "@/lib/social/actions";
 import { useToast } from "@/components/ui/toast-provider";
 import { Loader2, Send, Trash2 } from "lucide-react";
@@ -146,9 +146,12 @@ export function CommentThread({
                       .toUpperCase()}
                   />
                   <div className="min-w-0">
-                    <span className="truncate text-xs font-semibold text-text-primary">
+                    <Link
+                      href={`/u/${c.author.username}`}
+                      className="truncate text-xs font-semibold text-text-primary transition hover:text-primary-400 hover:underline"
+                    >
                       {c.author.display_name ?? `@${c.author.username}`}
-                    </span>
+                    </Link>
                     <span className="ml-2 text-[10px] text-text-tertiary">
                       {formatRelativeTime(c.created_at, locale)}
                     </span>

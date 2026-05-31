@@ -1,6 +1,7 @@
 import type { StandingEntry } from "@/lib/leagues/queries";
 import { Crown, Trophy, Medal } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Link } from "@/i18n/navigation";
 import { formatMoney } from "@/lib/admin/economy";
 
 type PayoutInfo = {
@@ -135,7 +136,12 @@ function Step({
 
       <div className="mb-3 max-w-full text-center">
         <div className={cn("truncate text-sm sm:text-base", config.name)}>
-          @{entry.username}
+          <Link
+            href={`/u/${entry.username}`}
+            className="transition hover:text-primary-400 hover:underline"
+          >
+            @{entry.username}
+          </Link>
         </div>
         <div
           className={cn(

@@ -10,6 +10,7 @@ import {
 import type { FeedActivity } from "@/lib/social/feed";
 import type { Locale } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
+import { Link } from "@/i18n/navigation";
 
 export async function LeagueActivityFeed({
   activities,
@@ -64,9 +65,12 @@ export async function LeagueActivityFeed({
                   <ActivityIcon kind={act.kind} />
                   <div className="min-w-0 flex-1">
                     <p className="text-sm leading-5 text-text-primary">
-                      <span className="font-semibold">
+                      <Link
+                        href={`/u/${act.user.username}`}
+                        className="font-semibold text-text-primary transition hover:text-primary-400 hover:underline"
+                      >
                         {act.user.display_name ?? `@${act.user.username}`}
-                      </span>{" "}
+                      </Link>{" "}
                       <span className="text-text-secondary">
                         {summarize(act, locale)}
                       </span>

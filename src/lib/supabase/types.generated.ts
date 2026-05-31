@@ -1382,6 +1382,45 @@ export type Database = {
         }
         Returns: string
       }
+      profile_recent_bets: {
+        Args: { p_limit?: number; p_username: string }
+        Returns: {
+          away_fifa: string
+          away_iso: string
+          away_name_en: string
+          away_name_fr: string
+          away_score: number
+          bet_id: string
+          bet_type: string
+          home_fifa: string
+          home_iso: string
+          home_name_en: string
+          home_name_fr: string
+          home_score: number
+          kickoff_at: string
+          match_id: string
+          match_status: string
+          payload: Json
+          points: number
+          result: string
+        }[]
+      }
+      public_profile: {
+        Args: { p_username: string }
+        Returns: {
+          avatar_url: string
+          bets_count: number
+          display_name: string
+          losses: number
+          rank: number
+          role: string
+          settled_count: number
+          total_points: number
+          user_id: string
+          username: string
+          wins: number
+        }[]
+      }
       publish_league_post: {
         Args: {
           p_body: string
@@ -1417,6 +1456,10 @@ export type Database = {
       refund_payment: {
         Args: { p_payment_id: string; p_reason?: string }
         Returns: undefined
+      }
+      resolve_viewable_profile: {
+        Args: { p_username: string }
+        Returns: string
       }
       set_user_role: {
         Args: {

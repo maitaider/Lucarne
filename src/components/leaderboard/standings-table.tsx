@@ -1,6 +1,7 @@
 import type { StandingEntry } from "@/lib/leagues/queries";
 import { TrendingUp, TrendingDown, Minus, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Link } from "@/i18n/navigation";
 import { FlashRow } from "./flash-row";
 
 export function StandingsTable({
@@ -88,7 +89,12 @@ export function StandingsTable({
                           isMe ? "text-primary-400" : "text-text-primary",
                         )}
                       >
-                        @{e.username}
+                        <Link
+                          href={`/u/${e.username}`}
+                          className="transition hover:text-primary-400 hover:underline"
+                        >
+                          @{e.username}
+                        </Link>
                         {isMe && (
                           <span className="ml-1.5 rounded-full bg-primary-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary-400">
                             {locale === "fr" ? "Toi" : "You"}
