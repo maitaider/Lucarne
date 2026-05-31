@@ -1512,6 +1512,30 @@ export type Database = {
         }
         Returns: undefined
       }
+      shared_prediction: {
+        Args: { p_bet_id: string }
+        Returns: {
+          avatar_url: string
+          away_iso: string
+          away_name_en: string
+          away_name_fr: string
+          away_score: number
+          bet_id: string
+          bet_type: string
+          display_name: string
+          home_iso: string
+          home_name_en: string
+          home_name_fr: string
+          home_score: number
+          kickoff_at: string
+          match_status: string
+          payload: Json
+          points: number
+          result: string
+          status: string
+          username: string
+        }[]
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       standings_filtered: {

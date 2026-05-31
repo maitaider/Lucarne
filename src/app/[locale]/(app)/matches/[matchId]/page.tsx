@@ -24,6 +24,7 @@ import { Flag } from "@/components/team/flag";
 import { TeamEmblem } from "@/components/team/team-emblem";
 import { Reveal } from "@/components/ui/reveal";
 import { LiveRefresh } from "@/components/live/live-refresh";
+import { SharePredictionButton } from "@/components/social/share-prediction-button";
 
 export default async function MatchDetailPage({
   params,
@@ -53,7 +54,8 @@ export default async function MatchDetailPage({
 
   // --- My prediction for this match (synced with /predict) -------------------
   const picks = myPicks.get(matchId) ?? [];
-  const score = parseScore(picks.find((p) => p.bet_type === "exact_score")?.payload);
+  const scorePick = picks.find((p) => p.bet_type === "exact_score");
+  const score = parseScore(scorePick?.payload);
   const scorers = parseScorers(
     picks.find((p) => p.bet_type === "anytime_scorer")?.payload,
   );
@@ -63,6 +65,7 @@ export default async function MatchDetailPage({
   const locked =
     match.status !== "scheduled" ||
     kickoff.getTime() - 60 * 60 * 1000 < Date.now();
+  const kickedOff = kickoff.getTime() <= Date.now();
 
   const homeName = teamLabel(match.home_team, match.home_placeholder, L);
   const awayName = teamLabel(match.away_team, match.away_placeholder, L);
@@ -153,6 +156,8 @@ export default async function MatchDetailPage({
           scorers={scorers}
           locked={locked}
           editHref={editHref}
+          shareBetId={scorePick?.bet_id ?? null}
+          shareable={kickedOff}
           locale={L}
         />
       </Reveal>
@@ -334,6 +339,8 @@ function MyPredictionPanel({
   scorers,
   locked,
   editHref,
+  shareBetId,
+  shareable,
   locale,
 }: {
   homeName: string;
@@ -344,6 +351,8 @@ function MyPredictionPanel({
   scorers: string[];
   locked: boolean;
   editHref: string;
+  shareBetId: string | null;
+  shareable: boolean;
   locale: Locale;
 }) {
   const fr = locale === "fr";
@@ -421,6 +430,13 @@ function MyPredictionPanel({
                   ? "Pronostics fermés — le coup d'envoi approche."
                   : "Predictions closed — kickoff is near."}
               </p>
+            )}
+            {shareable && shareBetId && (
+              <SharePredictionButton
+                betId={shareBetId}
+                locale={locale}
+                className="w-full"
+              />
             )}
           </div>
         ) : (
