@@ -34,6 +34,9 @@ Remplace `<ITEM CI-DESSOUS>` par un des blocs **Prompts** plus bas.
 - **Phase 3 (amorce)** : `React.cache(listMatches)`, `loading.tsx`, `not-found.tsx` localisé, a11y formulaire support.
 - **Phase 3 — item A** : profils publics `/u/[username]` + `@username` cliquables, en prod (2026-05-31). Voir le détail sous « Phase 3 — items restants ».
 - **Phase 3 — item B** : notifs sociales (réaction / commentaire / dépassement) + classement filtré par phase/journée + partage de prono (lien public + OG), en prod (2026-05-31). Détail sous « Phase 3 — items restants ».
+- **Phase 3 — item C** : données match riches (timeline buts, classement de groupe live, effectifs, fiche stade) sur `/matches/[matchId]`, en prod (2026-05-31).
+- **Phase 3 — item D** : i18n next-intl — 1re tranche (error/not-found/metadata localisés via `generateMetadata`), en prod. **Reste itératif** : nav + ~630 ternaires.
+- **Phase 3 — item E** : design-system — 1re tranche (sweep radii arbitraires → tokens `@theme`, 73 fichiers, zéro changement visuel), en prod. **Reste** : orphelins 10/7/14px, primitives `<Field>`/`<Input>`, audit mobile.
 
 ## Conventions clés (détail dans CLAUDE.md)
 
@@ -66,26 +69,28 @@ Remplace `<ITEM CI-DESSOUS>` par un des blocs **Prompts** plus bas.
 
 **Vérifié** : SQL e2e local (3 triggers + exclusion self + idempotence ; filtre J1/J2/final ; révèle/cache/bogus) + 4 migrations live remote (RPC `shared_prediction` anon HTTP 200, `standings_filtered` HTTP 200) + build + Vercel. *Non fait : rendu navigateur authentifié (sandbox).*
 
-### C. Données match riches — [XL] · *dépend en partie d'O3*
-**Objectif** : timeline de buts, compos, classement de groupe « live », fiche stade sur `/matches/[matchId]`.
-**Fichiers clés** : `src/app/[locale]/(app)/matches/[matchId]/page.tsx`, `ref.match_events`, `ref.players`, `src/lib/matches/group-standings.ts`.
+### C. Données match riches — ✅ LIVRÉ (2026-05-31, commit `9aa40ac`)
+**Livré sur `/matches/[matchId]`** (aucune migration — colonnes `ref.*` existantes) :
+- Timeline des buts (`ref.match_events` via `getMatchEvents`, triée par minute, marqueurs pén./csc).
+- Classement de groupe « live » (réutilise `getGroupStandings` + `GroupTableCard`, filtré au groupe du match).
+- Effectifs par équipe (`ref.players` via `listPlayersForTeams`, groupés GK/DEF/MID/FWD).
+- Fiche stade enrichie (`getMatchById`/`VenueSnippet` + pays + capacité).
 
-**Prompt :**
-> Enrichis `/matches/[matchId]` : timeline des buts (depuis `ref.match_events`, triée par minute), compos par équipe (depuis `ref.players`), classement de groupe « live » (recalcul depuis les matchs `finished`/`live`), fiche stade/ville. Les scores live automatiques dépendent du mapping O3 (voir Dette) ; la saisie admin manuelle alimente déjà `match_events`. Vérifie + commit + déploie.
+*Vérifié : typecheck + build + données (32 venues country/capacity, rosters seedés). Timeline non testable en local (aucun `match_events` seedé — admin-entered).*
 
-### D. i18n → next-intl — [XL] · *surtout mécanique*
-**Objectif** : migrer les ternaires `=== "fr"` vers les catalogues `messages/{fr,en}.json`.
-**Fichiers clés** : `messages/fr.json`, `messages/en.json`, `src/i18n/`, `error.tsx`, `not-found.tsx`, nav, metadata.
+### D. i18n → next-intl — 🟡 1re tranche LIVRÉE (commit `b2ca744`), itératif
+**Livré** : namespaces `errors` / `notFound` / `metadata` (`messages/{fr,en}.json`) ; `error.tsx` → `useTranslations`, `not-found.tsx` → `getTranslations`, root layout `export const metadata` FR → `generateMetadata` localisé (OG/Twitter/alt), `/p/[betId]` metadata localisée.
+**Reste (sous-tranches suivantes)** : la **navigation** (`nav-links` / `user-menu` / `mobile-menu` / `app-header` — tableaux `{fr,en}` + ternaires) ; puis le gros des **~630 ternaires `locale === "fr"`** écran par écran (top fichiers : `bracket-builder`, `economy-form`, `world-cup-data-deck`, `cockpit`, `leagues/page`…). Procéder un namespace/écran à la fois, typecheck+test+commit par lot.
 
-**Prompt :**
-> Migre l'i18n de Lucarne des ternaires `locale === "fr" ? … : …` vers les catalogues next-intl (`messages/{fr,en}.json` + `useTranslations`/`getTranslations`). Commence par : `error.tsx`, `not-found.tsx`, la navigation, et les metadata (passer de `export const metadata` statique FR à `generateMetadata` localisé). Procède **un namespace/écran à la fois**, `pnpm typecheck` + `pnpm test` après chaque lot, commit par lot. Déploie à la fin.
+**Prompt (reprise) :**
+> Continue la migration i18n next-intl de Lucarne. Fais la navigation (`src/components/nav/*` : remplace les tableaux `{fr,en}` et ternaires par un namespace `nav` + `useTranslations`), puis enchaîne écran par écran sur les ~630 ternaires `locale === "fr"` restants. typecheck+test+commit par lot, déploie à la fin.
 
-### E. Design-system + audit mobile — [L] · *un peu subjectif*
-**Objectif** : unifier les radii arbitraires, généraliser `<Button>`/`<Field>`, vérifier 390px.
-**Fichiers clés** : `src/app/globals.css` (`@theme`), `src/lib/design-tokens.ts`, `src/components/ui/button.tsx`, `src/components/ui/field.tsx`.
+### E. Design-system + audit mobile — 🟡 1re tranche LIVRÉE (commit `e4fb613`), itératif
+**Livré** : sweep des rayons exacts vers les tokens `@theme` (valeur identique, **zéro changement visuel**) sur 73 fichiers — `rounded-[8px]→rounded-sm`, `[12px]→rounded-md`, `[6px]→rounded-xs`, `[16px]→rounded-lg` ; `section-panel.tsx` re-tokenisé. (Tokens `--radius-*` existaient déjà ; le sweep n'a fait que remplacer les arbitraires.)
+**Reste** : orphelins `rounded-[10px]` (63×) / `[7px]` (20×) / `[14px]` (12×) / `[3px]` — pas de token exact, snap = choix visuel à trancher ; primitives `<Field>`/`<Input>`/`<Textarea>` (radius input actuel 16px → 8px = subjectif, à généraliser sur login/signup/create-league/admin) ; audit mobile 390px (`group-table` `min-w-[440px]` et `cockpit` MiniBracket `min-w-[460px]` sont déjà en `overflow-x-auto` → acceptable, à confirmer visuellement).
 
-**Prompt :**
-> Unifie le design-system Lucarne : remplace les `rounded-[8px]`/`[10px]`/`[12px]` arbitraires (200+ occurrences) par des tokens de radius cohérents (définis dans `globals.css`/`design-tokens.ts`) ; généralise les primitives `<Button>` et `<Field>` à la place des boutons/inputs ad-hoc. Fais un audit mobile à 390px et corrige les débordements. Vérifie + commit + déploie.
+**Prompt (reprise) :**
+> Continue le design-system Lucarne : décide d'un snap pour les radii orphelins (10/7/14px → token le plus proche), extrais les primitives `<Field>`/`<Input>`/`<Textarea>` dans `src/components/ui/` (radius `rounded-sm`) et applique-les aux formulaires (login, signup, create-league, admin), puis audit mobile 390px. Vérifie + commit + déploie.
 
 ---
 
