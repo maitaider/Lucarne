@@ -24,6 +24,7 @@ import { QuickBetButton } from "@/components/bet/quick-bet-button";
 import { Flag } from "@/components/team/flag";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Stat } from "@/components/ui/stat";
 import { ProgressBar } from "@/components/ui/progress-bar";
@@ -769,6 +770,15 @@ function LeaderRow({
       )}
     >
       <RankBadge rank={row.rank} />
+      <UserAvatar
+        src={row.avatar_url}
+        name={row.display_name ?? row.username}
+        className={cn(
+          "size-7 ring-1",
+          row.rank === 1 ? "ring-gold-500/35" : "ring-white/[0.1]",
+        )}
+        fallbackClassName="bg-gradient-to-br from-primary-500/30 to-violet-500/30 font-mono text-[10px] font-bold text-text-primary"
+      />
       <span
         className={cn(
           "min-w-0 flex-1 truncate text-xs",

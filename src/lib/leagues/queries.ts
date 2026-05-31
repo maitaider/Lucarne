@@ -138,6 +138,45 @@ export async function getLeagueBySlug(slug: string): Promise<LeagueWithMembers |
   };
 }
 
+/**
+ * Overlay identity columns (display_name, avatar_url, role) read live from
+ * `profiles` onto the standings rows.
+ *
+ * In the canonical schema the `mv_*_standings` relations are plain VIEWS (see
+ * migration `20260530220000`, which dropped the original materialized views and
+ * recreated them as `create view`), so they already select `profiles.avatar_url`
+ * live. This overlay keeps the leaderboard correct even in an environment whose
+ * DB drifted and still serves these as a STALE materialized view (the CLAUDE.md
+ * "leçons de prod" #1 failure mode) — a freshly uploaded avatar then still shows
+ * up. RLS `profiles_select_all` lets any authenticated user read non-deleted
+ * profiles; cost is one indexed `id in (...)` lookup. Rows with no matching
+ * profile keep their original values.
+ */
+async function withLiveIdentities(
+  supabase: Awaited<ReturnType<typeof getSupabaseServer>>,
+  rows: StandingEntry[],
+): Promise<StandingEntry[]> {
+  const ids = rows.map((r) => r.user_id).filter(Boolean);
+  if (ids.length === 0) return rows;
+  const { data } = await supabase
+    .from("profiles")
+    .select("id, username, display_name, avatar_url, role")
+    .in("id", ids);
+  if (!data || data.length === 0) return rows;
+  const live = new Map(data.map((p) => [p.id, p]));
+  return rows.map((r) => {
+    const p = live.get(r.user_id);
+    if (!p) return r;
+    return {
+      ...r,
+      username: p.username ?? r.username,
+      display_name: p.display_name,
+      avatar_url: p.avatar_url,
+      role: p.role ?? r.role,
+    };
+  });
+}
+
 export async function getLeagueStandings(
   leagueId: string,
 ): Promise<StandingEntry[]> {
@@ -152,7 +191,7 @@ export async function getLeagueStandings(
     console.error("[leagues:getLeagueStandings]", error);
     return [];
   }
-  return (data ?? []).map(toStanding);
+  return withLiveIdentities(supabase, (data ?? []).map(toStanding));
 }
 
 export async function getGlobalStandings(limit = 100): Promise<StandingEntry[]> {
@@ -164,7 +203,7 @@ export async function getGlobalStandings(limit = 100): Promise<StandingEntry[]> 
     .order("rank", { ascending: true })
     .limit(limit);
   if (error) return [];
-  return (data ?? []).map(toStanding);
+  return withLiveIdentities(supabase, (data ?? []).map(toStanding));
 }
 
 /**

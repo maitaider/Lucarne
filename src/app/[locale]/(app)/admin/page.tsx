@@ -9,6 +9,7 @@ import {
 import { listMyLeagues } from "@/lib/leagues/queries";
 import { listRecentSignups, type RecentSignup } from "@/lib/admin/signups";
 import { AdminInviteTool } from "@/components/admin/admin-invite-tool";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { PageHero } from "@/components/layout/page-hero";
 import {
   AlertCircle,
@@ -400,18 +401,18 @@ function RecentSignups({
       ) : (
         <ul className="divide-y divide-white/[0.05]">
           {signups.map((s) => {
-            const initials = (s.display_name ?? s.username)
-              .slice(0, 2)
-              .toUpperCase();
             const joined = new Date(s.created_at).toLocaleDateString(
               fr ? "fr-FR" : "en-US",
               { day: "numeric", month: "short" },
             );
             return (
               <li key={s.id} className="flex items-center gap-3 py-2.5">
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary-500/30 to-violet-500/30 font-mono text-[10px] font-bold uppercase text-text-primary ring-1 ring-white/10">
-                  {initials}
-                </span>
+                <UserAvatar
+                  src={s.avatar_url}
+                  name={s.display_name ?? s.username}
+                  className="size-8 ring-1 ring-white/10"
+                  fallbackClassName="bg-gradient-to-br from-primary-500/30 to-violet-500/30 font-mono text-[10px] font-bold text-text-primary"
+                />
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-semibold text-text-primary">
                     {s.display_name ?? s.username}

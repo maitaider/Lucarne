@@ -8,6 +8,7 @@ import {
   deleteLeaguePost,
 } from "@/lib/social/league-actions";
 import { useToast } from "@/components/ui/toast-provider";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { Loader2, Send, Trash2, MessageCircle, Megaphone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
@@ -226,12 +227,6 @@ function FeedPostCard({
   locale: Locale;
   onDelete: () => void;
 }) {
-  const initials = (post.author.display_name ?? post.author.username)
-    .split(/\s+/)
-    .map((s) => s[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
   const isMine = currentUserId === post.author_id;
   const isAnnouncement = post.kind === "announcement";
   return (
@@ -242,9 +237,12 @@ function FeedPostCard({
       )}
     >
       <div className="flex items-start gap-3">
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary-500/30 to-violet-500/15 font-mono text-[11px] font-bold uppercase text-text-primary ring-1 ring-white/[0.1]">
-          {initials || "?"}
-        </span>
+        <UserAvatar
+          src={post.author.avatar_url}
+          name={post.author.display_name ?? post.author.username}
+          className="size-9 ring-1 ring-white/[0.1]"
+          fallbackClassName="bg-gradient-to-br from-primary-500/30 to-violet-500/15 font-mono text-[11px] font-bold text-text-primary"
+        />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className="truncate text-sm font-semibold text-text-primary">

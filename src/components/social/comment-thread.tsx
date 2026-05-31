@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Link, useRouter } from "@/i18n/navigation";
 import { addComment, deleteComment } from "@/lib/social/actions";
 import { useToast } from "@/components/ui/toast-provider";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { Loader2, Send, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
@@ -137,13 +138,11 @@ export function CommentThread({
             >
               <div className="mb-1 flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0">
-                  <Avatar
-                    initials={(c.author.display_name ?? c.author.username)
-                      .split(/\s+/)
-                      .map((s) => s[0])
-                      .join("")
-                      .slice(0, 2)
-                      .toUpperCase()}
+                  <UserAvatar
+                    src={c.author.avatar_url}
+                    name={c.author.display_name ?? c.author.username}
+                    className="size-7 ring-1 ring-white/[0.1]"
+                    fallbackClassName="bg-gradient-to-br from-primary-500/30 to-violet-500/30 font-mono text-[10px] font-bold text-text-primary"
                   />
                   <div className="min-w-0">
                     <Link
@@ -176,14 +175,6 @@ export function CommentThread({
         </ul>
       )}
     </div>
-  );
-}
-
-function Avatar({ initials }: { initials: string }) {
-  return (
-    <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary-500/30 to-violet-500/30 font-mono text-[10px] font-bold uppercase text-text-primary ring-1 ring-white/[0.1]">
-      {initials || "?"}
-    </span>
   );
 }
 

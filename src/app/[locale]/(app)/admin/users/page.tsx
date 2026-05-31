@@ -2,6 +2,7 @@ import { setRequestLocale } from "next-intl/server";
 import { listAdminUsers, formatMoney, getAppSettings } from "@/lib/admin/economy";
 import { getCurrentUser } from "@/lib/profile/queries";
 import { AdjustBalanceButton } from "@/components/admin/user-actions";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { Crown, ShieldCheck, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
@@ -69,14 +70,18 @@ export default async function AdminUsersPage({
                 >
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <Avatar
-                        initials={(u.display_name ?? u.username)
-                          .split(/\s+/)
-                          .map((s) => s[0])
-                          .join("")
-                          .slice(0, 2)
-                          .toUpperCase()}
-                        role={u.role}
+                      <UserAvatar
+                        src={u.avatar_url}
+                        name={u.display_name ?? u.username}
+                        className="size-9 ring-1 ring-white/[0.1]"
+                        fallbackClassName={cn(
+                          "bg-gradient-to-br font-mono text-[10px] font-bold text-text-primary",
+                          u.role === "super_admin"
+                            ? "from-gold-500/40 to-gold-500/10"
+                            : u.role === "admin"
+                              ? "from-violet-500/30 to-violet-500/10"
+                              : "from-primary-500/25 to-violet-500/10",
+                        )}
                       />
                       <div className="min-w-0">
                         <div className="text-sm font-semibold text-text-primary">
@@ -141,31 +146,6 @@ export default async function AdminUsersPage({
         </div>
       </section>
     </div>
-  );
-}
-
-function Avatar({
-  initials,
-  role,
-}: {
-  initials: string;
-  role: "player" | "admin" | "super_admin";
-}) {
-  const gradient =
-    role === "super_admin"
-      ? "from-gold-500/40 to-gold-500/10"
-      : role === "admin"
-        ? "from-violet-500/30 to-violet-500/10"
-        : "from-primary-500/25 to-violet-500/10";
-  return (
-    <span
-      className={cn(
-        "flex size-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br font-mono text-[10px] font-bold uppercase text-text-primary ring-1 ring-white/[0.1]",
-        gradient,
-      )}
-    >
-      {initials || "?"}
-    </span>
   );
 }
 
