@@ -167,6 +167,26 @@ export async function getGlobalStandings(limit = 100): Promise<StandingEntry[]> 
   return (data ?? []).map(toStanding);
 }
 
+/**
+ * Global standings counting only points earned on matches of a given phase
+ * (and, for the group stage, a given matchday). Powered by the
+ * `standings_filtered` SECURITY DEFINER RPC. Returns every player (0-point
+ * players ranked last), like the global board, so ranks reflect phase form.
+ */
+export async function getStageStandings(
+  stage: string,
+  matchday?: number | null,
+): Promise<StandingEntry[]> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return [];
+  const supabase = await getSupabaseServer();
+  const { data, error } = await supabase.rpc("standings_filtered", {
+    p_stage: stage,
+    p_matchday: matchday ?? undefined,
+  });
+  if (error || !data) return [];
+  return data.map(toStanding);
+}
+
 export async function listLeagueInvitations(leagueId: string): Promise<Invitation[]> {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return [];
   const supabase = await getSupabaseServer();

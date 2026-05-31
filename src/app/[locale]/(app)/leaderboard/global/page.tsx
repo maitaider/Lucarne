@@ -1,5 +1,5 @@
 import { setRequestLocale } from "next-intl/server";
-import { getGlobalStandings } from "@/lib/leagues/queries";
+import { getGlobalStandings, getStageStandings } from "@/lib/leagues/queries";
 import { getProjectedPayouts } from "@/lib/leagues/projected-payouts";
 import { formatMoney } from "@/lib/admin/economy";
 import { AppPageShell } from "@/components/layout/app-page-shell";
@@ -8,6 +8,8 @@ import { LeaderboardPodium } from "@/components/leaderboard/podium";
 import { StandingsTable } from "@/components/leaderboard/standings-table";
 import { LiveRefresh } from "@/components/live/live-refresh";
 import { getSupabaseServer } from "@/lib/supabase/server";
+import { Link } from "@/i18n/navigation";
+import { cn } from "@/lib/utils";
 import {
   Coins,
   Crown,
@@ -19,28 +21,132 @@ import {
 } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
 
+const STAGE_KEYS = ["group", "r32", "r16", "qf", "sf", "third_place", "final"];
+
+const STAGE_TABS: { key: string | null; fr: string; en: string }[] = [
+  { key: null, fr: "Tout", en: "All" },
+  { key: "group", fr: "Groupes", en: "Groups" },
+  { key: "r32", fr: "16es", en: "R32" },
+  { key: "r16", fr: "8es", en: "R16" },
+  { key: "qf", fr: "Quarts", en: "QF" },
+  { key: "sf", fr: "Demies", en: "SF" },
+  { key: "final", fr: "Finale", en: "Final" },
+];
+
+const MATCHDAY_TABS: { key: number | null; fr: string; en: string }[] = [
+  { key: null, fr: "Toutes", en: "All" },
+  { key: 1, fr: "J1", en: "MD1" },
+  { key: 2, fr: "J2", en: "MD2" },
+  { key: 3, fr: "J3", en: "MD3" },
+];
+
+function LeaderboardFilters({
+  phase,
+  matchday,
+  locale,
+}: {
+  phase: string | null;
+  matchday: number | null;
+  locale: Locale;
+}) {
+  const fr = locale === "fr";
+  return (
+    <div className="-mt-1 space-y-2">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+        <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
+          Phase
+        </span>
+        {STAGE_TABS.map((t) => {
+          const active = phase === t.key;
+          const href = t.key
+            ? `/leaderboard/global?phase=${t.key}`
+            : "/leaderboard/global";
+          return (
+            <Link
+              key={t.key ?? "all"}
+              href={href}
+              scroll={false}
+              className={cn(
+                "shrink-0 rounded-full border px-3 py-1 text-xs font-semibold transition",
+                active
+                  ? "border-gold-500/40 bg-gold-500/15 text-gold-200"
+                  : "border-white/[0.1] bg-white/[0.03] text-text-secondary hover:border-white/20 hover:text-text-primary",
+              )}
+            >
+              {fr ? t.fr : t.en}
+            </Link>
+          );
+        })}
+      </div>
+      {phase === "group" && (
+        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
+            {fr ? "Journée" : "Matchday"}
+          </span>
+          {MATCHDAY_TABS.map((t) => {
+            const active = matchday === t.key;
+            const href = t.key
+              ? `/leaderboard/global?phase=group&jour=${t.key}`
+              : "/leaderboard/global?phase=group";
+            return (
+              <Link
+                key={t.key ?? "all"}
+                href={href}
+                scroll={false}
+                className={cn(
+                  "shrink-0 rounded-full border px-3 py-1 text-xs font-semibold transition",
+                  active
+                    ? "border-primary-500/40 bg-primary-500/15 text-primary-200"
+                    : "border-white/[0.1] bg-white/[0.03] text-text-secondary hover:border-white/20 hover:text-text-primary",
+                )}
+              >
+                {fr ? t.fr : t.en}
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default async function GlobalLeaderboardPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ phase?: string; jour?: string }>;
 }) {
   const { locale } = await params;
+  const sp = await searchParams;
   setRequestLocale(locale);
   const L = locale as Locale;
 
+  const phase =
+    typeof sp.phase === "string" && STAGE_KEYS.includes(sp.phase)
+      ? sp.phase
+      : null;
+  const matchday =
+    phase === "group" && ["1", "2", "3"].includes(sp.jour ?? "")
+      ? Number(sp.jour)
+      : null;
+  const isFiltered = phase !== null;
+
   const [standings, projected] = await Promise.all([
-    getGlobalStandings(),
-    getProjectedPayouts(),
+    isFiltered ? getStageStandings(phase, matchday) : getGlobalStandings(),
+    isFiltered ? Promise.resolve(null) : getProjectedPayouts(),
   ]);
   const leader = standings[0];
   const totalBets = standings.reduce((sum, entry) => sum + entry.bets_count, 0);
   const totalWins = standings.reduce((sum, entry) => sum + entry.wins, 0);
   const moneyLocale = L === "fr" ? "fr-CA" : "en-CA";
-  const podiumPayouts = {
-    payouts: projected.payouts,
-    currency: projected.settings.currency,
-    locale: moneyLocale,
-  };
+  const podiumPayouts = projected
+    ? {
+        payouts: projected.payouts,
+        currency: projected.settings.currency,
+        locale: moneyLocale,
+      }
+    : undefined;
 
   let currentUserId: string | null = null;
   if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
@@ -87,19 +193,30 @@ export default async function GlobalLeaderboardPage({
         }
       />
 
+      <LeaderboardFilters phase={phase} matchday={matchday} locale={L} />
+
       {standings.length === 0 ? (
         <EmptyLeaderboardPreview locale={L} />
       ) : (
         <>
-          <ProjectedPotCard
-            locale={L}
-            poolCents={projected.pool_cents}
-            currency={projected.settings.currency}
-            moneyLocale={moneyLocale}
-            shares={projected.shares}
-            payouts={projected.payouts}
-            top3={standings.slice(0, 3)}
-          />
+          {!isFiltered && projected && (
+            <ProjectedPotCard
+              locale={L}
+              poolCents={projected.pool_cents}
+              currency={projected.settings.currency}
+              moneyLocale={moneyLocale}
+              shares={projected.shares}
+              payouts={projected.payouts}
+              top3={standings.slice(0, 3)}
+            />
+          )}
+          {isFiltered && totalBets === 0 && (
+            <p className="mb-6 rounded-[8px] border border-dashed border-white/[0.14] bg-surface-1/[0.5] px-4 py-3 text-center text-sm text-text-tertiary">
+              {L === "fr"
+                ? "Aucun point marqué dans cette phase pour l'instant."
+                : "No points scored in this phase yet."}
+            </p>
+          )}
           <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <LeaderboardMetric
               icon={ShieldCheck}

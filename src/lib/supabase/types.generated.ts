@@ -1514,6 +1514,22 @@ export type Database = {
       }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      standings_filtered: {
+        Args: { p_matchday?: number; p_stage?: string }
+        Returns: {
+          avatar_url: string
+          bets_count: number
+          display_name: string
+          losses: number
+          rank: number
+          role: string
+          settled_count: number
+          total_points: number
+          user_id: string
+          username: string
+          wins: number
+        }[]
+      }
       update_app_settings: {
         Args: {
           p_buy_in_amount_cents?: number
