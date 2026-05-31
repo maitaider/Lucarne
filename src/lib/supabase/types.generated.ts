@@ -926,6 +926,49 @@ export type Database = {
         }
         Relationships: []
       }
+      standings_snapshot: {
+        Row: {
+          rank: number
+          total_points: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          rank: number
+          total_points: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          rank?: number
+          total_points?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "standings_snapshot_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "mv_global_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "standings_snapshot_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "mv_league_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "standings_snapshot_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stripe_checkouts: {
         Row: {
           amount_cents: number
@@ -1371,6 +1414,7 @@ export type Database = {
         }[]
       }
       lock_all_tournament_predictions: { Args: never; Returns: number }
+      notify_standings_overtakes: { Args: never; Returns: undefined }
       place_bet: {
         Args: {
           p_bet_type: Database["public"]["Enums"]["bet_type_enum"]
@@ -1555,6 +1599,8 @@ export type Database = {
         | "comment_reply"
         | "daily_challenge"
         | "support_ticket"
+        | "reaction_received"
+        | "comment_received"
       payment_method:
         | "cash"
         | "transfer"
@@ -2077,6 +2123,8 @@ export const Constants = {
         "comment_reply",
         "daily_challenge",
         "support_ticket",
+        "reaction_received",
+        "comment_received",
       ],
       payment_method: [
         "cash",

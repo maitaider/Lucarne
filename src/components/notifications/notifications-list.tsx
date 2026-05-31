@@ -13,6 +13,9 @@ import {
   Megaphone,
   Trophy,
   ShieldCheck,
+  Flame,
+  MessageCircle,
+  TrendingDown,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -25,7 +28,19 @@ const ICONS: Record<string, LucideIcon> = {
   bet_settled: Trophy,
   bet_rejected: X,
   comment_reply: Megaphone,
+  comment_received: MessageCircle,
+  reaction_received: Flame,
+  league_position: TrendingDown,
   daily_challenge: Megaphone,
+};
+
+const RXN_EMOJI: Record<string, string> = {
+  fire: "🔥",
+  clap: "👏",
+  laugh: "😂",
+  think: "🤔",
+  shock: "😱",
+  skull: "💀",
 };
 
 export function NotificationsList({
@@ -221,12 +236,35 @@ function summarize(n: NotificationRow, locale: Locale): string {
       return locale === "fr"
         ? `📰 ${String(p.title ?? "Nouvelle actualité")}`
         : `📰 ${String(p.title ?? "New post")}`;
+    case "reaction_received": {
+      const emoji = RXN_EMOJI[String(p.reaction)] ?? "👏";
+      const what =
+        p.target_type === "bet"
+          ? locale === "fr"
+            ? "ton prono"
+            : "your prediction"
+          : locale === "fr"
+            ? "ton commentaire"
+            : "your comment";
+      return locale === "fr"
+        ? `${emoji} @${p.actor ?? "Quelqu'un"} a réagi à ${what}.`
+        : `@${p.actor ?? "Someone"} reacted ${emoji} to ${what}.`;
+    }
+    case "comment_received":
+      return locale === "fr"
+        ? `@${p.actor ?? "Quelqu'un"} a répondu : « ${String(p.preview ?? "").slice(0, 80)} »`
+        : `@${p.actor ?? "Someone"} replied: "${String(p.preview ?? "").slice(0, 80)}"`;
+    case "league_position":
+      return locale === "fr"
+        ? `@${p.by_username ?? "Un joueur"} t'a dépassé au classement (#${p.new_rank ?? "?"}).`
+        : `@${p.by_username ?? "A player"} overtook you in the standings (#${p.new_rank ?? "?"}).`;
     default:
       return n.type;
   }
 }
 
 function linkFor(n: NotificationRow): string | null {
+  const p = n.payload as Record<string, unknown>;
   switch (n.type) {
     case "bet_validated":
     case "bet_settled":
@@ -236,6 +274,12 @@ function linkFor(n: NotificationRow): string | null {
       return "/leagues";
     case "daily_challenge":
       return "/news";
+    case "reaction_received":
+      return p.match_id ? `/matches/${p.match_id}` : null;
+    case "comment_received":
+      return p.match_id ? `/matches/${p.match_id}` : "/leagues";
+    case "league_position":
+      return "/leaderboard/global";
     default:
       return null;
   }

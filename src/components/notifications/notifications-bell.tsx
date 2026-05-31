@@ -14,6 +14,9 @@ import {
   Receipt,
   ShieldCheck,
   Trophy,
+  Flame,
+  MessageCircle,
+  TrendingDown,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -28,10 +31,21 @@ const ICONS: Record<string, LucideIcon> = {
   match_kickoff: Bell,
   match_goal: Bell,
   league_invite: Bell,
-  league_position: Trophy,
+  league_position: TrendingDown,
   comment_reply: Megaphone,
+  comment_received: MessageCircle,
+  reaction_received: Flame,
   daily_challenge: Megaphone,
   friend_request: Bell,
+};
+
+const RXN_EMOJI: Record<string, string> = {
+  fire: "🔥",
+  clap: "👏",
+  laugh: "😂",
+  think: "🤔",
+  shock: "😱",
+  skull: "💀",
 };
 
 const ACCENT: Record<string, string> = {
@@ -39,6 +53,9 @@ const ACCENT: Record<string, string> = {
   bet_settled: "text-gold-300 bg-gold-500/15 ring-gold-500/30",
   bet_rejected: "text-error bg-error/15 ring-error/30",
   comment_reply: "text-violet-300 bg-violet-500/15 ring-violet-500/30",
+  comment_received: "text-violet-300 bg-violet-500/15 ring-violet-500/30",
+  reaction_received: "text-gold-300 bg-gold-500/15 ring-gold-500/30",
+  league_position: "text-gold-300 bg-gold-500/15 ring-gold-500/30",
   daily_challenge: "text-violet-300 bg-violet-500/15 ring-violet-500/30",
 };
 
@@ -308,8 +325,26 @@ function summarize(n: NotificationRow, locale: Locale): string {
         : "You've been invited to a league.";
     case "league_position":
       return locale === "fr"
-        ? "Ton classement vient d'évoluer."
-        : "Your rank just changed.";
+        ? `@${p.by_username ?? "Un joueur"} t'a dépassé au classement (#${p.new_rank ?? "?"}).`
+        : `@${p.by_username ?? "A player"} overtook you in the standings (#${p.new_rank ?? "?"}).`;
+    case "reaction_received": {
+      const emoji = RXN_EMOJI[String(p.reaction)] ?? "👏";
+      const what =
+        p.target_type === "bet"
+          ? locale === "fr"
+            ? "ton prono"
+            : "your prediction"
+          : locale === "fr"
+            ? "ton commentaire"
+            : "your comment";
+      return locale === "fr"
+        ? `${emoji} @${p.actor ?? "Quelqu'un"} a réagi à ${what}.`
+        : `@${p.actor ?? "Someone"} reacted ${emoji} to ${what}.`;
+    }
+    case "comment_received":
+      return locale === "fr"
+        ? `@${p.actor ?? "Quelqu'un"} a répondu : « ${String(p.preview ?? "").slice(0, 60)} »`
+        : `@${p.actor ?? "Someone"} replied: "${String(p.preview ?? "").slice(0, 60)}"`;
     default:
       return n.type;
   }
@@ -328,6 +363,12 @@ function linkFor(n: NotificationRow): string | null {
       return "/news";
     case "league_invite":
       return "/leagues";
+    case "reaction_received":
+      return p.match_id ? `/matches/${p.match_id}` : null;
+    case "comment_received":
+      return p.match_id ? `/matches/${p.match_id}` : "/leagues";
+    case "league_position":
+      return "/leaderboard/global";
     default:
       return null;
   }
