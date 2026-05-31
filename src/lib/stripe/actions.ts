@@ -113,12 +113,12 @@ export async function createCheckoutSession(input: {
             product_data: {
               name:
                 parsed.data.locale === "fr"
-                  ? "Lucarne · place pour la Coupe du Monde 2026"
-                  : "Lucarne · World Cup 2026 seat",
+                  ? "Lucarne · Accès Coupe du Monde 2026"
+                  : "Lucarne · World Cup 2026 access",
               description:
                 parsed.data.locale === "fr"
-                  ? "Accès complet pour parier sur tous les matchs."
-                  : "Full access to bet on every fixture.",
+                  ? "Accès complet : matchs, scores en direct, news et analyses."
+                  : "Full access: matches, live scores, news and analysis.",
             },
           },
         },

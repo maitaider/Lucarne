@@ -31,13 +31,13 @@ export const metadata: Metadata = {
     template: "%s · Lucarne",
   },
   description:
-    "Plateforme privée de pronostics pour la Coupe du Monde 2026 : achète ta place, parie sur les 104 matchs, top 3 partage la cagnotte.",
+    "Lucarne — l'app privée pour vivre la Coupe du Monde 2026 entre amis : tous les matchs, scores en direct, news et analyses, et un concours de pronostics amical.",
   applicationName: "Lucarne",
   authors: [{ name: "Lucarne" }],
   openGraph: {
-    title: "Lucarne · Pronostics privés pour le Mondial 2026",
+    title: "Lucarne · Ton app privée pour le Mondial 2026",
     description:
-      "Une seule place à acheter, accès à tous les pronostics du Mondial 2026, top 3 du classement se partage la cagnotte.",
+      "Accès privé à la Coupe du Monde 2026 : tous les matchs, scores en direct, news et analyses, et un concours de pronostics entre amis.",
     type: "website",
     images: [
       {
@@ -50,9 +50,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Lucarne · Pronostics privés pour le Mondial 2026",
+    title: "Lucarne · Ton app privée pour le Mondial 2026",
     description:
-      "Ligues privées, achat de place unique, classements et cagnotte réelle pour le Mondial 2026.",
+      "Accès privé à la Coupe du Monde 2026 : matchs, scores en direct, news, analyses et concours de pronos entre amis.",
     images: ["/marketing/lucarne-hero-stadium.jpg"],
   },
   appleWebApp: {

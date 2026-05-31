@@ -34,8 +34,8 @@ export function BuyInBanner({
           <CalendarClock className="mt-0.5 size-4 shrink-0 text-text-tertiary" />
           <span>
             {locale === "fr"
-              ? "La vente des places est terminée. Tu peux suivre le tournoi en lecture."
-              : "Seat sales are closed. You can follow the tournament in read-only mode."}
+              ? "L'accès n'est plus en vente. Tu peux suivre le tournoi en lecture."
+              : "Access is no longer on sale. You can follow the tournament in read-only mode."}
           </span>
         </div>
       </section>
@@ -59,8 +59,8 @@ export function BuyInBanner({
             </div>
             <div className="font-display text-base font-semibold tracking-tight text-text-primary sm:text-lg">
               {locale === "fr"
-                ? `Achète ta place pour ${formatMoney(amountCents, currency, moneyLocale)} et débloque les paris`
-                : `Buy your seat for ${formatMoney(amountCents, currency, moneyLocale)} to unlock betting`}
+                ? `Accède à toute la Coupe du Monde pour ${formatMoney(amountCents, currency, moneyLocale)}`
+                : `Unlock full World Cup access for ${formatMoney(amountCents, currency, moneyLocale)}`}
             </div>
             <div className="mt-0.5 text-xs text-text-secondary">
               {locale === "fr"
@@ -73,7 +73,7 @@ export function BuyInBanner({
           href="/buy-in"
           className="inline-flex items-center justify-center gap-1.5 rounded-[8px] bg-gold-500 px-4 py-2 text-sm font-bold text-abyss shadow-glow-gold transition hover:bg-gold-400"
         >
-          {locale === "fr" ? "Acheter ma place" : "Buy my seat"}
+          {locale === "fr" ? "Débloquer l'accès" : "Unlock access"}
           <ArrowRight
             className="size-4 transition group-hover/banner:translate-x-0.5"
             strokeWidth={2.5}

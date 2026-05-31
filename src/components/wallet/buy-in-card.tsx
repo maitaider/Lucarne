@@ -101,17 +101,17 @@ export function BuyInCard({
               )}
             >
               {locale === "fr"
-                ? "Ta place pour la Coupe du Monde 2026"
-                : "Your World Cup 2026 seat"}
+                ? "Ton accès Coupe du Monde 2026"
+                : "Your World Cup 2026 access"}
             </h2>
             <p className="mt-1 max-w-md text-sm leading-6 text-text-secondary">
               {alreadyPaid
                 ? locale === "fr"
-                  ? "Tu peux parier sur tous les matchs jusqu’à 1 h avant chaque coup d’envoi."
-                  : "You can bet on every fixture up to 1 h before each kickoff."
+                  ? "Ton accès est actif : tous les matchs, scores en direct, news et analyses — et le concours de pronos entre amis."
+                  : "Your access is active: every match, live scores, news and analysis — plus the friends' prediction game."
                 : locale === "fr"
-                  ? "Paie une seule fois pour débloquer les paris sur les 104 matchs. Pas de frais cachés, pas de relance."
-                  : "Pay once to unlock betting on all 104 fixtures. No hidden fees, no upsell."}
+                  ? "Un paiement unique pour accéder à toute la Coupe du Monde 2026 sur Lucarne : les 104 matchs, scores en direct, news et analyses — et le concours de pronostics privé entre amis. Pas de frais cachés, pas de relance."
+                  : "A one-time payment for full World Cup 2026 access on Lucarne: all 104 matches, live scores, news and analysis — plus the private friends' prediction game. No hidden fees, no upsell."}
             </p>
           </div>
         </div>
@@ -129,7 +129,7 @@ export function BuyInCard({
           {alreadyPaid ? (
             <div className="inline-flex items-center justify-center gap-2 rounded-[8px] border border-primary-500/35 bg-primary-500/15 px-4 py-3 text-sm font-bold text-primary-300">
               <CheckCircle2 className="size-4" strokeWidth={2.5} />
-              {locale === "fr" ? "Place activée" : "Seat active"}
+              {locale === "fr" ? "Accès activé" : "Access active"}
             </div>
           ) : deadlinePassed ? (
             <div className="inline-flex items-center justify-center gap-2 rounded-[8px] border border-white/[0.1] bg-white/[0.05] px-4 py-3 text-sm font-semibold text-text-tertiary">
@@ -155,8 +155,8 @@ export function BuyInCard({
                 <CreditCard className="size-4" strokeWidth={2.5} />
               )}
               {locale === "fr"
-                ? `Acheter ma place · ${fmt(amountCents)}`
-                : `Buy my seat · ${fmt(amountCents)}`}
+                ? `Débloquer l'accès · ${fmt(amountCents)}`
+                : `Unlock access · ${fmt(amountCents)}`}
             </button>
           )}
         </div>
