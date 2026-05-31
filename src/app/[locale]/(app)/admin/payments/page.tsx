@@ -83,6 +83,7 @@ export default async function AdminPaymentsPage({
             id: u.id,
             username: u.username,
             display_name: u.display_name,
+            paid: (u.total_paid_cents ?? 0) > 0,
           }))}
           currency={settings.currency}
           locale={L}

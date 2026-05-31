@@ -167,12 +167,12 @@ export async function deleteComment(
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, message: "Connexion requise" };
 
-  // Soft-delete by setting deleted_at; RLS ensures only owner can update
-  const { error } = await supabase
-    .from("comments")
-    .update({ deleted_at: new Date().toISOString() })
-    .eq("id", commentId)
-    .eq("user_id", user.id);
+  // Soft-delete via SECURITY DEFINER RPC: a direct UPDATE is refused by RLS
+  // (the SELECT policy `deleted_at IS NULL` rejects the new, now-deleted row).
+  // The RPC verifies ownership (or admin) server-side and bypasses RLS.
+  const { error } = await supabase.rpc("delete_comment", {
+    p_comment_id: commentId,
+  });
 
   if (error) return { ok: false, message: error.message };
   revalidatePath("/", "layout");

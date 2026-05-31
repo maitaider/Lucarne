@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { getSupabaseServer } from "@/lib/supabase/server";
 
 export type CurrentUser = {
@@ -14,9 +15,11 @@ export type CurrentUser = {
 
 /**
  * Returns the currently-authenticated user with their public profile fields,
- * or null if unauthenticated. Single round-trip (joins auth + profiles).
+ * or null if unauthenticated. Wrapped in React.cache so the layout + every
+ * child page in the same request share one auth.getUser() + profiles round-trip
+ * instead of re-fetching per call site.
  */
-export async function getCurrentUser(): Promise<CurrentUser | null> {
+export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return null;
   const supabase = await getSupabaseServer();
 
@@ -43,7 +46,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     role: profile.role,
     balance_cents: profile.balance_cents,
   };
-}
+});
 
 export function isAdminRole(role: CurrentUser["role"]): boolean {
   return role === "admin" || role === "super_admin";

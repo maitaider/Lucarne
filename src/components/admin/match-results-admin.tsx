@@ -259,6 +259,16 @@ function MatchEditor({
   }
 
   function save() {
+    // C-5: a finished match must carry both scores. Otherwise the scoring engine
+    // would award phantom points (total 0 → +5, NULL result → 'draw' → +3).
+    if (status === "finished" && (home === "" || away === "")) {
+      toast.error(
+        fr
+          ? "Un match terminé doit avoir les deux scores."
+          : "A finished match needs both scores.",
+      );
+      return;
+    }
     start(async () => {
       const res = await setMatchResultAction({
         matchId: match.id,
