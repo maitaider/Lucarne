@@ -32,6 +32,7 @@ Remplace `<ITEM CI-DESSOUS>` par un des blocs **Prompts** plus bas.
 - **Phase 1 (modèle)** : jetons purgés côté joueur, 2 rails de paiement unifiés (accès, 0 jeton), feed de ligue `league_feed` (RPC definer, lié aux membres), page reçus `/profile/wallet`, prix landing dynamique.
 - **Phase 2 (ops live)** : `admin_recompute_match` + recompute auto au `finished`, buteurs pré-remplis dans `/admin/matches`, `LiveRefresh` sur /live & /matches, fuseau **America/Toronto** par défaut, réponse aux tickets (`admin_reply_ticket`) + journal d'audit (`admin_list_audit_log` → `/admin/audit`), scaffold cron (`cron_sync_match`).
 - **Phase 3 (amorce)** : `React.cache(listMatches)`, `loading.tsx`, `not-found.tsx` localisé, a11y formulaire support.
+- **Phase 3 — item A** : profils publics `/u/[username]` + `@username` cliquables, en prod (2026-05-31). Voir le détail sous « Phase 3 — items restants ».
 
 ## Conventions clés (détail dans CLAUDE.md)
 
@@ -46,12 +47,14 @@ Remplace `<ITEM CI-DESSOUS>` par un des blocs **Prompts** plus bas.
 
 ## Phase 3 — items restants (par ordre recommandé)
 
-### A. Profils publics `/u/[username]` — [L] · *recommandé en premier*
+### A. Profils publics `/u/[username]` — ✅ LIVRÉ (2026-05-31, commit `fbbef40`)
 **Objectif** : page publique (intra-ligue) d'un joueur + `@username` cliquables partout.
-**Fichiers clés** : nouvelle route `src/app/[locale]/(app)/u/[username]/page.tsx` ; liens dans `src/components/leaderboard/standings-table.tsx`, `src/components/social/league-activity-feed.tsx`, `src/components/social/comment-thread.tsx` ; requêtes `src/lib/leagues/queries.ts` (standings), `src/lib/profile/`.
-
-**Prompt :**
-> Implémente les profils publics Lucarne. Crée `/[locale]/(app)/u/[username]/page.tsx` : avatar, display_name, `@username`, badge admin doré (réutilise le style de `standings-table.tsx`), total de points + rang global, nb de pronos, % de réussite, et les derniers pronostics réglés du joueur. Rends les `@username` cliquables vers `/u/<username>` dans le classement, le feed de ligue et les commentaires. Confidentialité stricte : jamais d'email ni de paiements. Lisibilité limitée aux membres de la ligue — si la RLS de `profiles` bloque, expose une vue/RPC definer dédiée (modèle `league_feed`). Vérifie + commit + déploie + confirme le vert.
+**Livré** :
+- Migration `20260531200000_public_profile_rpc.sql` (local + remote) : RPC definer `public_profile` + `profile_recent_bets` + interne `resolve_viewable_profile`. Gate intra-ligue **via `league_members`** (modèle `league_feed`, pas `bets.league_id`) ; jamais email/argent ; seuls les paris `settled` exposés (aucune fuite de prono avant coup d'envoi). `mv_global_standings` est resté lisible `authenticated` → réutilisé pour le rang global.
+- Page `src/app/[locale]/(app)/u/[username]/page.tsx` : avatar, badge admin doré, rang global + points + nb de pronos + % de réussite (`wins/settled`), derniers pronostics réglés (score final, prono, résultat). **404 si non co-membre** (ne confirme pas l'existence d'un username). `generateMetadata` titre `@username`.
+- Lib `src/lib/profile/public-profile.ts` (`getPublicProfile`, `getProfileRecentBets`).
+- `@username` cliquables → `/u/<username>` dans `standings-table.tsx`, `podium.tsx`, `league-activity-feed.tsx`, `comment-thread.tsx`.
+- Vérifié : test SQL e2e local (gate allow/deny/admin, joins, casts) + RPC live remote (HTTP 200) + Vercel `● Ready` + route prod 307→login (FR & EN). *Non fait : rendu navigateur authentifié (dev server bloqué par le sandbox local ; pas de session prod headless).*
 
 ### B. Notifs sociales + classement par phase + partage de prono — [XL]
 **Objectif** : émettre les notifs sociales (infra `notifications` existe, jamais déclenchée), filtrer le classement par phase/journée, partager un prono.
