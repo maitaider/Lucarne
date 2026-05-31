@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  useQuickBet,
   type QuickBetMatch,
   type QuickBetExistingPicks,
 } from "./quick-bet-provider";
@@ -34,17 +33,17 @@ export function QuickBetButton({
   /** When false, click sends the user to /buy-in. Defaults to true for back-compat. */
   canBet?: boolean;
 }) {
-  const quickBet = useQuickBet();
   const router = useRouter();
+  // Single source of truth: every match prediction (winner via the scoreline,
+  // total goals, scorers) is made on the Pronostics page. Non-payers go to the
+  // buy-in first. `match`/`existing` are kept in the API for back-compat.
+  void match;
+  void existing;
 
   function handleClick(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
     e.stopPropagation();
-    if (!canBet) {
-      router.push("/buy-in");
-      return;
-    }
-    quickBet.open(match, existing);
+    router.push(canBet ? "/predict" : "/buy-in");
   }
 
   let editLabelFr: string;

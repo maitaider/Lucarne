@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Link } from "@/i18n/navigation";
-import { useQuickBet, type QuickBetMatch } from "@/components/bet/quick-bet-provider";
+import { Link, useRouter } from "@/i18n/navigation";
+import { type QuickBetMatch } from "@/components/bet/quick-bet-provider";
 import { Flag } from "@/components/team/flag";
 import {
   WorldTrophyMark,
@@ -420,7 +420,7 @@ function PredictionCard({
   ticket: PredictionTicket;
   locale: Locale;
 }) {
-  const quickBet = useQuickBet();
+  const router = useRouter();
   const accentBorder = {
     primary: "border-primary-500/25 from-primary-500/[0.12]",
     gold: "border-gold-500/30 from-gold-500/[0.12]",
@@ -433,7 +433,7 @@ function PredictionCard({
 
   function handleClick(e: React.MouseEvent) {
     e.preventDefault();
-    quickBet.open(ticket.match);
+    router.push("/predict");
   }
 
   return (
