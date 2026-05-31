@@ -74,7 +74,7 @@ export function UserMenu({ user, locale }: Props) {
         aria-expanded={open}
         aria-haspopup="menu"
         className={cn(
-          "flex items-center gap-2.5 rounded-[8px] border border-white/[0.12] bg-white/[0.06] py-1 pl-1 pr-3 text-sm transition",
+          "flex items-center gap-2.5 rounded-sm border border-white/[0.12] bg-white/[0.06] py-1 pl-1 pr-3 text-sm transition",
           "hover:border-primary-500/35 hover:bg-primary-500/[0.08]",
           open && "border-primary-500/35 bg-primary-500/[0.08]",
         )}
@@ -95,7 +95,7 @@ export function UserMenu({ user, locale }: Props) {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-[calc(100%+8px)] z-50 w-64 overflow-hidden rounded-[8px] border border-white/[0.12] bg-surface-1/[0.94] shadow-2xl shadow-black/40 backdrop-blur-xl"
+          className="absolute right-0 top-[calc(100%+8px)] z-50 w-64 overflow-hidden rounded-sm border border-white/[0.12] bg-surface-1/[0.94] shadow-2xl shadow-black/40 backdrop-blur-xl"
         >
           {/* User card */}
           <div className="border-b border-white/[0.08] px-4 py-3">
@@ -178,7 +178,7 @@ export function UserMenu({ user, locale }: Props) {
               <span className="flex-1 text-left">
                 {locale === "fr" ? "Switch to English" : "Passer en français"}
               </span>
-              <span className="rounded-[6px] bg-surface-3 px-1.5 py-0.5 font-mono text-[10px] uppercase text-text-tertiary">
+              <span className="rounded-xs bg-surface-3 px-1.5 py-0.5 font-mono text-[10px] uppercase text-text-tertiary">
                 {locale === "fr" ? "EN" : "FR"}
               </span>
             </button>

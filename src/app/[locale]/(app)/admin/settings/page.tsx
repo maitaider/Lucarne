@@ -46,9 +46,9 @@ export default async function AdminSettingsPage({
 
       <Link
         href="/admin/economy"
-        className="group flex items-center gap-3 rounded-[12px] border border-gold-500/25 bg-gold-500/[0.05] p-4 transition hover:bg-gold-500/[0.09]"
+        className="group flex items-center gap-3 rounded-md border border-gold-500/25 bg-gold-500/[0.05] p-4 transition hover:bg-gold-500/[0.09]"
       >
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-[8px] bg-gold-500/15 text-gold-300 ring-1 ring-gold-500/25">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-sm bg-gold-500/15 text-gold-300 ring-1 ring-gold-500/25">
           <Coins className="size-4" strokeWidth={1.8} />
         </span>
         <div className="min-w-0 flex-1">

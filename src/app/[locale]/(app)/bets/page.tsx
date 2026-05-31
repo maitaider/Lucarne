@@ -54,7 +54,7 @@ export default async function MyBetsPage({
         actions={
           <Link
             href="/predict"
-            className="inline-flex items-center justify-center gap-1.5 rounded-[8px] bg-primary-500 px-4 py-2 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400"
+            className="inline-flex items-center justify-center gap-1.5 rounded-sm bg-primary-500 px-4 py-2 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400"
           >
             <ArrowRight className="size-4" strokeWidth={2} />
             {L === "fr" ? "Faire un prono" : "Make a pick"}
@@ -139,12 +139,12 @@ function BetMetric({
   }[accent];
 
   return (
-    <div className="rounded-[8px] border border-white/[0.08] bg-surface-1/[0.64] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
+    <div className="rounded-sm border border-white/[0.08] bg-surface-1/[0.64] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
       <div className="mb-3 flex items-center justify-between">
         <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
           {label}
         </span>
-        <span className={`rounded-[8px] border p-1.5 ${color}`}>
+        <span className={`rounded-sm border p-1.5 ${color}`}>
           <Icon className="size-3.5" strokeWidth={1.7} />
         </span>
       </div>
@@ -182,9 +182,9 @@ function EmptyBets({ locale }: { locale: Locale }) {
   ];
 
   return (
-    <div className="rounded-[8px] border border-dashed border-white/[0.14] bg-surface-1/[0.62] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
+    <div className="rounded-sm border border-dashed border-white/[0.14] bg-surface-1/[0.62] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
       <div className="mb-5 flex items-start gap-3">
-        <span className="rounded-[8px] bg-gold-500/15 p-2.5 text-gold-400 ring-1 ring-gold-500/30">
+        <span className="rounded-sm bg-gold-500/15 p-2.5 text-gold-400 ring-1 ring-gold-500/30">
           <Target className="size-5" strokeWidth={1.6} />
         </span>
         <div>
@@ -200,8 +200,8 @@ function EmptyBets({ locale }: { locale: Locale }) {
       </div>
       <div className="grid gap-3 md:grid-cols-3">
         {steps.map((step, idx) => (
-          <div key={step.title} className="rounded-[8px] border border-white/[0.08] bg-white/[0.035] p-4">
-            <div className="mb-3 flex size-7 items-center justify-center rounded-[8px] bg-primary-500/[0.1] font-display text-sm font-bold text-primary-400 ring-1 ring-primary-500/25">
+          <div key={step.title} className="rounded-sm border border-white/[0.08] bg-white/[0.035] p-4">
+            <div className="mb-3 flex size-7 items-center justify-center rounded-sm bg-primary-500/[0.1] font-display text-sm font-bold text-primary-400 ring-1 ring-primary-500/25">
               {idx + 1}
             </div>
             <h3 className="text-sm font-semibold text-text-primary">{step.title}</h3>

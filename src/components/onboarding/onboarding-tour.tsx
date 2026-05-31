@@ -146,7 +146,7 @@ export function OnboardingTour({ locale }: { locale: Locale }) {
       />
 
       {/* Card */}
-      <div className="relative w-full max-w-lg overflow-hidden rounded-[16px] border border-white/[0.1] bg-abyss/95 shadow-2xl shadow-black/70 backdrop-blur-2xl">
+      <div className="relative w-full max-w-lg overflow-hidden rounded-lg border border-white/[0.1] bg-abyss/95 shadow-2xl shadow-black/70 backdrop-blur-2xl">
         <button
           type="button"
           onClick={close}
@@ -220,7 +220,7 @@ export function OnboardingTour({ locale }: { locale: Locale }) {
               onClick={() => setStep(step - 1)}
               disabled={step === 0}
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-[8px] px-3 py-2 text-xs font-semibold transition",
+                "inline-flex items-center gap-1.5 rounded-sm px-3 py-2 text-xs font-semibold transition",
                 step === 0
                   ? "text-text-tertiary opacity-40"
                   : "text-text-secondary hover:bg-white/[0.06] hover:text-text-primary",
@@ -234,7 +234,7 @@ export function OnboardingTour({ locale }: { locale: Locale }) {
               <Link
                 href="/matches"
                 onClick={close}
-                className="inline-flex items-center gap-1.5 rounded-[8px] bg-primary-500 px-5 py-2.5 text-sm font-bold text-abyss shadow-glow-primary transition hover:bg-primary-400"
+                className="inline-flex items-center gap-1.5 rounded-sm bg-primary-500 px-5 py-2.5 text-sm font-bold text-abyss shadow-glow-primary transition hover:bg-primary-400"
               >
                 <Sparkles className="size-4" strokeWidth={2.5} />
                 {locale === "fr" ? "Démarrer" : "Get started"}
@@ -244,7 +244,7 @@ export function OnboardingTour({ locale }: { locale: Locale }) {
               <button
                 type="button"
                 onClick={() => setStep(step + 1)}
-                className="inline-flex items-center gap-1.5 rounded-[8px] bg-primary-500 px-5 py-2.5 text-sm font-bold text-abyss shadow-glow-primary transition hover:bg-primary-400"
+                className="inline-flex items-center gap-1.5 rounded-sm bg-primary-500 px-5 py-2.5 text-sm font-bold text-abyss shadow-glow-primary transition hover:bg-primary-400"
               >
                 {locale === "fr" ? "Suivant" : "Next"}
                 <ChevronRight className="size-3.5" strokeWidth={2.5} />

@@ -25,7 +25,7 @@ export async function LeagueActivityFeed({
   const reactions = await getReactionsForTargets("bet", betIds);
 
   return (
-    <section className="rounded-[12px] border border-white/[0.08] bg-surface-1/[0.55] p-5 backdrop-blur-xl sm:p-6">
+    <section className="rounded-md border border-white/[0.08] bg-surface-1/[0.55] p-5 backdrop-blur-xl sm:p-6">
       <header className="mb-4 flex items-center justify-between">
         <h2 className="flex items-center gap-2 font-display text-lg font-semibold text-text-primary">
           <Activity className="size-4 text-primary-400" strokeWidth={1.7} />

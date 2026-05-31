@@ -48,7 +48,7 @@ export function AdminSidebar({ locale }: { locale: Locale }) {
               <Link
                 href={item.href}
                 className={cn(
-                  "flex shrink-0 items-center gap-2.5 rounded-[8px] px-3 py-2 text-sm transition lg:w-full",
+                  "flex shrink-0 items-center gap-2.5 rounded-sm px-3 py-2 text-sm transition lg:w-full",
                   isActive
                     ? "bg-gold-500/[0.12] text-gold-200 shadow-[inset_0_0_0_1px_rgba(245,196,71,0.3)]"
                     : "text-text-secondary hover:bg-white/[0.04] hover:text-text-primary",

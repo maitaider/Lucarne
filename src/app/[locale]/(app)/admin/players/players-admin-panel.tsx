@@ -156,7 +156,7 @@ export function PlayersAdminPanel({
   return (
     <div className="grid gap-4 lg:grid-cols-[260px_1fr]">
       {/* Team list */}
-      <aside className="rounded-[12px] border border-white/[0.08] bg-surface-1/[0.6] backdrop-blur-xl">
+      <aside className="rounded-md border border-white/[0.08] bg-surface-1/[0.6] backdrop-blur-xl">
         <ul className="max-h-[60vh] overflow-y-auto divide-y divide-white/[0.05]">
           {teams.map((t) => {
             const active = t.id === selectedTeamId;
@@ -207,7 +207,7 @@ export function PlayersAdminPanel({
             <button
               type="button"
               onClick={startAdd}
-              className="inline-flex items-center gap-1.5 rounded-[8px] bg-violet-500 px-3 py-1.5 text-xs font-bold text-abyss shadow-glow-violet transition hover:bg-violet-400"
+              className="inline-flex items-center gap-1.5 rounded-sm bg-violet-500 px-3 py-1.5 text-xs font-bold text-abyss shadow-glow-violet transition hover:bg-violet-400"
             >
               <Plus className="size-3.5" strokeWidth={2.5} />
               {locale === "fr" ? "Ajouter" : "Add"}
@@ -316,14 +316,14 @@ function DraftForm({
         placeholder={
           locale === "fr" ? "Nom complet" : "Full name"
         }
-        className="rounded-[6px] border border-white/[0.08] bg-abyss/[0.5] px-2 py-1.5 text-xs text-text-primary outline-none placeholder:text-text-tertiary focus:border-violet-500/40"
+        className="rounded-xs border border-white/[0.08] bg-abyss/[0.5] px-2 py-1.5 text-xs text-text-primary outline-none placeholder:text-text-tertiary focus:border-violet-500/40"
       />
       <input
         type="text"
         value={draft.display_name}
         onChange={(e) => field("display_name", e.target.value)}
         placeholder={locale === "fr" ? "Nom court" : "Display"}
-        className="rounded-[6px] border border-white/[0.08] bg-abyss/[0.5] px-2 py-1.5 text-xs text-text-primary outline-none placeholder:text-text-tertiary focus:border-violet-500/40"
+        className="rounded-xs border border-white/[0.08] bg-abyss/[0.5] px-2 py-1.5 text-xs text-text-primary outline-none placeholder:text-text-tertiary focus:border-violet-500/40"
       />
       <input
         type="number"
@@ -332,14 +332,14 @@ function DraftForm({
         value={draft.shirt_number}
         onChange={(e) => field("shirt_number", e.target.value)}
         placeholder="#"
-        className="rounded-[6px] border border-white/[0.08] bg-abyss/[0.5] px-2 py-1.5 text-center text-xs text-text-primary outline-none placeholder:text-text-tertiary focus:border-violet-500/40"
+        className="rounded-xs border border-white/[0.08] bg-abyss/[0.5] px-2 py-1.5 text-center text-xs text-text-primary outline-none placeholder:text-text-tertiary focus:border-violet-500/40"
       />
       <select
         value={draft.position}
         onChange={(e) =>
           field("position", e.target.value as DraftPlayer["position"])
         }
-        className="rounded-[6px] border border-white/[0.08] bg-abyss/[0.5] px-2 py-1.5 text-xs text-text-primary outline-none focus:border-violet-500/40"
+        className="rounded-xs border border-white/[0.08] bg-abyss/[0.5] px-2 py-1.5 text-xs text-text-primary outline-none focus:border-violet-500/40"
       >
         <option value="">—</option>
         <option value="GK">GK</option>
@@ -352,7 +352,7 @@ function DraftForm({
         value={draft.club}
         onChange={(e) => field("club", e.target.value)}
         placeholder={locale === "fr" ? "Club" : "Club"}
-        className="rounded-[6px] border border-white/[0.08] bg-abyss/[0.5] px-2 py-1.5 text-xs text-text-primary outline-none placeholder:text-text-tertiary focus:border-violet-500/40"
+        className="rounded-xs border border-white/[0.08] bg-abyss/[0.5] px-2 py-1.5 text-xs text-text-primary outline-none placeholder:text-text-tertiary focus:border-violet-500/40"
       />
       <div className="flex items-center gap-1">
         <button
@@ -360,7 +360,7 @@ function DraftForm({
           disabled={disabled}
           onClick={onSave}
           aria-label="Save"
-          className="inline-flex items-center gap-1 rounded-[6px] bg-violet-500 px-2 py-1.5 text-xs font-bold text-abyss transition hover:bg-violet-400 disabled:opacity-50"
+          className="inline-flex items-center gap-1 rounded-xs bg-violet-500 px-2 py-1.5 text-xs font-bold text-abyss transition hover:bg-violet-400 disabled:opacity-50"
         >
           {disabled ? (
             <Loader2 className="size-3 animate-spin" />
@@ -372,7 +372,7 @@ function DraftForm({
           type="button"
           onClick={onCancel}
           aria-label="Cancel"
-          className="rounded-[6px] border border-white/[0.08] bg-white/[0.04] p-1.5 text-text-secondary hover:text-text-primary"
+          className="rounded-xs border border-white/[0.08] bg-white/[0.04] p-1.5 text-text-secondary hover:text-text-primary"
         >
           <X className="size-3" strokeWidth={2.5} />
         </button>

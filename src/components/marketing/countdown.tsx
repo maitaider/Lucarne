@@ -40,7 +40,7 @@ export function Countdown({ targetIso }: { targetIso: string }) {
   const display = parts ?? { days: 0, hours: 0, minutes: 0, seconds: 0 };
 
   return (
-    <div className="inline-flex max-w-full flex-col gap-2 rounded-[8px] border border-white/[0.14] bg-abyss/50 px-5 py-4 backdrop-blur">
+    <div className="inline-flex max-w-full flex-col gap-2 rounded-sm border border-white/[0.14] bg-abyss/50 px-5 py-4 backdrop-blur">
       <div className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
         {labels.title}
       </div>

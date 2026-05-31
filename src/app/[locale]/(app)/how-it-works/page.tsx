@@ -55,7 +55,7 @@ export default async function HowItWorksPage({
 
   return (
     <main className="mx-auto max-w-4xl px-4 pb-20 pt-6 sm:px-6 sm:pt-8 lg:px-8">
-      <header className="relative mb-8 overflow-hidden rounded-[12px] border border-white/[0.13] bg-abyss/[0.8] p-6 shadow-[0_28px_90px_rgba(0,0,0,0.38),inset_0_1px_0_rgba(255,255,255,0.08)] sm:p-8">
+      <header className="relative mb-8 overflow-hidden rounded-md border border-white/[0.13] bg-abyss/[0.8] p-6 shadow-[0_28px_90px_rgba(0,0,0,0.38),inset_0_1px_0_rgba(255,255,255,0.08)] sm:p-8">
         <Image
           src="/marketing/lucarne-hero-stadium.jpg"
           alt=""
@@ -65,7 +65,7 @@ export default async function HowItWorksPage({
         />
         <div className="absolute inset-0 -z-10 bg-[linear-gradient(96deg,rgba(5,6,5,0.94)_0%,rgba(5,6,5,0.78)_44%,rgba(5,6,5,0.5)_100%)]" />
         <div className="relative max-w-2xl">
-          <div className="mb-3 inline-flex items-center gap-1.5 rounded-[8px] border border-primary-500/35 bg-primary-500/[0.1] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-300">
+          <div className="mb-3 inline-flex items-center gap-1.5 rounded-sm border border-primary-500/35 bg-primary-500/[0.1] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-300">
             <HelpCircle className="size-3.5" strokeWidth={1.7} />
             {L === "fr" ? "Le guide" : "The guide"}
           </div>
@@ -295,7 +295,7 @@ function Step({
   }[accent];
   return (
     <li
-      className={`relative rounded-[12px] border bg-surface-1/[0.6] p-5 backdrop-blur-xl ${tone.split(" ").slice(0, 1).join(" ")}`}
+      className={`relative rounded-md border bg-surface-1/[0.6] p-5 backdrop-blur-xl ${tone.split(" ").slice(0, 1).join(" ")}`}
     >
       <div className="flex items-start gap-4">
         <span
@@ -326,7 +326,7 @@ function Step({
           {cta && (
             <Link
               href={cta.href}
-              className="mt-3 inline-flex items-center gap-1.5 rounded-[8px] border border-white/[0.12] bg-white/[0.05] px-3 py-1.5 text-xs font-semibold text-text-primary transition hover:border-white/[0.2] hover:bg-white/[0.08]"
+              className="mt-3 inline-flex items-center gap-1.5 rounded-sm border border-white/[0.12] bg-white/[0.05] px-3 py-1.5 text-xs font-semibold text-text-primary transition hover:border-white/[0.2] hover:bg-white/[0.08]"
             >
               {cta.label}
               <ArrowRight className="size-3" strokeWidth={2.5} />
@@ -361,7 +361,7 @@ function ScoreCard({
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <span
-            className={`flex size-8 items-center justify-center rounded-[8px] border ${tone}`}
+            className={`flex size-8 items-center justify-center rounded-sm border ${tone}`}
           >
             <Icon className="size-4" strokeWidth={1.7} />
           </span>

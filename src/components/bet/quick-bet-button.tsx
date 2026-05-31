@@ -121,7 +121,7 @@ export function QuickBetButton({
       <button
         type="button"
         onClick={handleClick}
-        className="group inline-flex w-full items-center justify-center gap-2 rounded-[8px] bg-gold-500 px-5 py-3 text-sm font-bold text-abyss shadow-glow-gold transition hover:bg-gold-400"
+        className="group inline-flex w-full items-center justify-center gap-2 rounded-sm bg-gold-500 px-5 py-3 text-sm font-bold text-abyss shadow-glow-gold transition hover:bg-gold-400"
       >
         <Lock className="size-4" strokeWidth={2.5} />
         {locale === "fr"
@@ -134,7 +134,7 @@ export function QuickBetButton({
     <button
       type="button"
       onClick={handleClick}
-      className="group inline-flex w-full items-center justify-center gap-2 rounded-[8px] bg-primary-500 px-5 py-3 text-sm font-bold text-abyss shadow-glow-primary transition hover:bg-primary-400"
+      className="group inline-flex w-full items-center justify-center gap-2 rounded-sm bg-primary-500 px-5 py-3 text-sm font-bold text-abyss shadow-glow-primary transition hover:bg-primary-400"
     >
       <Icon className="size-4" strokeWidth={2.5} />
       {hasPick

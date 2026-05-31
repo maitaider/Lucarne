@@ -125,7 +125,7 @@ export function AdjustBalanceButton({
                         value={delta}
                         onChange={(e) => setDelta(e.target.value)}
                         placeholder="ex: +100 ou -50"
-                        className="flex-1 rounded-[8px] border border-white/[0.1] bg-abyss/[0.6] px-3 py-2 text-sm tabular-nums text-text-primary outline-none focus:border-primary-500/50"
+                        className="flex-1 rounded-sm border border-white/[0.1] bg-abyss/[0.6] px-3 py-2 text-sm tabular-nums text-text-primary outline-none focus:border-primary-500/50"
                       />
                       <span className="text-xs text-text-tertiary">
                         {locale === "fr" ? "jetons" : "tokens"}
@@ -141,14 +141,14 @@ export function AdjustBalanceButton({
                           ? "Raison (ex: bonus participation)"
                           : "Reason (e.g. participation bonus)"
                       }
-                      className="w-full rounded-[8px] border border-white/[0.1] bg-abyss/[0.6] px-3 py-2 text-sm text-text-primary outline-none placeholder:text-text-tertiary focus:border-primary-500/50"
+                      className="w-full rounded-sm border border-white/[0.1] bg-abyss/[0.6] px-3 py-2 text-sm text-text-primary outline-none placeholder:text-text-tertiary focus:border-primary-500/50"
                     />
                     <button
                       type="button"
                       onClick={handleAdjust}
                       disabled={isPending}
                       className={cn(
-                        "inline-flex w-full items-center justify-center gap-1.5 rounded-[8px] px-4 py-2 text-sm font-bold transition",
+                        "inline-flex w-full items-center justify-center gap-1.5 rounded-sm px-4 py-2 text-sm font-bold transition",
                         isPending
                           ? "bg-white/[0.06] text-text-tertiary"
                           : "bg-primary-500 text-abyss shadow-glow-primary hover:bg-primary-400",
@@ -182,7 +182,7 @@ export function AdjustBalanceButton({
                               | "super_admin",
                           )
                         }
-                        className="flex-1 rounded-[8px] border border-white/[0.1] bg-abyss/[0.6] px-3 py-2 text-sm text-text-primary outline-none focus:border-primary-500/50"
+                        className="flex-1 rounded-sm border border-white/[0.1] bg-abyss/[0.6] px-3 py-2 text-sm text-text-primary outline-none focus:border-primary-500/50"
                       >
                         <option value="player">Player</option>
                         <option value="admin">Admin</option>
@@ -193,7 +193,7 @@ export function AdjustBalanceButton({
                         onClick={handleRoleChange}
                         disabled={isPending || newRole === currentRole}
                         className={cn(
-                          "inline-flex items-center gap-1 rounded-[8px] px-3 py-2 text-xs font-bold transition",
+                          "inline-flex items-center gap-1 rounded-sm px-3 py-2 text-xs font-bold transition",
                           newRole === currentRole
                             ? "bg-white/[0.06] text-text-tertiary"
                             : "bg-gold-500 text-abyss hover:bg-gold-400",

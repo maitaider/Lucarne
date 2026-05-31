@@ -232,7 +232,7 @@ function WinnerBtn({
       aria-label={aria}
       aria-pressed={active}
       className={cn(
-        "flex size-9 items-center justify-center rounded-[8px] font-display text-sm font-bold tabular-nums transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/60 disabled:cursor-not-allowed disabled:opacity-50 sm:size-10 sm:text-base",
+        "flex size-9 items-center justify-center rounded-sm font-display text-sm font-bold tabular-nums transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/60 disabled:cursor-not-allowed disabled:opacity-50 sm:size-10 sm:text-base",
         active
           ? "bg-primary-500 text-abyss shadow-glow-primary scale-105"
           : "bg-white/[0.05] text-text-secondary ring-1 ring-white/[0.08] hover:bg-white/[0.1] hover:text-text-primary",
@@ -274,7 +274,7 @@ function TotalGoalsPicker({
               onClick={() => onSelect(n)}
               disabled={disabled}
               className={cn(
-                "rounded-[6px] py-1.5 font-display text-sm font-bold tabular-nums transition disabled:cursor-not-allowed disabled:opacity-50",
+                "rounded-xs py-1.5 font-display text-sm font-bold tabular-nums transition disabled:cursor-not-allowed disabled:opacity-50",
                 active
                   ? "bg-gold-500 text-abyss shadow-glow-gold"
                   : "bg-white/[0.05] text-text-secondary ring-1 ring-white/[0.08] hover:bg-white/[0.1] hover:text-text-primary",
@@ -350,7 +350,7 @@ function ScorerSlots({
         </span>
       </div>
       {noRoster ? (
-        <div className="rounded-[6px] border border-dashed border-white/[0.08] bg-white/[0.02] px-2 py-3 text-center text-[10px] text-text-tertiary">
+        <div className="rounded-xs border border-dashed border-white/[0.08] bg-white/[0.02] px-2 py-3 text-center text-[10px] text-text-tertiary">
           {locale === "fr"
             ? "Effectifs pas encore disponibles pour ce match."
             : "Rosters not available for this match yet."}

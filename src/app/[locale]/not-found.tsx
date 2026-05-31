@@ -25,7 +25,7 @@ export default async function LocaleNotFound() {
       </p>
       <Link
         href="/dashboard"
-        className="mt-6 inline-flex items-center gap-1.5 rounded-[8px] bg-primary-500 px-4 py-2.5 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400"
+        className="mt-6 inline-flex items-center gap-1.5 rounded-sm bg-primary-500 px-4 py-2.5 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400"
       >
         {t("back")}
         <ArrowRight className="size-4" strokeWidth={2} />

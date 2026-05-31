@@ -41,7 +41,7 @@ export async function LandingFooter() {
           <Link
             href="/"
             locale={otherLocale}
-            className="rounded-[8px] border border-border-subtle px-3 py-1.5 text-xs font-medium text-text-secondary transition hover:border-primary-500/35 hover:text-text-primary"
+            className="rounded-sm border border-border-subtle px-3 py-1.5 text-xs font-medium text-text-secondary transition hover:border-primary-500/35 hover:text-text-primary"
           >
             {t("footerLanguage")}
           </Link>

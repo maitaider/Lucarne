@@ -119,7 +119,7 @@ export default async function AdminPaymentsPage({
       </section>
 
       {/* Table */}
-      <section className="overflow-hidden rounded-[12px] border border-white/[0.08] bg-surface-1/[0.55] backdrop-blur-xl">
+      <section className="overflow-hidden rounded-md border border-white/[0.08] bg-surface-1/[0.55] backdrop-blur-xl">
         {payments.length === 0 ? (
           <div className="px-6 py-12 text-center">
             <AlertCircle className="mx-auto mb-3 size-6 text-text-tertiary" strokeWidth={1.7} />

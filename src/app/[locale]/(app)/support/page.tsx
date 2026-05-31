@@ -82,7 +82,7 @@ export default async function SupportPage() {
                   {t.message}
                 </p>
                 {t.admin_note && (
-                  <div className="mt-2 rounded-[8px] border border-primary-500/25 bg-primary-500/[0.06] p-2.5">
+                  <div className="mt-2 rounded-sm border border-primary-500/25 bg-primary-500/[0.06] p-2.5">
                     <div className="mb-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-300">
                       {fr ? "Réponse de l'organisateur" : "Reply from the organizer"}
                     </div>

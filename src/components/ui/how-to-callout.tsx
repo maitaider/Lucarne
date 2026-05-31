@@ -126,7 +126,7 @@ export function HowToCallout({
   return (
     <section
       className={cn(
-        "relative mb-6 overflow-hidden rounded-[12px] border p-4 backdrop-blur-xl sm:p-5",
+        "relative mb-6 overflow-hidden rounded-md border p-4 backdrop-blur-xl sm:p-5",
         accentClasses.border,
         accentClasses.bg,
       )}
@@ -135,7 +135,7 @@ export function HowToCallout({
         <div className="min-w-0">
           <div
             className={cn(
-              "mb-1.5 inline-flex items-center gap-1.5 rounded-[6px] border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+              "mb-1.5 inline-flex items-center gap-1.5 rounded-xs border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
               accentClasses.chip,
             )}
           >

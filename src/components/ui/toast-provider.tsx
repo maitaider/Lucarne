@@ -113,7 +113,7 @@ function ToastBubble({
     <div
       role={toast.kind === "error" ? "alert" : "status"}
       className={cn(
-        "pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-[8px] border px-4 py-3 shadow-2xl backdrop-blur-xl transition-all duration-300",
+        "pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-sm border px-4 py-3 shadow-2xl backdrop-blur-xl transition-all duration-300",
         colors.bg,
         visible
           ? "translate-y-0 opacity-100"

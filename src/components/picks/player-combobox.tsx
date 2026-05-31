@@ -150,7 +150,7 @@ export function PlayerCombobox({
         onClick={() => !disabled && setOpen((o) => !o)}
         disabled={disabled}
         className={cn(
-          "flex w-full items-center justify-between gap-2 rounded-[6px] border px-2.5 py-1.5 text-left text-xs transition focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/50 disabled:cursor-not-allowed disabled:opacity-50",
+          "flex w-full items-center justify-between gap-2 rounded-xs border px-2.5 py-1.5 text-left text-xs transition focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/50 disabled:cursor-not-allowed disabled:opacity-50",
           selected
             ? "border-violet-500/40 bg-violet-500/[0.08] text-text-primary"
             : "border-white/[0.08] bg-abyss/[0.5] text-text-tertiary hover:border-white/[0.16] hover:text-text-secondary",
@@ -206,7 +206,7 @@ export function PlayerCombobox({
                 placeholder={
                   locale === "fr" ? "Chercher un joueur…" : "Search a player…"
                 }
-                className="w-full rounded-[6px] border border-white/[0.08] bg-white/[0.04] py-1.5 pl-7 pr-2 text-xs text-text-primary outline-none transition placeholder:text-text-tertiary focus:border-violet-500/40"
+                className="w-full rounded-xs border border-white/[0.08] bg-white/[0.04] py-1.5 pl-7 pr-2 text-xs text-text-primary outline-none transition placeholder:text-text-tertiary focus:border-violet-500/40"
               />
             </div>
           </div>

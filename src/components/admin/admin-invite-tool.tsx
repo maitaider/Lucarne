@@ -95,10 +95,10 @@ export function AdminInviteTool({
   }
 
   const fieldCls =
-    "w-full rounded-[8px] border border-white/[0.1] bg-abyss/[0.5] px-3 py-2 text-sm text-text-primary outline-none transition focus:border-primary-500";
+    "w-full rounded-sm border border-white/[0.1] bg-abyss/[0.5] px-3 py-2 text-sm text-text-primary outline-none transition focus:border-primary-500";
 
   return (
-    <section className="rounded-[12px] border border-primary-500/25 bg-primary-500/[0.05] p-5 backdrop-blur-xl">
+    <section className="rounded-md border border-primary-500/25 bg-primary-500/[0.05] p-5 backdrop-blur-xl">
       <div className="mb-1 flex items-center gap-2">
         <Ticket className="size-4 text-primary-300" strokeWidth={1.8} />
         <h2 className="font-display text-base font-semibold text-text-primary">
@@ -113,7 +113,7 @@ export function AdminInviteTool({
 
       {!houseLeague ? (
         <div>
-          <p className="mb-2 rounded-[8px] border border-gold-500/25 bg-gold-500/[0.07] px-3 py-2 text-xs text-gold-200">
+          <p className="mb-2 rounded-sm border border-gold-500/25 bg-gold-500/[0.07] px-3 py-2 text-xs text-gold-200">
             {fr
               ? "Crée d'abord la ligue maison (une seule fois) — tous les joueurs la rejoindront."
               : "Create the house league first (one time) — every player will join it."}
@@ -131,7 +131,7 @@ export function AdminInviteTool({
               type="button"
               onClick={onCreate}
               disabled={pending}
-              className="inline-flex items-center justify-center gap-1.5 rounded-[8px] bg-primary-500 px-4 py-2 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400 disabled:opacity-60"
+              className="inline-flex items-center justify-center gap-1.5 rounded-sm bg-primary-500 px-4 py-2 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400 disabled:opacity-60"
             >
               {pending ? (
                 <Loader2 className="size-4 animate-spin" />
@@ -145,7 +145,7 @@ export function AdminInviteTool({
       ) : (
         <div className="space-y-4">
           <div className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-[8px] border border-white/[0.08] bg-white/[0.03] px-3 py-2">
+            <div className="rounded-sm border border-white/[0.08] bg-white/[0.03] px-3 py-2">
               <div className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
                 {fr ? "Ligue maison" : "House league"}
               </div>
@@ -186,7 +186,7 @@ export function AdminInviteTool({
                   <button
                     type="button"
                     onClick={() => copy(code, "code")}
-                    className="inline-flex shrink-0 items-center gap-1.5 rounded-[8px] bg-primary-500/20 px-3 py-1.5 text-xs font-semibold text-primary-200 transition hover:bg-primary-500/30"
+                    className="inline-flex shrink-0 items-center gap-1.5 rounded-sm bg-primary-500/20 px-3 py-1.5 text-xs font-semibold text-primary-200 transition hover:bg-primary-500/30"
                   >
                     {copied === "code" ? (
                       <Check className="size-3.5" />
@@ -209,7 +209,7 @@ export function AdminInviteTool({
                 <button
                   type="button"
                   onClick={() => copy(link, "link")}
-                  className="inline-flex shrink-0 items-center gap-1.5 rounded-[8px] border border-white/[0.12] bg-white/[0.06] px-3 py-1.5 text-xs font-semibold text-text-primary transition hover:bg-white/[0.1]"
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-sm border border-white/[0.12] bg-white/[0.06] px-3 py-1.5 text-xs font-semibold text-text-primary transition hover:bg-white/[0.1]"
                 >
                   {copied === "link" ? (
                     <Check className="size-3.5" />
@@ -226,7 +226,7 @@ export function AdminInviteTool({
             type="button"
             onClick={onGenerate}
             disabled={pending}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-[8px] bg-primary-500 px-5 py-2.5 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400 active:scale-[0.99] disabled:opacity-60 sm:w-auto"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-sm bg-primary-500 px-5 py-2.5 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400 active:scale-[0.99] disabled:opacity-60 sm:w-auto"
           >
             {pending ? (
               <Loader2 className="size-4 animate-spin" />
@@ -245,7 +245,7 @@ export function AdminInviteTool({
       )}
 
       {error && (
-        <div className="mt-3 rounded-[8px] border border-error/30 bg-error/10 px-3 py-2 text-sm text-error">
+        <div className="mt-3 rounded-sm border border-error/30 bg-error/10 px-3 py-2 text-sm text-error">
           {error}
         </div>
       )}

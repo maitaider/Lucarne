@@ -52,7 +52,7 @@ export function CreateLeagueForm({ locale }: { locale: "fr" | "en" }) {
   return (
     <form
       onSubmit={onSubmit}
-      className="space-y-5 rounded-[8px] border border-white/[0.08] bg-surface-1/[0.72] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl"
+      className="space-y-5 rounded-sm border border-white/[0.08] bg-surface-1/[0.72] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl"
     >
       <Field
         label={locale === "fr" ? "Nom de la ligue" : "League name"}
@@ -93,7 +93,7 @@ export function CreateLeagueForm({ locale }: { locale: "fr" | "en" }) {
         />
       </Field>
 
-      <label className="flex items-start gap-3 rounded-[8px] border border-white/[0.1] bg-white/[0.045] p-3 transition hover:bg-white/[0.07]">
+      <label className="flex items-start gap-3 rounded-sm border border-white/[0.1] bg-white/[0.045] p-3 transition hover:bg-white/[0.07]">
         <input
           type="checkbox"
           checked={allowsRealMoney}
@@ -121,7 +121,7 @@ export function CreateLeagueForm({ locale }: { locale: "fr" | "en" }) {
       <button
         type="submit"
         disabled={isPending}
-        className="inline-flex w-full items-center justify-center gap-2 rounded-[8px] bg-primary-500 px-4 py-3 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400 disabled:opacity-50"
+        className="inline-flex w-full items-center justify-center gap-2 rounded-sm bg-primary-500 px-4 py-3 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400 disabled:opacity-50"
       >
         {isPending && <Loader2 className="size-4 animate-spin" />}
         {locale === "fr" ? "Créer la ligue" : "Create league"}

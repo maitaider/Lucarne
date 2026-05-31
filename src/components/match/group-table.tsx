@@ -12,7 +12,7 @@ export function GroupTableCard({
   locale: Locale;
 }) {
   return (
-    <div className="overflow-hidden rounded-[8px] border border-white/[0.08] bg-surface-1/[0.64] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
+    <div className="overflow-hidden rounded-sm border border-white/[0.08] bg-surface-1/[0.64] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
       <header className="flex items-center justify-between border-b border-white/[0.08] bg-white/[0.045] px-4 py-2.5">
         <div className="flex items-center gap-2">
           <span className="inline-flex size-7 items-center justify-center rounded-md bg-gradient-to-br from-primary-500/20 to-violet-500/20 font-display text-sm font-bold text-text-primary ring-1 ring-border-subtle">

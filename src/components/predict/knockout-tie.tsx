@@ -277,7 +277,7 @@ function KnockoutSlot({
               onPickThirdPlace(match.match_number, side, e.target.value)
             }
             disabled={!canEdit || options.length === 0}
-            className="w-full rounded-[6px] border border-violet-500/30 bg-abyss/[0.5] px-1.5 py-1 text-[10px] text-text-secondary outline-none focus:border-violet-500/50 disabled:opacity-50"
+            className="w-full rounded-xs border border-violet-500/30 bg-abyss/[0.5] px-1.5 py-1 text-[10px] text-text-secondary outline-none focus:border-violet-500/50 disabled:opacity-50"
           >
             <option value="">
               {locale === "fr"

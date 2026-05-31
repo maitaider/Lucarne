@@ -33,7 +33,7 @@ const ACCENT: Record<Accent, { border: string; bg: string; chip: string }> = {
  * right-aligned actions), then the children as the working surface.
  *
  * Always use this for content panels — it enforces consistent radius
- * (rounded-[8px]), border weight, and padding scale. Avoid card-in-card
+ * (rounded-sm), border weight, and padding scale. Avoid card-in-card
  * by nesting raw divs inside instead of another SectionPanel.
  */
 export function SectionPanel({
@@ -64,7 +64,7 @@ export function SectionPanel({
   return (
     <section
       className={cn(
-        "rounded-[8px] border backdrop-blur-xl",
+        "rounded-sm border backdrop-blur-xl",
         tone.border,
         tone.bg,
         className,
@@ -81,7 +81,7 @@ export function SectionPanel({
             {Icon && (
               <span
                 className={cn(
-                  "flex size-7 shrink-0 items-center justify-center rounded-[6px]",
+                  "flex size-7 shrink-0 items-center justify-center rounded-xs",
                   tone.chip,
                 )}
               >

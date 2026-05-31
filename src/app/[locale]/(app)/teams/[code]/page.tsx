@@ -87,7 +87,7 @@ export default async function TeamPage({
       </Link>
 
       {/* Hero */}
-      <section className="relative isolate overflow-hidden rounded-[16px] border border-white/[0.1] bg-surface-1/[0.72] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_24px_70px_rgba(0,0,0,0.28)] backdrop-blur-xl sm:p-8">
+      <section className="relative isolate overflow-hidden rounded-lg border border-white/[0.1] bg-surface-1/[0.72] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_24px_70px_rgba(0,0,0,0.28)] backdrop-blur-xl sm:p-8">
         <div
           aria-hidden
           className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_70%_70%_at_15%_0%,rgba(34,217,130,0.10),transparent_60%)]"
@@ -142,7 +142,7 @@ export default async function TeamPage({
               {roster.map((p) => (
                 <li
                   key={p.id}
-                  className="flex items-center gap-3 rounded-[8px] border border-white/[0.06] bg-white/[0.035] px-3 py-2"
+                  className="flex items-center gap-3 rounded-sm border border-white/[0.06] bg-white/[0.035] px-3 py-2"
                 >
                   <span className="flex size-7 shrink-0 items-center justify-center rounded-[7px] bg-primary-500/10 font-mono text-xs font-bold text-primary-300 ring-1 ring-primary-500/25">
                     {p.shirt_number ?? "–"}
@@ -163,7 +163,7 @@ export default async function TeamPage({
               {team.key_players.map((player, i) => (
                 <li
                   key={player}
-                  className="flex items-center gap-3 rounded-[8px] border border-white/[0.06] bg-white/[0.035] px-3 py-2"
+                  className="flex items-center gap-3 rounded-sm border border-white/[0.06] bg-white/[0.035] px-3 py-2"
                 >
                   <span className="flex size-7 shrink-0 items-center justify-center rounded-[7px] bg-gold-500/[0.1] font-mono text-xs font-bold text-gold-400 ring-1 ring-gold-500/25">
                     {i + 1}

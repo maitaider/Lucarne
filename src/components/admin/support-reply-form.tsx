@@ -64,7 +64,7 @@ export function SupportReplyForm({
   }
 
   return (
-    <div className="mt-3 w-full rounded-[8px] border border-white/[0.1] bg-black/20 p-3">
+    <div className="mt-3 w-full rounded-sm border border-white/[0.1] bg-black/20 p-3">
       <textarea
         value={note}
         onChange={(e) => setNote(e.target.value)}

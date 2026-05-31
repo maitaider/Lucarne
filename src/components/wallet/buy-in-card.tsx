@@ -127,12 +127,12 @@ export function BuyInCard({
           </div>
 
           {alreadyPaid ? (
-            <div className="inline-flex items-center justify-center gap-2 rounded-[8px] border border-primary-500/35 bg-primary-500/15 px-4 py-3 text-sm font-bold text-primary-300">
+            <div className="inline-flex items-center justify-center gap-2 rounded-sm border border-primary-500/35 bg-primary-500/15 px-4 py-3 text-sm font-bold text-primary-300">
               <CheckCircle2 className="size-4" strokeWidth={2.5} />
               {locale === "fr" ? "Accès activé" : "Access active"}
             </div>
           ) : deadlinePassed ? (
-            <div className="inline-flex items-center justify-center gap-2 rounded-[8px] border border-white/[0.1] bg-white/[0.05] px-4 py-3 text-sm font-semibold text-text-tertiary">
+            <div className="inline-flex items-center justify-center gap-2 rounded-sm border border-white/[0.1] bg-white/[0.05] px-4 py-3 text-sm font-semibold text-text-tertiary">
               {locale === "fr"
                 ? "Vente de places terminée"
                 : "Seat sales closed"}
@@ -143,7 +143,7 @@ export function BuyInCard({
               onClick={handleBuy}
               disabled={isPending}
               className={cn(
-                "inline-flex items-center justify-center gap-2 rounded-[8px] px-4 py-3 text-sm font-bold transition",
+                "inline-flex items-center justify-center gap-2 rounded-sm px-4 py-3 text-sm font-bold transition",
                 stripeReady && !isPending
                   ? "bg-gold-500 text-abyss shadow-glow-gold hover:bg-gold-400"
                   : "bg-white/[0.06] text-text-tertiary",
@@ -206,7 +206,7 @@ function Feature({
   locale: Locale;
 }) {
   return (
-    <li className="flex items-start gap-2 rounded-[8px] border border-white/[0.06] bg-white/[0.025] px-3 py-2">
+    <li className="flex items-start gap-2 rounded-sm border border-white/[0.06] bg-white/[0.025] px-3 py-2">
       <Icon className="mt-0.5 size-3.5 shrink-0 text-gold-300" strokeWidth={1.7} />
       <span className="leading-5">{locale === "fr" ? fr : en}</span>
     </li>

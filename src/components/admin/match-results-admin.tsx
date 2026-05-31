@@ -327,7 +327,7 @@ function MatchEditor({
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className="rounded-[8px] border border-white/[0.1] bg-surface-2 px-2.5 py-2 text-sm text-text-primary outline-none focus:border-primary-500"
+            className="rounded-sm border border-white/[0.1] bg-surface-2 px-2.5 py-2 text-sm text-text-primary outline-none focus:border-primary-500"
           >
             {STATUSES.map((s) => (
               <option key={s} value={s}>
@@ -416,7 +416,7 @@ function MatchEditor({
           type="button"
           onClick={save}
           disabled={isPending}
-          className="inline-flex items-center gap-2 rounded-[8px] bg-primary-500 px-4 py-2 text-sm font-semibold text-abyss transition hover:bg-primary-400 disabled:opacity-60"
+          className="inline-flex items-center gap-2 rounded-sm bg-primary-500 px-4 py-2 text-sm font-semibold text-abyss transition hover:bg-primary-400 disabled:opacity-60"
         >
           {isPending && <Loader2 className="size-4 animate-spin" />}
           {fr ? "Enregistrer le résultat" : "Save result"}
@@ -426,7 +426,7 @@ function MatchEditor({
             type="button"
             onClick={recompute}
             disabled={isRecomputing}
-            className="inline-flex items-center gap-2 rounded-[8px] border border-white/[0.12] px-3 py-2 text-sm font-medium text-text-secondary transition hover:border-primary-500/40 hover:text-text-primary disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-sm border border-white/[0.12] px-3 py-2 text-sm font-medium text-text-secondary transition hover:border-primary-500/40 hover:text-text-primary disabled:opacity-60"
           >
             {isRecomputing ? (
               <Loader2 className="size-4 animate-spin" />
@@ -439,7 +439,7 @@ function MatchEditor({
         <button
           type="button"
           onClick={onDone}
-          className="rounded-[8px] px-3 py-2 text-sm text-text-secondary transition hover:text-text-primary"
+          className="rounded-sm px-3 py-2 text-sm text-text-secondary transition hover:text-text-primary"
         >
           {fr ? "Fermer" : "Close"}
         </button>
@@ -474,7 +474,7 @@ function ScoreInput({
         onChange={(e) => onChange(e.target.value.replace(/\D/g, "").slice(0, 2))}
         inputMode="numeric"
         placeholder="0"
-        className="w-16 rounded-[8px] border border-white/[0.1] bg-surface-2 px-2.5 py-2 text-center text-lg font-bold tabular-nums text-text-primary outline-none focus:border-primary-500"
+        className="w-16 rounded-sm border border-white/[0.1] bg-surface-2 px-2.5 py-2 text-center text-lg font-bold tabular-nums text-text-primary outline-none focus:border-primary-500"
       />
     </label>
   );

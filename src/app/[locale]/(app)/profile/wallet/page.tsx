@@ -76,7 +76,7 @@ export default async function ReceiptsPage({
             </p>
             <Link
               href="/buy-in"
-              className="inline-flex items-center gap-1.5 rounded-[8px] bg-primary-500 px-4 py-2 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400"
+              className="inline-flex items-center gap-1.5 rounded-sm bg-primary-500 px-4 py-2 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400"
             >
               <ArrowRight className="size-4" strokeWidth={2} />
               {L === "fr" ? "Débloquer l'accès" : "Unlock access"}
@@ -96,7 +96,7 @@ export default async function ReceiptsPage({
           </p>
         </div>
       ) : (
-        <section className="overflow-hidden rounded-[12px] border border-white/[0.08] bg-surface-1/[0.55] backdrop-blur-xl">
+        <section className="overflow-hidden rounded-md border border-white/[0.08] bg-surface-1/[0.55] backdrop-blur-xl">
           <ul className="divide-y divide-white/[0.06]">
             {payments.map((p) => {
               const refunded = p.status === "refunded";

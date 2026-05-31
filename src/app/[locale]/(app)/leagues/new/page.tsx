@@ -21,7 +21,7 @@ export default async function NewLeaguePage({
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-10 lg:px-8">
-      <header className="mb-8 rounded-[8px] border border-white/[0.1] bg-surface-1/[0.66] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-xl">
+      <header className="mb-8 rounded-sm border border-white/[0.1] bg-surface-1/[0.66] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-xl">
         <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-gold-500/30 bg-gold-500/[0.1] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-gold-400">
           {L === "fr" ? "Admin uniquement" : "Admin only"}
         </div>

@@ -325,10 +325,10 @@ export function PicksBoard({
 
 
       {/* Progress + filter (sticky on scroll) */}
-      <section className="sticky top-[64px] z-30 mb-4 rounded-[12px] border border-white/[0.1] bg-abyss/[0.85] p-3 shadow-[0_10px_30px_rgba(0,0,0,0.32),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl sm:p-4">
+      <section className="sticky top-[64px] z-30 mb-4 rounded-md border border-white/[0.1] bg-abyss/[0.85] p-3 shadow-[0_10px_30px_rgba(0,0,0,0.32),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl sm:p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <span className="flex size-9 items-center justify-center rounded-[8px] border border-primary-500/35 bg-primary-500/[0.1] text-primary-300">
+            <span className="flex size-9 items-center justify-center rounded-sm border border-primary-500/35 bg-primary-500/[0.1] text-primary-300">
               <Target className="size-4" strokeWidth={1.8} />
             </span>
             <div>
@@ -372,7 +372,7 @@ export function PicksBoard({
           {dateKeys.map((date) => (
             <section key={date}>
               <DayHeader date={date} locale={locale} />
-              <ul className="divide-y divide-white/[0.06] overflow-hidden rounded-[12px] border border-white/[0.08] bg-surface-1/[0.6] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
+              <ul className="divide-y divide-white/[0.06] overflow-hidden rounded-md border border-white/[0.08] bg-surface-1/[0.6] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
                 {grouped.get(date)!.map((m) => (
                   <PickRow
                     key={m.id}
@@ -506,7 +506,7 @@ function EmptyState({
       : "Calendar is still empty.";
   })();
   return (
-    <div className="rounded-[12px] border border-dashed border-white/[0.12] bg-surface-1/[0.55] p-8 text-center text-sm text-text-secondary backdrop-blur-xl">
+    <div className="rounded-md border border-dashed border-white/[0.12] bg-surface-1/[0.55] p-8 text-center text-sm text-text-secondary backdrop-blur-xl">
       {msg}
     </div>
   );

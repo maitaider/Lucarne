@@ -84,7 +84,7 @@ export function MobileMenu({ locale }: { locale: Locale }) {
         type="button"
         onClick={() => setOpen(true)}
         aria-label={locale === "fr" ? "Ouvrir le menu" : "Open menu"}
-        className="flex size-9 items-center justify-center rounded-[8px] border border-white/[0.12] bg-white/[0.06] text-text-secondary transition hover:border-primary-500/35 hover:text-text-primary md:hidden"
+        className="flex size-9 items-center justify-center rounded-sm border border-white/[0.12] bg-white/[0.06] text-text-secondary transition hover:border-primary-500/35 hover:text-text-primary md:hidden"
       >
         <Menu className="size-4" strokeWidth={1.5} />
       </button>
@@ -112,7 +112,7 @@ export function MobileMenu({ locale }: { locale: Locale }) {
                   type="button"
                   onClick={() => setOpen(false)}
                   aria-label={locale === "fr" ? "Fermer" : "Close"}
-                  className="flex size-8 items-center justify-center rounded-[8px] text-text-secondary hover:bg-white/[0.05] hover:text-text-primary"
+                  className="flex size-8 items-center justify-center rounded-sm text-text-secondary hover:bg-white/[0.05] hover:text-text-primary"
                 >
                   <X className="size-4" strokeWidth={1.5} />
                 </button>
@@ -139,7 +139,7 @@ export function MobileMenu({ locale }: { locale: Locale }) {
                             href={item.href}
                             onClick={() => setOpen(false)}
                             className={cn(
-                              "flex items-center gap-3 rounded-[8px] px-3 py-2.5 text-sm transition",
+                              "flex items-center gap-3 rounded-sm px-3 py-2.5 text-sm transition",
                               isActive
                                 ? "bg-primary-500/[0.12] text-primary-300"
                                 : "text-text-secondary hover:bg-white/[0.05] hover:text-text-primary",

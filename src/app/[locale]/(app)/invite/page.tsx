@@ -48,7 +48,7 @@ export default async function InvitePage({
             key={i}
             className="flex items-start gap-2.5 rounded-[10px] border border-white/[0.07] bg-surface-1/[0.5] p-3"
           >
-            <span className="flex size-7 shrink-0 items-center justify-center rounded-[8px] bg-primary-500/12 text-primary-300 ring-1 ring-primary-500/25">
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary-500/12 text-primary-300 ring-1 ring-primary-500/25">
               <Icon className="size-3.5" strokeWidth={1.9} />
             </span>
             <span className="text-xs leading-5 text-text-secondary">{text}</span>

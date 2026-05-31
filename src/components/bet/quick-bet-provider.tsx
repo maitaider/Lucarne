@@ -268,7 +268,7 @@ function QuickBetSheet({
             : "translate-y-full sm:translate-y-[calc(-50%+24px)] sm:opacity-0",
         )}
       >
-        <div className="relative flex max-h-[88dvh] flex-col overflow-hidden rounded-t-[18px] border border-white/[0.12] bg-abyss/95 shadow-2xl shadow-black/60 backdrop-blur-2xl sm:rounded-[16px]">
+        <div className="relative flex max-h-[88dvh] flex-col overflow-hidden rounded-t-[18px] border border-white/[0.12] bg-abyss/95 shadow-2xl shadow-black/60 backdrop-blur-2xl sm:rounded-lg">
           {/* Header */}
           <div className="relative shrink-0 overflow-hidden border-b border-white/[0.08] bg-gradient-to-br from-primary-500/[0.14] via-violet-500/[0.06] to-transparent px-5 pb-4 pt-5">
             <div className="flex items-start justify-between gap-3">
@@ -429,7 +429,7 @@ function QuickBetSheet({
                             fr ? `Buteur ${i + 1} · ex. Mbappé` : `Scorer ${i + 1} · e.g. Mbappé`
                           }
                           maxLength={80}
-                          className="w-full rounded-[8px] border border-white/[0.1] bg-abyss/[0.5] py-2 pl-7 pr-3 text-sm text-text-primary outline-none placeholder:text-text-tertiary focus:border-primary-500/50"
+                          className="w-full rounded-sm border border-white/[0.1] bg-abyss/[0.5] py-2 pl-7 pr-3 text-sm text-text-primary outline-none placeholder:text-text-tertiary focus:border-primary-500/50"
                         />
                       </div>
                     ))}
@@ -449,7 +449,7 @@ function QuickBetSheet({
                   onClick={handleSubmit}
                   disabled={!hasAny || isPending}
                   className={cn(
-                    "inline-flex w-full items-center justify-center gap-2 rounded-[8px] px-4 py-3.5 text-sm font-bold transition",
+                    "inline-flex w-full items-center justify-center gap-2 rounded-sm px-4 py-3.5 text-sm font-bold transition",
                     hasAny && !isPending
                       ? "bg-primary-500 text-abyss shadow-glow-primary hover:bg-primary-400"
                       : "cursor-not-allowed bg-white/[0.06] text-text-tertiary",
@@ -504,7 +504,7 @@ function Section({
       <div className="mb-2 flex items-center gap-2">
         <span
           className={cn(
-            "flex size-6 items-center justify-center rounded-[6px] ring-1 transition",
+            "flex size-6 items-center justify-center rounded-xs ring-1 transition",
             done
               ? "bg-primary-500/15 text-primary-300 ring-primary-500/30"
               : "bg-white/[0.05] text-text-tertiary ring-white/[0.08]",

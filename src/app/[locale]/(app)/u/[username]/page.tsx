@@ -88,7 +88,7 @@ export default async function PublicProfilePage({
       </div>
 
       {/* ── Profile header ───────────────────────────────────────────────── */}
-      <section className="relative isolate overflow-hidden rounded-[8px] border border-white/[0.13] bg-abyss/[0.8] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.32),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl sm:p-7">
+      <section className="relative isolate overflow-hidden rounded-sm border border-white/[0.13] bg-abyss/[0.8] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.32),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl sm:p-7">
         <div
           aria-hidden
           className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_70%_60%_at_30%_0%,rgba(34,217,130,0.10),transparent_62%)]"
@@ -102,7 +102,7 @@ export default async function PublicProfilePage({
           <div className="min-w-0 flex-1">
             <div
               className={cn(
-                "mb-2 inline-flex items-center gap-1.5 rounded-[8px] border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider",
+                "mb-2 inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider",
                 isAdmin
                   ? "border-gold-500/35 bg-gold-500/[0.1] text-gold-300 shadow-glow-gold"
                   : "border-primary-500/35 bg-primary-500/[0.1] text-primary-300 shadow-glow-primary",
@@ -244,7 +244,7 @@ function StatTile({
         ? "text-primary-300"
         : "text-text-secondary";
   return (
-    <div className="rounded-[8px] border border-white/[0.08] bg-white/[0.03] px-3 py-2.5">
+    <div className="rounded-sm border border-white/[0.08] bg-white/[0.03] px-3 py-2.5">
       <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
         <Icon className={cn("size-3", tone)} strokeWidth={2} />
         {label}
@@ -270,7 +270,7 @@ function RecentBetRow({ bet, locale }: { bet: ProfileBet; locale: Locale }) {
   const predicted = parseScore(bet.payload);
 
   const inner = (
-    <div className="flex items-center gap-3 rounded-[8px] border border-white/[0.06] bg-white/[0.025] px-3 py-2.5 transition hover:border-white/[0.12] hover:bg-white/[0.045]">
+    <div className="flex items-center gap-3 rounded-sm border border-white/[0.06] bg-white/[0.025] px-3 py-2.5 transition hover:border-white/[0.12] hover:bg-white/[0.045]">
       <div className="flex min-w-0 flex-1 items-center gap-2">
         {hasMatch ? (
           <>

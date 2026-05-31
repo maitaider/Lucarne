@@ -78,7 +78,7 @@ export function PageHero({
   return (
     <header
       className={cn(
-        "relative overflow-hidden rounded-[8px] border border-white/[0.13]",
+        "relative overflow-hidden rounded-sm border border-white/[0.13]",
         background === "default" && "bg-abyss/[0.8]",
         background === "subtle" && "bg-surface-1/[0.7]",
         background === "none" && "bg-transparent border-transparent",
@@ -109,7 +109,7 @@ export function PageHero({
         <div className="min-w-0">
           <div
             className={cn(
-              "mb-3 inline-flex items-center gap-1.5 rounded-[8px] border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider",
+              "mb-3 inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider",
               tone.kicker,
               tone.ring,
             )}
@@ -140,7 +140,7 @@ export function PageHero({
         </div>
 
         {visual && (
-          <div className="relative aspect-[16/10] w-full overflow-hidden rounded-[8px] border border-white/[0.1] bg-abyss/[0.6] lg:max-w-md">
+          <div className="relative aspect-[16/10] w-full overflow-hidden rounded-sm border border-white/[0.1] bg-abyss/[0.6] lg:max-w-md">
             <Image
               src={visual.src}
               alt={visual.alt}

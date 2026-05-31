@@ -121,7 +121,7 @@ export default async function LivePage({
 
       {/* Mobile tab switcher — hidden on desktop */}
       <nav
-        className="inline-flex self-start rounded-[8px] border border-white/[0.1] bg-abyss/[0.44] p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl lg:hidden"
+        className="inline-flex self-start rounded-sm border border-white/[0.1] bg-abyss/[0.44] p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl lg:hidden"
         aria-label="Live sections"
       >
         <MobileTabLink

@@ -43,7 +43,7 @@ export function BuyInBanner({
   }
 
   return (
-    <section className="group/banner relative mb-6 overflow-hidden rounded-[12px] border border-gold-500/35 bg-gradient-to-r from-gold-500/[0.15] via-primary-500/[0.06] to-transparent backdrop-blur-xl">
+    <section className="group/banner relative mb-6 overflow-hidden rounded-md border border-gold-500/35 bg-gradient-to-r from-gold-500/[0.15] via-primary-500/[0.06] to-transparent backdrop-blur-xl">
       <div
         aria-hidden
         className="pointer-events-none absolute -right-10 -top-10 size-40 rounded-full bg-gold-500/25 blur-3xl"
@@ -71,7 +71,7 @@ export function BuyInBanner({
         </div>
         <Link
           href="/buy-in"
-          className="inline-flex items-center justify-center gap-1.5 rounded-[8px] bg-gold-500 px-4 py-2 text-sm font-bold text-abyss shadow-glow-gold transition hover:bg-gold-400"
+          className="inline-flex items-center justify-center gap-1.5 rounded-sm bg-gold-500 px-4 py-2 text-sm font-bold text-abyss shadow-glow-gold transition hover:bg-gold-400"
         >
           {locale === "fr" ? "Débloquer l'accès" : "Unlock access"}
           <ArrowRight

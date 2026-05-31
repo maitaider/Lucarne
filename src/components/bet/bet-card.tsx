@@ -36,7 +36,7 @@ export function BetCard({
   return (
     <article
       className={cn(
-        "relative overflow-hidden rounded-[8px] border border-white/[0.08] bg-surface-1/[0.72] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl transition hover:border-primary-500/35 hover:bg-surface-2/[0.78]",
+        "relative overflow-hidden rounded-sm border border-white/[0.08] bg-surface-1/[0.72] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl transition hover:border-primary-500/35 hover:bg-surface-2/[0.78]",
       )}
     >
       {/* Status colored left bar */}
@@ -139,7 +139,7 @@ function BetTypeBadge({ type, locale }: { type: string; locale: Locale }) {
     top_scorer: { fr: "Top scorer", en: "Top scorer" },
   };
   return (
-    <span className="rounded-[6px] bg-white/[0.055] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-text-secondary">
+    <span className="rounded-xs bg-white/[0.055] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-text-secondary">
       {labels[type]?.[locale] ?? type}
     </span>
   );
@@ -188,7 +188,7 @@ function StatusPill({
   }
   // refunded / cancelled / other
   return (
-      <span className="inline-flex items-center gap-1 rounded-[6px] bg-white/[0.055] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
+      <span className="inline-flex items-center gap-1 rounded-xs bg-white/[0.055] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
       <Clock className="size-3" />
       {locale === "fr" ? "En attente" : "Pending"}
     </span>

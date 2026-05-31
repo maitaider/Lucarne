@@ -64,7 +64,7 @@ export function PageTabs<T extends string>({
       role="tablist"
       aria-label={ariaLabel}
       className={cn(
-        "inline-flex rounded-[8px] border border-white/[0.1] bg-abyss/[0.55] p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl",
+        "inline-flex rounded-sm border border-white/[0.1] bg-abyss/[0.55] p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl",
         className,
       )}
     >

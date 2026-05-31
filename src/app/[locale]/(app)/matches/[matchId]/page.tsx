@@ -132,7 +132,7 @@ export default async function MatchDetailPage({
       </Link>
 
       {/* ── Match hero ──────────────────────────────────────────────────── */}
-      <section className="relative isolate overflow-hidden rounded-[16px] border border-white/[0.1] bg-surface-1/[0.72] shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_24px_70px_rgba(0,0,0,0.28)] backdrop-blur-xl">
+      <section className="relative isolate overflow-hidden rounded-lg border border-white/[0.1] bg-surface-1/[0.72] shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_24px_70px_rgba(0,0,0,0.28)] backdrop-blur-xl">
         <div
           aria-hidden
           className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_75%_60%_at_50%_0%,rgba(34,217,130,0.10),transparent_62%)]"
@@ -302,7 +302,7 @@ function TeamColumn({
       <Flag
         isoCode={team?.iso_code ?? null}
         size="2xl"
-        className="!h-14 !w-20 rounded-[8px] ring-1 ring-white/15 transition group-hover:ring-primary-500/40 sm:!h-16 sm:!w-24"
+        className="!h-14 !w-20 rounded-sm ring-1 ring-white/15 transition group-hover:ring-primary-500/40 sm:!h-16 sm:!w-24"
       />
       <div className={right ? "text-right" : "text-left"}>
         <div className="truncate font-display text-lg font-semibold text-text-primary transition group-hover:text-primary-200 sm:text-2xl">
@@ -450,7 +450,7 @@ function MyPredictionPanel({
         {hasPrediction && score ? (
           <div className="space-y-4">
             {/* Predicted scoreline with flags */}
-            <div className="flex items-center justify-center gap-4 rounded-[12px] border border-white/[0.06] bg-white/[0.025] px-4 py-4">
+            <div className="flex items-center justify-center gap-4 rounded-md border border-white/[0.06] bg-white/[0.025] px-4 py-4">
               <div className="flex min-w-0 items-center gap-2">
                 <Flag isoCode={homeTeam?.iso_code ?? null} size="md" />
                 <span className="truncate text-sm font-semibold text-text-secondary">
@@ -553,7 +553,7 @@ function TeamWatchlist({
 }) {
   const fr = locale === "fr";
   return (
-    <div className="rounded-[12px] border border-white/[0.08] bg-surface-1/[0.62] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
+    <div className="rounded-md border border-white/[0.08] bg-surface-1/[0.62] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
       <div className="mb-4 flex items-center gap-3">
         {isoCode ? (
           <Flag isoCode={isoCode} size="lg" className="ring-1 ring-white/15" />
@@ -574,7 +574,7 @@ function TeamWatchlist({
         {team.key_players.map((player, index) => (
           <div
             key={player}
-            className="grid grid-cols-[2rem_1fr] items-center gap-3 rounded-[8px] border border-white/[0.06] bg-white/[0.035] px-3 py-2"
+            className="grid grid-cols-[2rem_1fr] items-center gap-3 rounded-sm border border-white/[0.06] bg-white/[0.035] px-3 py-2"
           >
             <span className="flex size-7 items-center justify-center rounded-[7px] bg-gold-500/[0.1] font-mono text-xs font-bold text-gold-400 ring-1 ring-gold-500/25">
               {index + 1}
@@ -780,7 +780,7 @@ function SquadColumn({
   ];
 
   return (
-    <div className="rounded-[12px] border border-white/[0.08] bg-surface-1/[0.62] p-4 backdrop-blur-xl">
+    <div className="rounded-md border border-white/[0.08] bg-surface-1/[0.62] p-4 backdrop-blur-xl">
       <div className="mb-3 flex items-center gap-2.5">
         <Flag isoCode={iso} size="lg" className="ring-1 ring-white/15" />
         <div className="min-w-0">
@@ -806,7 +806,7 @@ function SquadColumn({
                 {players.map((p) => (
                   <span
                     key={p.id}
-                    className="inline-flex items-center gap-1.5 rounded-[8px] border border-white/[0.06] bg-white/[0.035] px-2 py-1 text-xs"
+                    className="inline-flex items-center gap-1.5 rounded-sm border border-white/[0.06] bg-white/[0.035] px-2 py-1 text-xs"
                   >
                     {p.shirt_number != null && (
                       <span className="font-mono text-[10px] font-bold tabular-nums text-text-tertiary">

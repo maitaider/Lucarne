@@ -186,7 +186,7 @@ export default async function NewsPage({
             return (
               <li
                 key={p.id}
-                className="rounded-[8px] border border-white/[0.08] bg-surface-1/[0.55] p-5 backdrop-blur-xl transition hover:border-white/[0.16] hover:bg-surface-1/[0.7]"
+                className="rounded-sm border border-white/[0.08] bg-surface-1/[0.55] p-5 backdrop-blur-xl transition hover:border-white/[0.16] hover:bg-surface-1/[0.7]"
               >
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <span

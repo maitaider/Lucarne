@@ -76,7 +76,7 @@ export default async function BuyInPage({
       />
 
       {stripe === "success" && (
-        <div className="flex items-start gap-3 rounded-[8px] border border-primary-500/35 bg-primary-500/[0.1] px-4 py-3 text-sm text-primary-200">
+        <div className="flex items-start gap-3 rounded-sm border border-primary-500/35 bg-primary-500/[0.1] px-4 py-3 text-sm text-primary-200">
           <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
           <div>
             <div className="font-semibold">
@@ -91,7 +91,7 @@ export default async function BuyInPage({
         </div>
       )}
       {stripe === "cancelled" && (
-        <div className="rounded-[8px] border border-white/[0.1] bg-white/[0.04] px-4 py-3 text-sm text-text-secondary">
+        <div className="rounded-sm border border-white/[0.1] bg-white/[0.04] px-4 py-3 text-sm text-text-secondary">
           {L === "fr"
             ? "Paiement annulé — tu peux relancer quand tu veux."
             : "Payment cancelled — you can restart whenever."}
@@ -187,7 +187,7 @@ function Step({
 }) {
   return (
     <li
-      className={`rounded-[8px] border p-3 ${
+      className={`rounded-sm border p-3 ${
         done
           ? "border-primary-500/35 bg-primary-500/[0.05]"
           : "border-white/[0.08] bg-white/[0.03]"
@@ -195,7 +195,7 @@ function Step({
     >
       <div className="mb-2 flex items-center justify-between">
         <span
-          className={`flex size-7 items-center justify-center rounded-[6px] ${
+          className={`flex size-7 items-center justify-center rounded-xs ${
             done
               ? "bg-primary-500/15 text-primary-300 ring-1 ring-primary-500/30"
               : "bg-white/[0.05] text-text-tertiary ring-1 ring-white/[0.08]"

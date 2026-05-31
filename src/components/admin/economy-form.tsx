@@ -133,14 +133,14 @@ export function EconomyForm({ initial, totalCollectedCents, locale }: Props) {
               step={0.01}
               value={buyInDollars}
               onChange={(e) => setBuyInDollars(e.target.value)}
-              className="w-full rounded-[8px] border border-white/[0.1] bg-abyss/[0.6] px-3 py-2.5 text-lg tabular-nums text-text-primary outline-none transition focus:border-primary-500/50"
+              className="w-full rounded-sm border border-white/[0.1] bg-abyss/[0.6] px-3 py-2.5 text-lg tabular-nums text-text-primary outline-none transition focus:border-primary-500/50"
             />
             <span className="font-display text-base text-text-tertiary">{symbol}</span>
           </div>
           <select
             value={currency}
             onChange={(e) => setCurrency(e.target.value)}
-            className="w-full rounded-[8px] border border-white/[0.1] bg-abyss/[0.6] px-2 py-2.5 text-sm text-text-primary outline-none transition focus:border-primary-500/50"
+            className="w-full rounded-sm border border-white/[0.1] bg-abyss/[0.6] px-2 py-2.5 text-sm text-text-primary outline-none transition focus:border-primary-500/50"
             aria-label={locale === "fr" ? "Devise" : "Currency"}
           >
             {["CAD", "USD", "EUR", "GBP"].map((c) => (
@@ -171,7 +171,7 @@ export function EconomyForm({ initial, totalCollectedCents, locale }: Props) {
           type="datetime-local"
           value={deadlineLocal}
           onChange={(e) => setDeadlineLocal(e.target.value)}
-          className="w-full rounded-[8px] border border-white/[0.1] bg-abyss/[0.6] px-3 py-2.5 text-sm text-text-primary outline-none transition focus:border-primary-500/50"
+          className="w-full rounded-sm border border-white/[0.1] bg-abyss/[0.6] px-3 py-2.5 text-sm text-text-primary outline-none transition focus:border-primary-500/50"
         />
         <button
           type="button"
@@ -196,7 +196,7 @@ export function EconomyForm({ initial, totalCollectedCents, locale }: Props) {
           {shares.map((value, idx) => (
             <li
               key={idx}
-              className="flex items-center gap-2 rounded-[8px] border border-white/[0.08] bg-white/[0.03] px-3 py-2"
+              className="flex items-center gap-2 rounded-sm border border-white/[0.08] bg-white/[0.03] px-3 py-2"
             >
               <span
                 className={cn(
@@ -270,7 +270,7 @@ export function EconomyForm({ initial, totalCollectedCents, locale }: Props) {
           {locale === "fr" ? "Ajouter une place" : "Add a placement"}
         </button>
 
-        <div className="mt-4 grid grid-cols-2 gap-3 rounded-[8px] border border-white/[0.08] bg-white/[0.03] p-3">
+        <div className="mt-4 grid grid-cols-2 gap-3 rounded-sm border border-white/[0.08] bg-white/[0.03] p-3">
           <label className="block">
             <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
               {locale === "fr" ? "Commission maison" : "House rake"}
@@ -324,12 +324,12 @@ export function EconomyForm({ initial, totalCollectedCents, locale }: Props) {
               ? "IBAN: FR76… · PayPal: paypal.me/lucarne · Lydia: @lucarne"
               : "IBAN: FR76… · PayPal: paypal.me/lucarne"
           }
-          className="w-full resize-none rounded-[8px] border border-white/[0.1] bg-abyss/[0.6] px-3 py-2.5 text-sm text-text-primary outline-none transition placeholder:text-text-tertiary focus:border-primary-500/50"
+          className="w-full resize-none rounded-sm border border-white/[0.1] bg-abyss/[0.6] px-3 py-2.5 text-sm text-text-primary outline-none transition placeholder:text-text-tertiary focus:border-primary-500/50"
         />
       </Card>
 
       {/* Submit */}
-      <div className="sticky bottom-4 z-20 flex items-center justify-between gap-3 rounded-[12px] border border-white/[0.1] bg-abyss/95 p-3 shadow-2xl backdrop-blur-xl">
+      <div className="sticky bottom-4 z-20 flex items-center justify-between gap-3 rounded-md border border-white/[0.1] bg-abyss/95 p-3 shadow-2xl backdrop-blur-xl">
         <p className="text-xs text-text-secondary">
           {isValid
             ? locale === "fr"
@@ -343,7 +343,7 @@ export function EconomyForm({ initial, totalCollectedCents, locale }: Props) {
           type="submit"
           disabled={isPending || !isValid}
           className={cn(
-            "inline-flex items-center gap-1.5 rounded-[8px] px-4 py-2.5 text-sm font-bold transition",
+            "inline-flex items-center gap-1.5 rounded-sm px-4 py-2.5 text-sm font-bold transition",
             !isValid || isPending
               ? "bg-white/[0.06] text-text-tertiary"
               : "bg-primary-500 text-abyss shadow-glow-primary hover:bg-primary-400",
@@ -373,7 +373,7 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-[12px] border border-white/[0.08] bg-surface-1/[0.5] p-5 backdrop-blur-xl">
+    <section className="rounded-md border border-white/[0.08] bg-surface-1/[0.5] p-5 backdrop-blur-xl">
       <header className="mb-3 flex items-start gap-3">
         <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-gold-500/[0.12] text-gold-300 ring-1 ring-gold-500/30">
           <Icon className="size-4" strokeWidth={1.7} />

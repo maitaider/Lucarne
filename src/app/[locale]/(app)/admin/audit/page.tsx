@@ -43,7 +43,7 @@ export default async function AdminAuditPage() {
           {fr ? "Aucune entrée." : "No entries."}
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-[12px] border border-white/[0.08] bg-surface-1/[0.55] backdrop-blur-xl">
+        <div className="overflow-x-auto rounded-md border border-white/[0.08] bg-surface-1/[0.55] backdrop-blur-xl">
           <table className="w-full">
             <thead className="border-b border-white/[0.08] bg-white/[0.03]">
               <tr className="text-[10px] uppercase tracking-wider text-text-tertiary">
@@ -69,7 +69,7 @@ export default async function AdminAuditPage() {
                     {r.actor_username ? `@${r.actor_username}` : "—"}
                   </td>
                   <td className="px-4 py-2.5">
-                    <span className="rounded-[6px] bg-white/[0.06] px-2 py-0.5 font-mono text-[11px] text-text-primary">
+                    <span className="rounded-xs bg-white/[0.06] px-2 py-0.5 font-mono text-[11px] text-text-primary">
                       {r.action}
                     </span>
                   </td>

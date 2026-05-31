@@ -17,7 +17,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <Link href="/" className="mb-10 inline-flex transition hover:opacity-85">
           <LucarneLogo />
         </Link>
-        <div className="rounded-[8px] border border-white/[0.12] bg-surface-1/[0.82] p-8 shadow-2xl shadow-black/[0.35] backdrop-blur-xl">
+        <div className="rounded-sm border border-white/[0.12] bg-surface-1/[0.82] p-8 shadow-2xl shadow-black/[0.35] backdrop-blur-xl">
           {children}
         </div>
       </div>

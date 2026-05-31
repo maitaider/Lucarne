@@ -53,7 +53,7 @@ export async function AppHeader({
           ) : (
             <Link
               href="/login"
-              className="rounded-[8px] border border-white/[0.12] bg-white/[0.06] px-4 py-1.5 text-xs font-semibold text-text-primary transition hover:border-primary-500/45 hover:bg-primary-500/[0.08]"
+              className="rounded-sm border border-white/[0.12] bg-white/[0.06] px-4 py-1.5 text-xs font-semibold text-text-primary transition hover:border-primary-500/45 hover:bg-primary-500/[0.08]"
             >
               {locale === "fr" ? "Connexion" : "Sign in"}
             </Link>

@@ -89,7 +89,7 @@ export default async function AdminSupportPage() {
                 {t.message}
               </p>
               {t.admin_note && (
-                <div className="mt-2.5 rounded-[8px] border border-primary-500/25 bg-primary-500/[0.06] p-3">
+                <div className="mt-2.5 rounded-sm border border-primary-500/25 bg-primary-500/[0.06] p-3">
                   <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-primary-300">
                     {fr ? "Ta réponse" : "Your reply"}
                   </div>

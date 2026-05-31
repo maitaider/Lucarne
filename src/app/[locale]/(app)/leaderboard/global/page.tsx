@@ -211,7 +211,7 @@ export default async function GlobalLeaderboardPage({
             />
           )}
           {isFiltered && totalBets === 0 && (
-            <p className="mb-6 rounded-[8px] border border-dashed border-white/[0.14] bg-surface-1/[0.5] px-4 py-3 text-center text-sm text-text-tertiary">
+            <p className="mb-6 rounded-sm border border-dashed border-white/[0.14] bg-surface-1/[0.5] px-4 py-3 text-center text-sm text-text-tertiary">
               {L === "fr"
                 ? "Aucun point marqué dans cette phase pour l'instant."
                 : "No points scored in this phase yet."}
@@ -310,12 +310,12 @@ function LeaderboardMetric({
   }[accent];
 
   return (
-    <div className="rounded-[8px] border border-white/[0.08] bg-white/[0.04] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+    <div className="rounded-sm border border-white/[0.08] bg-white/[0.04] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
       <div className="mb-3 flex items-center justify-between">
         <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
           {label}
         </span>
-        <span className={`rounded-[8px] border p-1.5 ${color}`}>
+        <span className={`rounded-sm border p-1.5 ${color}`}>
           <Icon className="size-3.5" strokeWidth={1.7} />
         </span>
       </div>
@@ -352,7 +352,7 @@ function ProjectedPotCard({
   }));
 
   return (
-    <section className="mb-8 overflow-hidden rounded-[12px] border border-gold-500/25 bg-gradient-to-br from-gold-500/[0.12] via-gold-500/[0.04] to-transparent p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl sm:p-6">
+    <section className="mb-8 overflow-hidden rounded-md border border-gold-500/25 bg-gradient-to-br from-gold-500/[0.12] via-gold-500/[0.04] to-transparent p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl sm:p-6">
       <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-start gap-3">
           <span className="flex size-11 items-center justify-center rounded-[10px] border border-gold-500/40 bg-gold-500/[0.14] text-gold-300 shadow-glow-gold">
@@ -443,9 +443,9 @@ function EmptyLeaderboardPreview({ locale }: { locale: Locale }) {
   ];
 
   return (
-    <div className="rounded-[8px] border border-dashed border-white/[0.14] bg-surface-1/[0.62] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
+    <div className="rounded-sm border border-dashed border-white/[0.14] bg-surface-1/[0.62] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
       <div className="mb-5 flex items-start gap-3">
-        <span className="rounded-[8px] bg-gold-500/15 p-2.5 text-gold-400 ring-1 ring-gold-500/30">
+        <span className="rounded-sm bg-gold-500/15 p-2.5 text-gold-400 ring-1 ring-gold-500/30">
           <Trophy className="size-5" strokeWidth={1.6} />
         </span>
         <div>
@@ -459,7 +459,7 @@ function EmptyLeaderboardPreview({ locale }: { locale: Locale }) {
           </p>
         </div>
       </div>
-      <div className="overflow-hidden rounded-[8px] border border-white/[0.08]">
+      <div className="overflow-hidden rounded-sm border border-white/[0.08]">
         {rows.map((row) => (
           <div
             key={row.rank}
@@ -468,10 +468,10 @@ function EmptyLeaderboardPreview({ locale }: { locale: Locale }) {
             <span
               className={
                 row.tone === "gold"
-                  ? "flex size-8 items-center justify-center rounded-[8px] bg-gold-500/15 font-display text-sm font-bold text-gold-400 ring-1 ring-gold-500/30"
+                  ? "flex size-8 items-center justify-center rounded-sm bg-gold-500/15 font-display text-sm font-bold text-gold-400 ring-1 ring-gold-500/30"
                   : row.tone === "primary"
-                    ? "flex size-8 items-center justify-center rounded-[8px] bg-primary-500/15 font-display text-sm font-bold text-primary-400 ring-1 ring-primary-500/25"
-                    : "flex size-8 items-center justify-center rounded-[8px] bg-white/[0.05] font-display text-sm font-bold text-text-tertiary"
+                    ? "flex size-8 items-center justify-center rounded-sm bg-primary-500/15 font-display text-sm font-bold text-primary-400 ring-1 ring-primary-500/25"
+                    : "flex size-8 items-center justify-center rounded-sm bg-white/[0.05] font-display text-sm font-bold text-text-tertiary"
               }
             >
               {row.rank}

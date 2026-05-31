@@ -70,7 +70,7 @@ export function InviteFriendsCard({ locale }: { locale: "fr" | "en" }) {
   }
 
   const fieldCls =
-    "w-full rounded-[8px] border border-white/[0.1] bg-abyss/[0.5] px-3 py-2 text-sm text-text-primary outline-none transition focus:border-primary-500";
+    "w-full rounded-sm border border-white/[0.1] bg-abyss/[0.5] px-3 py-2 text-sm text-text-primary outline-none transition focus:border-primary-500";
 
   return (
     <div className="rounded-[14px] border border-primary-500/25 bg-surface-1/[0.66] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-xl sm:p-6">
@@ -107,7 +107,7 @@ export function InviteFriendsCard({ locale }: { locale: "fr" | "en" }) {
           <span className="mb-1.5 block text-xs font-semibold text-text-secondary">
             {fr ? "Utilisations" : "Uses"}
           </span>
-          <div className="inline-flex w-full items-center gap-1.5 rounded-[8px] border border-primary-500/25 bg-primary-500/[0.06] px-3 py-2 text-sm font-semibold text-primary-200">
+          <div className="inline-flex w-full items-center gap-1.5 rounded-sm border border-primary-500/25 bg-primary-500/[0.06] px-3 py-2 text-sm font-semibold text-primary-200">
             <InfinityIcon className="size-4" strokeWidth={2.2} />
             {fr ? "Illimitées" : "Unlimited"}
           </div>
@@ -129,7 +129,7 @@ export function InviteFriendsCard({ locale }: { locale: "fr" | "en" }) {
               <button
                 type="button"
                 onClick={() => copy(code, "code")}
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-[8px] bg-primary-500/20 px-3 py-1.5 text-xs font-semibold text-primary-200 transition hover:bg-primary-500/30"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-sm bg-primary-500/20 px-3 py-1.5 text-xs font-semibold text-primary-200 transition hover:bg-primary-500/30"
               >
                 {copied === "code" ? (
                   <Check className="size-3.5" />
@@ -152,12 +152,12 @@ export function InviteFriendsCard({ locale }: { locale: "fr" | "en" }) {
                 readOnly
                 value={link}
                 onFocus={(e) => e.currentTarget.select()}
-                className="min-w-0 flex-1 truncate rounded-[8px] border border-white/[0.08] bg-abyss/[0.5] px-2.5 py-1.5 font-mono text-xs text-text-secondary outline-none"
+                className="min-w-0 flex-1 truncate rounded-sm border border-white/[0.08] bg-abyss/[0.5] px-2.5 py-1.5 font-mono text-xs text-text-secondary outline-none"
               />
               <button
                 type="button"
                 onClick={() => copy(link, "link")}
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-[8px] border border-white/[0.12] bg-white/[0.06] px-3 py-1.5 text-xs font-semibold text-text-primary transition hover:bg-white/[0.1]"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-sm border border-white/[0.12] bg-white/[0.06] px-3 py-1.5 text-xs font-semibold text-text-primary transition hover:bg-white/[0.1]"
               >
                 {copied === "link" ? (
                   <Check className="size-3.5" />
@@ -172,7 +172,7 @@ export function InviteFriendsCard({ locale }: { locale: "fr" | "en" }) {
           <button
             type="button"
             onClick={share}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-[8px] border border-white/[0.12] bg-white/[0.06] px-4 py-2.5 text-sm font-semibold text-text-primary transition hover:border-primary-500/45 hover:bg-primary-500/[0.1]"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-sm border border-white/[0.12] bg-white/[0.06] px-4 py-2.5 text-sm font-semibold text-text-primary transition hover:border-primary-500/45 hover:bg-primary-500/[0.1]"
           >
             <Share2 className="size-4" strokeWidth={1.8} />
             {fr ? "Partager" : "Share"}
@@ -181,7 +181,7 @@ export function InviteFriendsCard({ locale }: { locale: "fr" | "en" }) {
       )}
 
       {error && (
-        <div className="mt-3 rounded-[8px] border border-error/30 bg-error/10 px-3 py-2 text-sm text-error">
+        <div className="mt-3 rounded-sm border border-error/30 bg-error/10 px-3 py-2 text-sm text-error">
           {error}
         </div>
       )}
@@ -190,7 +190,7 @@ export function InviteFriendsCard({ locale }: { locale: "fr" | "en" }) {
         type="button"
         onClick={onGenerate}
         disabled={pending}
-        className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-[8px] bg-primary-500 px-5 py-2.5 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400 active:scale-[0.99] disabled:opacity-60"
+        className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-sm bg-primary-500 px-5 py-2.5 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400 active:scale-[0.99] disabled:opacity-60"
       >
         {pending ? (
           <Loader2 className="size-4 animate-spin" />

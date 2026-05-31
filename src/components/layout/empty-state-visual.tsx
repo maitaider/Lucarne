@@ -37,13 +37,13 @@ export function EmptyStateVisual({
   return (
     <div
       className={cn(
-        "flex flex-col items-center gap-4 rounded-[8px] border border-dashed border-white/[0.12] bg-surface-1/[0.4] p-5 text-center backdrop-blur-xl sm:p-7",
+        "flex flex-col items-center gap-4 rounded-sm border border-dashed border-white/[0.12] bg-surface-1/[0.4] p-5 text-center backdrop-blur-xl sm:p-7",
         className,
       )}
     >
       <div
         className={cn(
-          "relative w-full overflow-hidden rounded-[8px] border border-white/[0.08] bg-abyss/[0.5]",
+          "relative w-full overflow-hidden rounded-sm border border-white/[0.08] bg-abyss/[0.5]",
           compact ? "aspect-[16/8] max-w-md" : "aspect-[16/10] max-w-xl",
         )}
       >

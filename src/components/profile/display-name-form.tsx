@@ -44,13 +44,13 @@ export function DisplayNameForm({
           onChange={(e) => setName(e.target.value)}
           maxLength={40}
           placeholder={fr ? "Ton nom" : "Your name"}
-          className="rounded-[8px] border border-white/[0.12] bg-surface-2 px-3.5 py-2.5 text-sm text-text-primary outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30"
+          className="rounded-sm border border-white/[0.12] bg-surface-2 px-3.5 py-2.5 text-sm text-text-primary outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30"
         />
       </label>
       <button
         type="submit"
         disabled={isPending || !name.trim()}
-        className="inline-flex items-center justify-center gap-2 rounded-[8px] bg-primary-500 px-4 py-2.5 text-sm font-semibold text-abyss transition hover:bg-primary-400 disabled:opacity-60"
+        className="inline-flex items-center justify-center gap-2 rounded-sm bg-primary-500 px-4 py-2.5 text-sm font-semibold text-abyss transition hover:bg-primary-400 disabled:opacity-60"
       >
         {isPending && <Loader2 className="size-4 animate-spin" />}
         {fr ? "Enregistrer" : "Save"}

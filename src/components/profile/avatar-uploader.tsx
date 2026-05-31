@@ -108,7 +108,7 @@ export function AvatarUploader({
           type="button"
           onClick={() => fileRef.current?.click()}
           disabled={busy}
-          className="inline-flex items-center gap-2 rounded-[8px] border border-white/[0.12] bg-white/[0.04] px-3.5 py-2 text-sm font-medium text-text-primary transition hover:border-primary-500/40 disabled:opacity-60"
+          className="inline-flex items-center gap-2 rounded-sm border border-white/[0.12] bg-white/[0.04] px-3.5 py-2 text-sm font-medium text-text-primary transition hover:border-primary-500/40 disabled:opacity-60"
         >
           <Camera className="size-4" />
           {fr ? "Changer la photo" : "Change photo"}

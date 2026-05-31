@@ -203,7 +203,7 @@ function FeaturedCard({
             isLive ? "/live" : `/matches/${match.id}`
           }
           className={cn(
-            "inline-flex items-center gap-1 rounded-[8px] px-3 py-1.5 text-xs font-bold transition",
+            "inline-flex items-center gap-1 rounded-sm px-3 py-1.5 text-xs font-bold transition",
             isLive
               ? "bg-violet-500 text-abyss shadow-glow-violet hover:bg-violet-400"
               : "bg-primary-500 text-abyss shadow-glow-primary hover:bg-primary-400",
@@ -291,7 +291,7 @@ function UpcomingCard({
   locale: Locale;
 }) {
   return (
-    <article className="rounded-[12px] border border-white/[0.08] bg-surface-1/[0.55] p-4 backdrop-blur-xl">
+    <article className="rounded-md border border-white/[0.08] bg-surface-1/[0.55] p-4 backdrop-blur-xl">
       <header className="mb-2 flex items-center justify-between gap-2 text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
         <span className="inline-flex items-center gap-1.5">
           <CalendarClock className="size-3" strokeWidth={2} />
@@ -398,7 +398,7 @@ function LeaderboardCard({
 }) {
   if (top5.length === 0) {
     return (
-      <article className="rounded-[12px] border border-white/[0.08] bg-surface-1/[0.55] p-4 backdrop-blur-xl">
+      <article className="rounded-md border border-white/[0.08] bg-surface-1/[0.55] p-4 backdrop-blur-xl">
         <header className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
           <Trophy className="size-3" strokeWidth={2} />
           {locale === "fr" ? "Classement" : "Leaderboard"}
@@ -412,7 +412,7 @@ function LeaderboardCard({
     );
   }
   return (
-    <article className="rounded-[12px] border border-white/[0.08] bg-surface-1/[0.55] p-4 backdrop-blur-xl">
+    <article className="rounded-md border border-white/[0.08] bg-surface-1/[0.55] p-4 backdrop-blur-xl">
       <header className="mb-2 flex items-center justify-between gap-2 text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
         <span className="inline-flex items-center gap-1.5">
           <Trophy className="size-3" strokeWidth={2} />

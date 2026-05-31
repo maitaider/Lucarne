@@ -29,10 +29,10 @@ export default async function AdminPlayersPage({
 
   return (
     <div className="space-y-6">
-      <header className="rounded-[12px] border border-white/[0.1] bg-surface-1/[0.7] p-5 backdrop-blur-xl sm:p-6">
+      <header className="rounded-md border border-white/[0.1] bg-surface-1/[0.7] p-5 backdrop-blur-xl sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <div className="mb-3 inline-flex items-center gap-1.5 rounded-[8px] border border-violet-500/35 bg-violet-500/[0.1] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-violet-300">
+            <div className="mb-3 inline-flex items-center gap-1.5 rounded-sm border border-violet-500/35 bg-violet-500/[0.1] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-violet-300">
               <Users className="size-3.5" strokeWidth={1.7} />
               {L === "fr" ? "Effectifs" : "Rosters"}
             </div>
@@ -45,7 +45,7 @@ export default async function AdminPlayersPage({
                 : "Add, edit, or deactivate a player. The scorer picker on /picks pulls from this table live."}
             </p>
           </div>
-          <div className="rounded-[8px] border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs">
+          <div className="rounded-sm border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs">
             <div className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
               {L === "fr" ? "Total" : "Total"}
             </div>

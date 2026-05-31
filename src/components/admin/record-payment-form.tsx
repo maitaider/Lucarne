@@ -101,7 +101,7 @@ export function RecordPaymentForm({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 rounded-[8px] bg-primary-500 px-4 py-2 text-sm font-bold text-abyss shadow-glow-primary transition hover:bg-primary-400"
+        className="inline-flex items-center gap-1.5 rounded-sm bg-primary-500 px-4 py-2 text-sm font-bold text-abyss shadow-glow-primary transition hover:bg-primary-400"
       >
         <Plus className="size-4" strokeWidth={2.5} />
         {locale === "fr" ? "Nouveau paiement" : "New payment"}
@@ -138,7 +138,7 @@ export function RecordPaymentForm({
                   <select
                     value={userId}
                     onChange={(e) => setUserId(e.target.value)}
-                    className="w-full rounded-[8px] border border-white/[0.1] bg-abyss/[0.6] px-3 py-2.5 text-sm text-text-primary outline-none transition focus:border-primary-500/50"
+                    className="w-full rounded-sm border border-white/[0.1] bg-abyss/[0.6] px-3 py-2.5 text-sm text-text-primary outline-none transition focus:border-primary-500/50"
                     required
                   >
                     <option value="">
@@ -168,7 +168,7 @@ export function RecordPaymentForm({
                       step={1}
                       value={amountStr}
                       onChange={(e) => setAmountStr(e.target.value)}
-                      className="w-full rounded-[8px] border border-white/[0.1] bg-abyss/[0.6] px-3 py-2.5 text-sm tabular-nums text-text-primary outline-none transition focus:border-primary-500/50"
+                      className="w-full rounded-sm border border-white/[0.1] bg-abyss/[0.6] px-3 py-2.5 text-sm tabular-nums text-text-primary outline-none transition focus:border-primary-500/50"
                       required
                     />
                   </Field>
@@ -183,7 +183,7 @@ export function RecordPaymentForm({
                           e.target.value as (typeof PAYMENT_METHODS)[number],
                         )
                       }
-                      className="w-full rounded-[8px] border border-white/[0.1] bg-abyss/[0.6] px-3 py-2.5 text-sm text-text-primary outline-none transition focus:border-primary-500/50"
+                      className="w-full rounded-sm border border-white/[0.1] bg-abyss/[0.6] px-3 py-2.5 text-sm text-text-primary outline-none transition focus:border-primary-500/50"
                       required
                     >
                       {PAYMENT_METHODS.map((m) => (
@@ -213,7 +213,7 @@ export function RecordPaymentForm({
                     onChange={(e) => setReference(e.target.value)}
                     maxLength={120}
                     placeholder="REF-…"
-                    className="w-full rounded-[8px] border border-white/[0.1] bg-abyss/[0.6] px-3 py-2.5 text-sm text-text-primary outline-none transition placeholder:text-text-tertiary focus:border-primary-500/50"
+                    className="w-full rounded-sm border border-white/[0.1] bg-abyss/[0.6] px-3 py-2.5 text-sm text-text-primary outline-none transition placeholder:text-text-tertiary focus:border-primary-500/50"
                   />
                 </Field>
 
@@ -230,11 +230,11 @@ export function RecordPaymentForm({
                         ? "Contexte du paiement…"
                         : "Payment context…"
                     }
-                    className="w-full resize-none rounded-[8px] border border-white/[0.1] bg-abyss/[0.6] px-3 py-2.5 text-sm text-text-primary outline-none transition placeholder:text-text-tertiary focus:border-primary-500/50"
+                    className="w-full resize-none rounded-sm border border-white/[0.1] bg-abyss/[0.6] px-3 py-2.5 text-sm text-text-primary outline-none transition placeholder:text-text-tertiary focus:border-primary-500/50"
                   />
                 </Field>
 
-                <div className="rounded-[8px] border border-primary-500/25 bg-primary-500/[0.08] px-4 py-3">
+                <div className="rounded-sm border border-primary-500/25 bg-primary-500/[0.08] px-4 py-3">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-text-secondary">
                       {locale === "fr" ? "Montant enregistré" : "Recorded amount"}
@@ -257,7 +257,7 @@ export function RecordPaymentForm({
                   type="submit"
                   disabled={isPending || !userId || amountCents <= 0}
                   className={cn(
-                    "inline-flex w-full items-center justify-center gap-2 rounded-[8px] px-4 py-3 text-sm font-bold transition",
+                    "inline-flex w-full items-center justify-center gap-2 rounded-sm px-4 py-3 text-sm font-bold transition",
                     isPending || !userId || amountCents <= 0
                       ? "bg-white/[0.06] text-text-tertiary"
                       : "bg-primary-500 text-abyss shadow-glow-primary hover:bg-primary-400",

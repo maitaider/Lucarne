@@ -53,12 +53,12 @@ export function SettingsForm({
   }
 
   const fieldCls =
-    "w-full rounded-[8px] border border-white/[0.1] bg-abyss/[0.5] px-3 py-2 text-sm text-text-primary outline-none transition focus:border-primary-500";
+    "w-full rounded-sm border border-white/[0.1] bg-abyss/[0.5] px-3 py-2 text-sm text-text-primary outline-none transition focus:border-primary-500";
 
   return (
     <div className="space-y-6">
       {/* Tournament window */}
-      <section className="rounded-[12px] border border-white/[0.08] bg-surface-1/[0.55] p-5 backdrop-blur-xl">
+      <section className="rounded-md border border-white/[0.08] bg-surface-1/[0.55] p-5 backdrop-blur-xl">
         <h2 className="mb-1 flex items-center gap-2 font-display text-base font-semibold text-text-primary">
           <CalendarClock className="size-4 text-gold-400" strokeWidth={1.8} />
           {fr ? "Fenêtre du tournoi" : "Tournament window"}
@@ -95,7 +95,7 @@ export function SettingsForm({
       </section>
 
       {/* Contact / payment */}
-      <section className="rounded-[12px] border border-white/[0.08] bg-surface-1/[0.55] p-5 backdrop-blur-xl">
+      <section className="rounded-md border border-white/[0.08] bg-surface-1/[0.55] p-5 backdrop-blur-xl">
         <h2 className="mb-1 flex items-center gap-2 font-display text-base font-semibold text-text-primary">
           <MessageSquare className="size-4 text-primary-400" strokeWidth={1.8} />
           {fr ? "Contact & paiement" : "Contact & payment"}
@@ -142,7 +142,7 @@ export function SettingsForm({
         type="button"
         onClick={onSave}
         disabled={pending}
-        className="inline-flex items-center justify-center gap-2 rounded-[8px] bg-primary-500 px-5 py-2.5 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400 active:scale-[0.99] disabled:opacity-60"
+        className="inline-flex items-center justify-center gap-2 rounded-sm bg-primary-500 px-5 py-2.5 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400 active:scale-[0.99] disabled:opacity-60"
       >
         {pending ? (
           <Loader2 className="size-4 animate-spin" />

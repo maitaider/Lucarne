@@ -51,7 +51,7 @@ export default async function LeaguesPage({
           admin && (
             <Link
               href="/leagues/new"
-              className="inline-flex items-center gap-1.5 rounded-[8px] bg-primary-500 px-4 py-2 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400"
+              className="inline-flex items-center gap-1.5 rounded-sm bg-primary-500 px-4 py-2 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400"
             >
               <Plus className="size-4" />
               {L === "fr" ? "Nouvelle ligue" : "New league"}
@@ -83,7 +83,7 @@ export default async function LeaguesPage({
             <Link
               key={league.id}
               href={`/leagues/${league.slug}`}
-              className="group rounded-[8px] border border-white/[0.08] bg-surface-1/[0.72] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-primary-500/35 hover:bg-surface-2/[0.78] hover:shadow-[0_20px_60px_rgba(0,0,0,0.25)]"
+              className="group rounded-sm border border-white/[0.08] bg-surface-1/[0.72] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-primary-500/35 hover:bg-surface-2/[0.78] hover:shadow-[0_20px_60px_rgba(0,0,0,0.25)]"
             >
               <div className="flex items-start justify-between">
                 <div>
@@ -206,12 +206,12 @@ function LeagueMetric({
   }[accent];
 
   return (
-    <div className="rounded-[8px] border border-white/[0.08] bg-surface-1/[0.64] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
+    <div className="rounded-sm border border-white/[0.08] bg-surface-1/[0.64] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
       <div className="mb-3 flex items-center justify-between">
         <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
           {label}
         </span>
-        <span className={`rounded-[8px] border p-1.5 ${color}`}>
+        <span className={`rounded-sm border p-1.5 ${color}`}>
           <Icon className="size-3.5" strokeWidth={1.7} />
         </span>
       </div>
@@ -233,7 +233,7 @@ function LeagueCardMetric({
   value: string;
 }) {
   return (
-    <div className="rounded-[8px] border border-white/[0.07] bg-white/[0.035] px-3 py-2">
+    <div className="rounded-sm border border-white/[0.07] bg-white/[0.035] px-3 py-2">
       <div className="mb-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
         <Icon className="size-3" strokeWidth={1.7} />
         {label}
@@ -272,7 +272,7 @@ function EmptyLeagues({ locale, isAdmin }: { locale: Locale; isAdmin: boolean })
   ];
 
   return (
-    <div className="rounded-[8px] border border-dashed border-white/[0.14] bg-surface-1/[0.62] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
+    <div className="rounded-sm border border-dashed border-white/[0.14] bg-surface-1/[0.62] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 className="font-display text-lg font-semibold text-text-primary">
@@ -297,7 +297,7 @@ function EmptyLeagues({ locale, isAdmin }: { locale: Locale; isAdmin: boolean })
         {isAdmin && (
           <Link
             href="/leagues/new"
-            className="inline-flex items-center justify-center gap-1.5 rounded-[8px] bg-primary-500 px-4 py-2 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400"
+            className="inline-flex items-center justify-center gap-1.5 rounded-sm bg-primary-500 px-4 py-2 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400"
           >
             {locale === "fr" ? "Nouvelle ligue" : "New league"}
             <ArrowRight className="size-4" strokeWidth={2} />
@@ -308,7 +308,7 @@ function EmptyLeagues({ locale, isAdmin }: { locale: Locale; isAdmin: boolean })
         {features.map((feature) => {
           const Icon = feature.icon;
           return (
-            <div key={feature.title} className="rounded-[8px] border border-white/[0.08] bg-white/[0.035] p-4">
+            <div key={feature.title} className="rounded-sm border border-white/[0.08] bg-white/[0.035] p-4">
               <Icon className="mb-3 size-5 text-gold-400" strokeWidth={1.6} />
               <h3 className="text-sm font-semibold text-text-primary">{feature.title}</h3>
               <p className="mt-1 text-xs leading-5 text-text-secondary">{feature.text}</p>

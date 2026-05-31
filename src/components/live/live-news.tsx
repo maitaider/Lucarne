@@ -56,7 +56,7 @@ export function LiveNews({
 }) {
   if (posts.length === 0) {
     return (
-      <div className="rounded-[12px] border border-dashed border-white/[0.1] bg-surface-1/[0.5] p-8 text-center backdrop-blur-xl">
+      <div className="rounded-md border border-dashed border-white/[0.1] bg-surface-1/[0.5] p-8 text-center backdrop-blur-xl">
         <Bell className="mx-auto mb-2 size-6 text-text-tertiary" strokeWidth={1.5} />
         <p className="text-sm text-text-secondary">
           {locale === "fr"
@@ -78,7 +78,7 @@ export function LiveNews({
         return (
           <li
             key={p.id}
-            className="overflow-hidden rounded-[12px] border border-white/[0.08] bg-surface-1/[0.6] p-4 backdrop-blur-xl sm:p-5"
+            className="overflow-hidden rounded-md border border-white/[0.08] bg-surface-1/[0.6] p-4 backdrop-blur-xl sm:p-5"
           >
             <div className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider">
               <span

@@ -61,8 +61,8 @@ export default async function LeagueDetailPage({
   return (
     <main className="mx-auto max-w-6xl px-6 py-10 lg:px-8">
       <LiveRefresh />
-      <header className="mb-4 rounded-[8px] border border-white/[0.1] bg-surface-1/[0.68] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-xl">
-        <div className="mb-3 inline-flex items-center gap-2 rounded-[8px] border border-gold-500/30 bg-gold-500/[0.1] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-gold-400 shadow-glow-gold">
+      <header className="mb-4 rounded-sm border border-white/[0.1] bg-surface-1/[0.68] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-xl">
+        <div className="mb-3 inline-flex items-center gap-2 rounded-sm border border-gold-500/30 bg-gold-500/[0.1] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-gold-400 shadow-glow-gold">
           {league.visibility === "private" ? <Lock className="size-3" /> : <Globe className="size-3" />}
           {league.visibility === "private"
             ? locale === "fr" ? "Ligue privée" : "Private league"
@@ -81,7 +81,7 @@ export default async function LeagueDetailPage({
             <div className="flex gap-2">
               <Link
                 href={`/leagues/${slug}/invite`}
-                className="inline-flex items-center gap-1.5 rounded-[8px] bg-primary-500/15 px-3 py-1.5 text-xs font-semibold text-primary-400 ring-1 ring-primary-500/20 transition hover:bg-primary-500/25"
+                className="inline-flex items-center gap-1.5 rounded-sm bg-primary-500/15 px-3 py-1.5 text-xs font-semibold text-primary-400 ring-1 ring-primary-500/20 transition hover:bg-primary-500/25"
               >
                 <UserPlus className="size-3.5" />
                 {locale === "fr" ? "Inviter" : "Invite"}
@@ -187,12 +187,12 @@ function LeagueDetailMetric({
   }[accent];
 
   return (
-    <div className="rounded-[8px] border border-white/[0.08] bg-surface-1/[0.64] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
+    <div className="rounded-sm border border-white/[0.08] bg-surface-1/[0.64] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
       <div className="mb-3 flex items-center justify-between">
         <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
           {label}
         </span>
-        <span className={`rounded-[8px] border p-1.5 ${color}`}>
+        <span className={`rounded-sm border p-1.5 ${color}`}>
           <Icon className="size-3.5" strokeWidth={1.7} />
         </span>
       </div>
@@ -214,10 +214,10 @@ function LeagueStandingsEmpty({
   slug: string;
 }) {
   return (
-    <div className="rounded-[8px] border border-dashed border-white/[0.14] bg-surface-1/[0.62] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
+    <div className="rounded-sm border border-dashed border-white/[0.14] bg-surface-1/[0.62] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex items-start gap-3">
-          <span className="rounded-[8px] bg-gold-500/15 p-2.5 text-gold-400 ring-1 ring-gold-500/30">
+          <span className="rounded-sm bg-gold-500/15 p-2.5 text-gold-400 ring-1 ring-gold-500/30">
             <Trophy className="size-5" strokeWidth={1.6} />
           </span>
           <div>
@@ -234,7 +234,7 @@ function LeagueStandingsEmpty({
         {isOwner && (
           <Link
             href={`/leagues/${slug}/invite`}
-            className="inline-flex items-center justify-center gap-1.5 rounded-[8px] bg-primary-500 px-4 py-2 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400"
+            className="inline-flex items-center justify-center gap-1.5 rounded-sm bg-primary-500 px-4 py-2 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400"
           >
             <UserPlus className="size-4" strokeWidth={2} />
             {locale === "fr" ? "Inviter" : "Invite"}

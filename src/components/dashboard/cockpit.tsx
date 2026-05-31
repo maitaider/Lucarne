@@ -78,7 +78,7 @@ export function Cockpit({
   const events = useRealtimeActivity();
 
   return (
-    <div className="relative rounded-[12px] border border-white/[0.16] bg-white/[0.045] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_30px_90px_rgba(0,0,0,0.4)] backdrop-blur-2xl">
+    <div className="relative rounded-md border border-white/[0.16] bg-white/[0.045] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_30px_90px_rgba(0,0,0,0.4)] backdrop-blur-2xl">
       <span
         aria-hidden
         className="pointer-events-none absolute left-12 right-12 top-0 h-px bg-gradient-to-r from-transparent via-white/45 to-transparent"
@@ -182,7 +182,7 @@ function ActivityTicker({
 }) {
   if (events.length === 0) {
     return (
-      <div className="rounded-[8px] border border-white/[0.06] bg-abyss/[0.4] p-6 text-center">
+      <div className="rounded-sm border border-white/[0.06] bg-abyss/[0.4] p-6 text-center">
         <Radio className="mx-auto mb-2 size-4 text-violet-300" strokeWidth={1.7} />
         <p className="text-xs text-text-secondary">
           {locale === "fr"
@@ -211,7 +211,7 @@ function ActivityTicker({
           <li
             key={ev.id}
             className={cn(
-              "flex items-center justify-between gap-3 rounded-[8px] border px-3 py-2 text-xs",
+              "flex items-center justify-between gap-3 rounded-sm border px-3 py-2 text-xs",
               accent,
             )}
           >
@@ -301,7 +301,7 @@ function ConsoleRail({
   ];
 
   return (
-    <div className="hidden flex-col items-center gap-2 rounded-[8px] border border-white/[0.08] bg-abyss/[0.5] py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] md:flex">
+    <div className="hidden flex-col items-center gap-2 rounded-sm border border-white/[0.08] bg-abyss/[0.5] py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] md:flex">
       {items.map(({ key, Icon, target, tone, activeTone, labelFr, labelEn }) => {
         const active = target === tab;
         const label = locale === "fr" ? labelFr : labelEn;
@@ -315,7 +315,7 @@ function ConsoleRail({
               aria-label={label}
               title={label}
               className={cn(
-                "group relative flex size-9 cursor-pointer items-center justify-center rounded-[8px] border border-white/[0.08] bg-white/[0.035] transition hover:border-white/[0.2] hover:bg-white/[0.08]",
+                "group relative flex size-9 cursor-pointer items-center justify-center rounded-sm border border-white/[0.08] bg-white/[0.035] transition hover:border-white/[0.2] hover:bg-white/[0.08]",
                 tone,
                 "hover:text-text-primary",
               )}
@@ -335,7 +335,7 @@ function ConsoleRail({
             title={label}
             aria-pressed={active}
             className={cn(
-              "group relative flex size-9 cursor-pointer items-center justify-center rounded-[8px] border transition",
+              "group relative flex size-9 cursor-pointer items-center justify-center rounded-sm border transition",
               active
                 ? "border-primary-500/50 bg-primary-500/[0.16] shadow-glow-primary"
                 : "border-white/[0.08] bg-white/[0.035] hover:border-white/[0.2] hover:bg-white/[0.08]",
@@ -378,7 +378,7 @@ function ConsoleHeader({
   return (
     <div className="flex items-center justify-between gap-3 border-b border-white/[0.08] pb-3">
       <div className="flex min-w-0 items-center gap-2">
-        <span className="flex size-8 items-center justify-center rounded-[8px] border border-primary-500/25 bg-primary-500/[0.1] text-primary-400">
+        <span className="flex size-8 items-center justify-center rounded-sm border border-primary-500/25 bg-primary-500/[0.1] text-primary-400">
           <TerminalGridMark className="size-5" />
         </span>
         <div className="min-w-0">
@@ -540,7 +540,7 @@ function MiniStandings({
   rows: StandingRow[];
 }) {
   return (
-    <div className="rounded-[8px] border border-white/[0.08] bg-abyss/[0.38] p-3">
+    <div className="rounded-sm border border-white/[0.08] bg-abyss/[0.38] p-3">
       <div className="mb-2 flex items-center justify-between">
         <h3 className="flex items-center gap-2 text-sm font-semibold text-text-primary">
           <Trophy className="size-4 text-gold-400" strokeWidth={1.7} />
@@ -553,7 +553,7 @@ function MiniStandings({
           {locale === "fr" ? "Ouvrir" : "Open"}
         </Link>
       </div>
-      <div className="overflow-hidden rounded-[8px] border border-white/[0.06]">
+      <div className="overflow-hidden rounded-sm border border-white/[0.06]">
         {rows.length === 0 ? (
           <div className="px-3 py-4 text-center text-xs text-text-tertiary">
             {locale === "fr" ? "Classement à venir" : "Standings coming soon"}
@@ -569,7 +569,7 @@ function MiniStandings({
             >
               <span
                 className={cn(
-                  "flex size-7 items-center justify-center rounded-[8px] font-display text-sm font-bold ring-1",
+                  "flex size-7 items-center justify-center rounded-sm font-display text-sm font-bold ring-1",
                   row.rank === 1
                     ? "bg-gold-500/15 text-gold-400 ring-gold-500/30"
                     : row.rank <= 3
@@ -615,7 +615,7 @@ function MiniBracket({
   };
 
   return (
-    <div className="relative overflow-hidden rounded-[8px] border border-white/[0.08] bg-abyss/[0.38] p-3">
+    <div className="relative overflow-hidden rounded-sm border border-white/[0.08] bg-abyss/[0.38] p-3">
       <div className="absolute right-3 top-1/2 hidden -translate-y-1/2 md:block">
         <div className="flex size-14 items-center justify-center rounded-full border border-gold-500/30 bg-gold-500/[0.08] shadow-glow-gold">
           <WorldTrophyMark className="size-8 text-gold-400" />
@@ -661,7 +661,7 @@ function BracketNode({
   locale: Locale;
 }) {
   return (
-    <div className="rounded-[8px] border border-white/[0.08] bg-white/[0.035] px-2.5 py-2 text-[10px]">
+    <div className="rounded-sm border border-white/[0.08] bg-white/[0.035] px-2.5 py-2 text-[10px]">
       <div className="truncate font-semibold text-text-primary">
         {cell.homeCode ?? (locale === "fr" ? "À déterminer" : "TBD")}
       </div>
@@ -683,7 +683,7 @@ function ProgressDonut({
 }) {
   const clamped = Math.max(0, Math.min(value, 100));
   return (
-    <div className="rounded-[8px] border border-white/[0.08] bg-abyss/[0.38] p-3">
+    <div className="rounded-sm border border-white/[0.08] bg-abyss/[0.38] p-3">
       <div className="mb-3 h-1.5 w-14 rounded-full bg-white/[0.18]" />
       <div className="flex items-center gap-4">
         <div
@@ -747,7 +747,7 @@ function FormCurve({
   const area = `${path} L320 96 L0 96 Z`;
 
   return (
-    <div className="rounded-[8px] border border-white/[0.08] bg-abyss/[0.38] p-3">
+    <div className="rounded-sm border border-white/[0.08] bg-abyss/[0.38] p-3">
       <div className="mb-3 flex items-center justify-between">
         <div className="h-1.5 w-16 rounded-full bg-white/[0.18]" />
         <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
@@ -797,7 +797,7 @@ function MetricRings({
     violet: "#7c5cff",
   };
   return (
-    <div className="grid grid-cols-3 gap-2 rounded-[8px] border border-white/[0.08] bg-abyss/[0.38] p-3">
+    <div className="grid grid-cols-3 gap-2 rounded-sm border border-white/[0.08] bg-abyss/[0.38] p-3">
       {rings.map((r) => {
         const clamped = Math.max(0, Math.min(r.value, 100));
         return (

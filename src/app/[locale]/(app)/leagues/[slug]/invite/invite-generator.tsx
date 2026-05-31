@@ -39,7 +39,7 @@ export function InviteGenerator({
   }
 
   return (
-    <div className="rounded-[8px] border border-white/[0.08] bg-surface-1/[0.72] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
+    <div className="rounded-sm border border-white/[0.08] bg-surface-1/[0.72] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
       <div className="mb-5 grid grid-cols-2 gap-4">
         <div>
           <label className="mb-2 block text-sm font-medium text-text-secondary">
@@ -74,7 +74,7 @@ export function InviteGenerator({
       </div>
 
       {code && (
-        <div className="mb-5 rounded-[8px] border border-primary-500/30 bg-primary-500/5 p-4">
+        <div className="mb-5 rounded-sm border border-primary-500/30 bg-primary-500/5 p-4">
           <div className="mb-2 text-xs uppercase tracking-wider text-primary-400">
             {locale === "fr" ? "Nouveau code" : "New code"}
           </div>
@@ -84,7 +84,7 @@ export function InviteGenerator({
             </code>
             <button
               onClick={onCopy}
-              className="inline-flex items-center gap-1.5 rounded-[8px] bg-primary-500/20 px-3 py-1.5 text-xs font-semibold text-primary-400 hover:bg-primary-500/30"
+              className="inline-flex items-center gap-1.5 rounded-sm bg-primary-500/20 px-3 py-1.5 text-xs font-semibold text-primary-400 hover:bg-primary-500/30"
             >
               {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
               {copied ? (locale === "fr" ? "Copié" : "Copied") : (locale === "fr" ? "Copier" : "Copy")}
@@ -102,7 +102,7 @@ export function InviteGenerator({
       <button
         onClick={onGenerate}
         disabled={isPending}
-        className="inline-flex w-full items-center justify-center gap-2 rounded-[8px] bg-primary-500 px-4 py-2.5 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400 disabled:opacity-60"
+        className="inline-flex w-full items-center justify-center gap-2 rounded-sm bg-primary-500 px-4 py-2.5 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400 disabled:opacity-60"
       >
         {isPending && <Loader2 className="size-4 animate-spin" />}
         {locale === "fr" ? "Générer un code" : "Generate code"}

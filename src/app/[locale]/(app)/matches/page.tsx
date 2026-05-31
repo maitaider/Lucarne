@@ -67,7 +67,7 @@ export default async function MatchesPage({
         />
       )}
       {/* Header with tournament summary */}
-      <header className="relative mb-6 overflow-hidden rounded-[8px] border border-white/[0.12] bg-surface-1/[0.7] p-5 shadow-[0_26px_85px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl sm:p-6">
+      <header className="relative mb-6 overflow-hidden rounded-sm border border-white/[0.12] bg-surface-1/[0.7] p-5 shadow-[0_26px_85px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl sm:p-6">
         <Image
           src="/marketing/lucarne-hero-stadium.jpg"
           alt=""
@@ -78,7 +78,7 @@ export default async function MatchesPage({
         <div className="absolute inset-0 -z-10 bg-[linear-gradient(100deg,rgba(5,6,5,0.96)_0%,rgba(5,6,5,0.78)_55%,rgba(5,6,5,0.58)_100%)]" />
         <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <div>
-            <div className="mb-3 inline-flex items-center gap-1.5 rounded-[8px] border border-gold-500/30 bg-gold-500/[0.1] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-gold-400 shadow-glow-gold">
+            <div className="mb-3 inline-flex items-center gap-1.5 rounded-sm border border-gold-500/30 bg-gold-500/[0.1] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-gold-400 shadow-glow-gold">
               <Trophy className="size-3.5" />
               {L === "fr" ? "Coupe du Monde 2026" : "FIFA World Cup 2026"}
             </div>
@@ -180,7 +180,7 @@ function ViewTabs({ current, locale }: { current: View; locale: Locale }) {
   ];
 
   return (
-    <div className="mb-6 inline-flex rounded-[8px] border border-white/[0.1] bg-abyss/[0.44] p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
+    <div className="mb-6 inline-flex rounded-sm border border-white/[0.1] bg-abyss/[0.44] p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
       {tabs.map((t) => {
         const isActive = t.id === current;
         const Icon = t.icon;
@@ -225,12 +225,12 @@ function TournamentStat({
   }[accent];
 
   return (
-    <div className="rounded-[8px] border border-white/[0.09] bg-white/[0.045] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+    <div className="rounded-sm border border-white/[0.09] bg-white/[0.045] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
       <div className="mb-3 flex items-center justify-between gap-2">
         <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
           {label}
         </span>
-        <span className={`rounded-[8px] border p-1.5 ${color}`}>
+        <span className={`rounded-sm border p-1.5 ${color}`}>
           <Icon className="size-3.5" strokeWidth={1.7} />
         </span>
       </div>
@@ -255,10 +255,10 @@ function TournamentPulse({
 }) {
   return (
     <section className="mb-6 grid gap-3 lg:grid-cols-[1.2fr_0.8fr]">
-      <div className="rounded-[8px] border border-white/[0.08] bg-surface-1/[0.62] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
+      <div className="rounded-sm border border-white/[0.08] bg-surface-1/[0.62] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <span className="flex size-10 items-center justify-center rounded-[8px] border border-primary-500/25 bg-primary-500/[0.1] text-primary-400">
+            <span className="flex size-10 items-center justify-center rounded-sm border border-primary-500/25 bg-primary-500/[0.1] text-primary-400">
               <Activity className="size-5" strokeWidth={1.6} />
             </span>
             <div>
@@ -275,7 +275,7 @@ function TournamentPulse({
           {liveCount > 0 ? (
             <Link
               href="/matches?view=calendar"
-              className="inline-flex items-center gap-2 rounded-[8px] border border-violet-500/40 bg-violet-500/[0.1] px-3 py-2 text-xs font-semibold text-violet-300 transition hover:bg-violet-500/[0.16]"
+              className="inline-flex items-center gap-2 rounded-sm border border-violet-500/40 bg-violet-500/[0.1] px-3 py-2 text-xs font-semibold text-violet-300 transition hover:bg-violet-500/[0.16]"
             >
               <span className="relative flex size-2">
                 <span className="absolute inline-flex size-full animate-ping rounded-full bg-violet-400 opacity-75" />
@@ -284,7 +284,7 @@ function TournamentPulse({
               {liveCount} {locale === "fr" ? "en direct" : "live now"}
             </Link>
           ) : (
-            <span className="rounded-[8px] border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs font-semibold text-text-secondary">
+            <span className="rounded-sm border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs font-semibold text-text-secondary">
               {locale === "fr" ? "Prochain live à surveiller" : "Next live to watch"}
             </span>
           )}
@@ -309,7 +309,7 @@ function PulseTile({
   gold?: boolean;
 }) {
   return (
-    <div className="rounded-[8px] border border-white/[0.08] bg-surface-1/[0.62] p-3 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
+    <div className="rounded-sm border border-white/[0.08] bg-surface-1/[0.62] p-3 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
       <div
         className={`font-display text-2xl font-semibold tabular-nums ${
           gold ? "text-gold-400" : "text-text-primary"
@@ -328,7 +328,7 @@ function GroupsFormatPreview({ locale }: { locale: Locale }) {
   const groups = "ABCDEFGHIJKL".split("");
 
   return (
-    <div className="rounded-[8px] border border-white/[0.08] bg-surface-1/[0.66] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
+    <div className="rounded-sm border border-white/[0.08] bg-surface-1/[0.66] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 className="flex items-center gap-2 font-display text-lg font-semibold text-text-primary">
@@ -343,7 +343,7 @@ function GroupsFormatPreview({ locale }: { locale: Locale }) {
         </div>
         <Link
           href="/matches?view=calendar"
-          className="inline-flex items-center justify-center rounded-[8px] bg-primary-500 px-4 py-2 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400"
+          className="inline-flex items-center justify-center rounded-sm bg-primary-500 px-4 py-2 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400"
         >
           {locale === "fr" ? "Voir le calendrier" : "Open calendar"}
         </Link>
@@ -352,10 +352,10 @@ function GroupsFormatPreview({ locale }: { locale: Locale }) {
         {groups.map((group, idx) => (
           <div
             key={group}
-            className="rounded-[8px] border border-white/[0.08] bg-white/[0.035] p-3"
+            className="rounded-sm border border-white/[0.08] bg-white/[0.035] p-3"
           >
             <div className="mb-3 flex items-center justify-between">
-              <span className="flex size-8 items-center justify-center rounded-[8px] bg-primary-500/[0.12] font-display text-sm font-bold text-primary-400 ring-1 ring-primary-500/25">
+              <span className="flex size-8 items-center justify-center rounded-sm bg-primary-500/[0.12] font-display text-sm font-bold text-primary-400 ring-1 ring-primary-500/25">
                 {group}
               </span>
               <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
@@ -364,7 +364,7 @@ function GroupsFormatPreview({ locale }: { locale: Locale }) {
             </div>
             <div className="space-y-1.5">
               {[1, 2, 3, 4].map((seed) => (
-                <div key={seed} className="flex items-center gap-2 rounded-[6px] bg-abyss/[0.35] px-2 py-1.5">
+                <div key={seed} className="flex items-center gap-2 rounded-xs bg-abyss/[0.35] px-2 py-1.5">
                   <span className="size-1.5 rounded-full bg-gold-400" />
                   <span className="text-xs text-text-secondary">
                     {locale === "fr" ? "Équipe" : "Team"} {seed}
@@ -405,7 +405,7 @@ function CalendarView({
     <>
       <StageFilter activeStage={stage} locale={locale} />
       {filtered.length === 0 ? (
-        <div className="rounded-[8px] border border-dashed border-white/[0.12] bg-surface-1/[0.62] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] p-10 text-center">
+        <div className="rounded-sm border border-dashed border-white/[0.12] bg-surface-1/[0.62] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] p-10 text-center">
           <p className="text-text-secondary">
             {locale === "fr" ? "Aucun match dans cette catégorie." : "No matches here."}
           </p>
@@ -466,7 +466,7 @@ function StageFilter({
             key={s.key}
             href={href}
             className={cn(
-              "rounded-[8px] px-3 py-1 text-[11px] font-semibold uppercase tracking-wider transition",
+              "rounded-sm px-3 py-1 text-[11px] font-semibold uppercase tracking-wider transition",
               isActive
                 ? "bg-text-primary text-abyss"
                 : "border border-white/[0.08] bg-surface-1/[0.62] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] text-text-secondary hover:border-primary-500/35 hover:text-text-primary",

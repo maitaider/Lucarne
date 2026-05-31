@@ -49,7 +49,7 @@ export default async function SharedPredictionPage({
       {pred ? (
         <PredictionCard pred={pred} locale={L} />
       ) : (
-        <div className="w-full rounded-[12px] border border-white/[0.1] bg-surface-1/[0.6] p-8 text-center shadow-card backdrop-blur-xl">
+        <div className="w-full rounded-md border border-white/[0.1] bg-surface-1/[0.6] p-8 text-center shadow-card backdrop-blur-xl">
           <span className="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-white/[0.05] text-text-tertiary ring-1 ring-white/[0.1]">
             <Lock className="size-5" strokeWidth={1.6} />
           </span>
@@ -186,7 +186,7 @@ function ResultBadge({
 function JoinCta({ locale }: { locale: Locale }) {
   const fr = locale === "fr";
   return (
-    <div className="mt-6 w-full rounded-[12px] border border-primary-500/25 bg-gradient-to-br from-primary-500/[0.1] to-transparent p-5 text-center">
+    <div className="mt-6 w-full rounded-md border border-primary-500/25 bg-gradient-to-br from-primary-500/[0.1] to-transparent p-5 text-center">
       <span className="mx-auto mb-2 flex size-9 items-center justify-center rounded-full bg-primary-500/15 text-primary-300 ring-1 ring-primary-500/30">
         <Trophy className="size-4" strokeWidth={1.7} />
       </span>

@@ -347,10 +347,10 @@ export function BracketBuilder({
       />
 
       {/* Sticky progress strip */}
-      <section className="sticky top-[64px] z-30 rounded-[12px] border border-white/[0.1] bg-abyss/[0.85] p-3 shadow-[0_10px_30px_rgba(0,0,0,0.32)] backdrop-blur-xl sm:p-4">
+      <section className="sticky top-[64px] z-30 rounded-md border border-white/[0.1] bg-abyss/[0.85] p-3 shadow-[0_10px_30px_rgba(0,0,0,0.32)] backdrop-blur-xl sm:p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <span className="flex size-9 items-center justify-center rounded-[8px] border border-gold-500/35 bg-gold-500/[0.1] text-gold-300">
+            <span className="flex size-9 items-center justify-center rounded-sm border border-gold-500/35 bg-gold-500/[0.1] text-gold-300">
               <Trophy className="size-4" strokeWidth={1.8} />
             </span>
             <div>
@@ -468,7 +468,7 @@ export function BracketBuilder({
             <article
               key={stage}
               className={cn(
-                "rounded-[12px] border border-white/[0.08] bg-surface-1/[0.6] p-4 backdrop-blur-xl",
+                "rounded-md border border-white/[0.08] bg-surface-1/[0.6] p-4 backdrop-blur-xl",
                 stage === "final" && "border-gold-500/40 bg-gold-500/[0.06]",
               )}
             >
@@ -537,7 +537,7 @@ export function BracketBuilder({
 
       {/* Danger zone — full reset */}
       {canEdit && (groupsFilledCount > 0 || knockoutPickedCount > 0) && (
-        <section className="mt-6 flex flex-col items-center gap-2 rounded-[12px] border border-error/25 bg-error/[0.04] p-4 text-center backdrop-blur-xl sm:flex-row sm:justify-between sm:text-left">
+        <section className="mt-6 flex flex-col items-center gap-2 rounded-md border border-error/25 bg-error/[0.04] p-4 text-center backdrop-blur-xl sm:flex-row sm:justify-between sm:text-left">
           <div>
             <div className="font-display text-sm font-semibold text-text-primary">
               {locale === "fr"
@@ -563,7 +563,7 @@ export function BracketBuilder({
                 reset("all");
             }}
             disabled={isPending}
-            className="inline-flex items-center gap-2 rounded-[8px] border border-error/40 bg-error/[0.1] px-4 py-2 text-xs font-bold uppercase tracking-wider text-error transition hover:bg-error/[0.18] disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-sm border border-error/40 bg-error/[0.1] px-4 py-2 text-xs font-bold uppercase tracking-wider text-error transition hover:bg-error/[0.18] disabled:opacity-50"
           >
             <Trash2 className="size-3.5" strokeWidth={2.5} />
             {locale === "fr" ? "Tout effacer" : "Wipe all"}
@@ -651,7 +651,7 @@ function GroupRanker({
           <li
             key={t.id}
             className={cn(
-              "grid grid-cols-[1.5rem_auto_minmax(0,1fr)_auto] items-center gap-2 rounded-[6px] border px-2 py-1.5 text-xs transition",
+              "grid grid-cols-[1.5rem_auto_minmax(0,1fr)_auto] items-center gap-2 rounded-xs border px-2 py-1.5 text-xs transition",
               i === 0
                 ? "border-gold-500/35 bg-gold-500/[0.06]"
                 : i === 1
@@ -744,7 +744,7 @@ function KnockoutRow({
   locale: Locale;
 }) {
   return (
-    <li className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 rounded-[8px] border border-white/[0.06] bg-white/[0.03] px-2 py-1.5">
+    <li className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 rounded-sm border border-white/[0.06] bg-white/[0.03] px-2 py-1.5">
       <KnockoutSlot
         teamId={homeId}
         isThirdPool={homeIsThirdPool}
@@ -847,7 +847,7 @@ function KnockoutSlot({
               onPickThirdPlace(match.match_number, side, e.target.value)
             }
             disabled={!canEdit || options.length === 0}
-            className="max-w-[7.5rem] rounded-[6px] border border-violet-500/30 bg-abyss/[0.5] px-1.5 py-1 text-[10px] text-text-secondary outline-none focus:border-violet-500/50 disabled:opacity-50"
+            className="max-w-[7.5rem] rounded-xs border border-violet-500/30 bg-abyss/[0.5] px-1.5 py-1 text-[10px] text-text-secondary outline-none focus:border-violet-500/50 disabled:opacity-50"
           >
             <option value="">
               {locale === "fr" ? `3ᵉ ${candidateGroups.join("/")}` : `3rd ${candidateGroups.join("/")}`}
@@ -896,7 +896,7 @@ function KnockoutSlot({
           : undefined
       }
       className={cn(
-        "flex min-w-0 items-center gap-2 rounded-[6px] px-1.5 py-1 text-xs transition disabled:cursor-not-allowed",
+        "flex min-w-0 items-center gap-2 rounded-xs px-1.5 py-1 text-xs transition disabled:cursor-not-allowed",
         rightAligned && "flex-row-reverse justify-end text-right",
         picked
           ? "bg-primary-500/[0.16] font-bold text-primary-200 ring-1 ring-primary-500/40"

@@ -51,10 +51,10 @@ export function WorldCupDataDeck({
     teams.find((team) => team.fifa_code === selectedTeamCode) ?? teams[0] ?? null;
 
   return (
-    <section className="mb-8 overflow-hidden rounded-[8px] border border-white/[0.1] bg-abyss/[0.74] shadow-[0_26px_90px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-2xl">
+    <section className="mb-8 overflow-hidden rounded-sm border border-white/[0.1] bg-abyss/[0.74] shadow-[0_26px_90px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-2xl">
       <div className="flex flex-col gap-4 border-b border-white/[0.08] bg-white/[0.035] px-4 py-4 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-3">
-          <span className="flex size-10 items-center justify-center rounded-[8px] border border-gold-500/30 bg-gold-500/[0.1] text-gold-400 shadow-glow-gold">
+          <span className="flex size-10 items-center justify-center rounded-sm border border-gold-500/30 bg-gold-500/[0.1] text-gold-400 shadow-glow-gold">
             <RadioTower className="size-5" strokeWidth={1.7} />
           </span>
           <div>
@@ -68,7 +68,7 @@ export function WorldCupDataDeck({
             </h2>
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-1 rounded-[8px] border border-white/[0.08] bg-black/20 p-1">
+        <div className="grid grid-cols-3 gap-1 rounded-sm border border-white/[0.08] bg-black/20 p-1">
           {tabs.map(({ key, icon: Icon, labelFr, labelEn }) => {
             const isActive = activeTab === key;
             return (
@@ -148,7 +148,7 @@ function MatchesPanel({
               type="button"
               onClick={() => onSelect(match.id)}
               className={cn(
-                "group grid grid-cols-[1fr_auto] items-center gap-3 rounded-[8px] border px-3 py-2.5 text-left transition",
+                "group grid grid-cols-[1fr_auto] items-center gap-3 rounded-sm border px-3 py-2.5 text-left transition",
                 isActive
                   ? "border-primary-500/45 bg-primary-500/[0.11] shadow-glow-primary"
                   : "border-white/[0.08] bg-white/[0.035] hover:border-primary-500/28 hover:bg-white/[0.06]",
@@ -189,7 +189,7 @@ function MatchesPanel({
         })}
       </div>
 
-      <div className="relative overflow-hidden rounded-[8px] border border-white/[0.1] bg-[radial-gradient(circle_at_20%_15%,rgba(34,217,130,0.16),transparent_28%),radial-gradient(circle_at_82%_22%,rgba(245,196,71,0.14),transparent_28%),rgba(255,255,255,0.035)] p-5">
+      <div className="relative overflow-hidden rounded-sm border border-white/[0.1] bg-[radial-gradient(circle_at_20%_15%,rgba(34,217,130,0.16),transparent_28%),radial-gradient(circle_at_82%_22%,rgba(245,196,71,0.14),transparent_28%),rgba(255,255,255,0.035)] p-5">
         <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-primary-500/[0.1] to-transparent" />
         <div className="relative">
           <div className="mb-6 flex items-center justify-between gap-3">
@@ -201,7 +201,7 @@ function MatchesPanel({
                 {home} <span className="text-text-tertiary">vs</span> {away}
               </h3>
             </div>
-            <span className="rounded-[8px] border border-white/[0.1] bg-black/20 px-2.5 py-1 font-mono text-xs text-text-secondary">
+            <span className="rounded-sm border border-white/[0.1] bg-black/20 px-2.5 py-1 font-mono text-xs text-text-secondary">
               #{selectedMatch.match_number}
             </span>
           </div>
@@ -241,7 +241,7 @@ function MatchesPanel({
 
           <Link
             href={`/matches/${selectedMatch.id}`}
-            className="mt-5 inline-flex items-center gap-1.5 rounded-[8px] bg-primary-500 px-4 py-2 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400"
+            className="mt-5 inline-flex items-center gap-1.5 rounded-sm bg-primary-500 px-4 py-2 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400"
           >
             {locale === "fr" ? "Ouvrir la fiche match" : "Open match room"}
             <ChevronRight className="size-4" strokeWidth={1.8} />
@@ -274,14 +274,14 @@ function VenuesPanel({
               type="button"
               onClick={() => onSelect(venue.name)}
               className={cn(
-                "rounded-[8px] border p-3 text-left transition",
+                "rounded-sm border p-3 text-left transition",
                 isActive
                   ? "border-gold-500/45 bg-gold-500/[0.1] shadow-glow-gold"
                   : "border-white/[0.08] bg-white/[0.035] hover:border-gold-500/28 hover:bg-white/[0.06]",
               )}
             >
               <div className="mb-3 flex items-center justify-between">
-                <span className="flex size-8 items-center justify-center rounded-[8px] border border-white/[0.1] bg-black/20 text-primary-400">
+                <span className="flex size-8 items-center justify-center rounded-sm border border-white/[0.1] bg-black/20 text-primary-400">
                   <MapPin className="size-4" strokeWidth={1.7} />
                 </span>
                 <span className="font-mono text-[10px] text-text-tertiary">
@@ -297,7 +297,7 @@ function VenuesPanel({
         })}
       </div>
 
-      <div className="overflow-hidden rounded-[8px] border border-white/[0.1] bg-[linear-gradient(145deg,rgba(245,196,71,0.11),rgba(34,217,130,0.06),rgba(255,255,255,0.03))] p-5">
+      <div className="overflow-hidden rounded-sm border border-white/[0.1] bg-[linear-gradient(145deg,rgba(245,196,71,0.11),rgba(34,217,130,0.06),rgba(255,255,255,0.03))] p-5">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-wider text-gold-400">
@@ -325,7 +325,7 @@ function VenuesPanel({
             value={`${selectedVenue.match_count}`}
           />
         </div>
-        <div className="mt-5 h-24 overflow-hidden rounded-[8px] border border-white/[0.08] bg-black/20">
+        <div className="mt-5 h-24 overflow-hidden rounded-sm border border-white/[0.08] bg-black/20">
           <div className="h-full bg-[linear-gradient(110deg,transparent_0_18%,rgba(255,255,255,0.08)_18%_19%,transparent_19%_38%,rgba(34,217,130,0.12)_38%_39%,transparent_39%_58%,rgba(245,196,71,0.12)_58%_59%,transparent_59%_100%),radial-gradient(circle_at_50%_100%,rgba(34,217,130,0.22),transparent_56%)]" />
         </div>
       </div>
@@ -355,7 +355,7 @@ function PlayersPanel({
               type="button"
               onClick={() => onSelect(team.fifa_code)}
               className={cn(
-                "flex items-center gap-3 rounded-[8px] border p-3 text-left transition",
+                "flex items-center gap-3 rounded-sm border p-3 text-left transition",
                 isActive
                   ? "border-primary-500/45 bg-primary-500/[0.11] shadow-glow-primary"
                   : "border-white/[0.08] bg-white/[0.035] hover:border-primary-500/28 hover:bg-white/[0.06]",
@@ -375,7 +375,7 @@ function PlayersPanel({
         })}
       </div>
 
-      <div className="rounded-[8px] border border-white/[0.1] bg-[radial-gradient(circle_at_25%_15%,rgba(34,217,130,0.14),transparent_28%),rgba(255,255,255,0.035)] p-5">
+      <div className="rounded-sm border border-white/[0.1] bg-[radial-gradient(circle_at_25%_15%,rgba(34,217,130,0.14),transparent_28%),rgba(255,255,255,0.035)] p-5">
         <div className="flex items-center gap-4">
           <TeamEmblem code={selectedTeam.fifa_code} name={selectedTeam.name_fr} size="2xl" />
           <div>
@@ -390,7 +390,7 @@ function PlayersPanel({
             </p>
           </div>
         </div>
-        <div className="mt-5 rounded-[8px] border border-white/[0.08] bg-black/20 p-4">
+        <div className="mt-5 rounded-sm border border-white/[0.08] bg-black/20 p-4">
           <div className="mb-3 flex items-center justify-between">
             <h4 className="flex items-center gap-2 text-sm font-semibold text-text-primary">
               <ShieldCheck className="size-4 text-gold-400" strokeWidth={1.7} />
@@ -404,7 +404,7 @@ function PlayersPanel({
             {selectedTeam.key_players.map((player, index) => (
               <div
                 key={player}
-                className="grid grid-cols-[2rem_1fr] items-center gap-3 rounded-[8px] border border-white/[0.06] bg-white/[0.035] px-3 py-2"
+                className="grid grid-cols-[2rem_1fr] items-center gap-3 rounded-sm border border-white/[0.06] bg-white/[0.035] px-3 py-2"
               >
                 <span className="flex size-7 items-center justify-center rounded-[7px] bg-gold-500/[0.1] font-mono text-xs font-bold text-gold-400 ring-1 ring-gold-500/25">
                   {index + 1}
@@ -454,7 +454,7 @@ function SquadTile({
 
 function InfoPill({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[8px] border border-white/[0.08] bg-black/20 px-3 py-2">
+    <div className="rounded-sm border border-white/[0.08] bg-black/20 px-3 py-2">
       <p className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
         {label}
       </p>

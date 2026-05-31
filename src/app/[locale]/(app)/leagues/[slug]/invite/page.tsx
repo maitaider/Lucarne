@@ -28,7 +28,7 @@ export default async function InvitePage({
         {league.name}
       </Link>
 
-      <header className="mb-8 rounded-[8px] border border-white/[0.1] bg-surface-1/[0.66] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-xl">
+      <header className="mb-8 rounded-sm border border-white/[0.1] bg-surface-1/[0.66] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-xl">
         <h1 className="mb-2 font-display text-3xl font-semibold text-text-primary">
           {locale === "fr" ? "Inviter des amis" : "Invite friends"}
         </h1>
@@ -53,7 +53,7 @@ export default async function InvitePage({
             {locale === "fr" ? "Aucun code actif." : "No active codes."}
           </p>
         ) : (
-          <ul className="divide-y divide-border-subtle rounded-[8px] border border-white/[0.08] bg-surface-1/[0.62] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur">
+          <ul className="divide-y divide-border-subtle rounded-sm border border-white/[0.08] bg-surface-1/[0.62] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur">
             {invitations.map((inv) => (
               <li key={inv.id} className="flex items-center justify-between px-5 py-3">
                 <code className="font-mono text-sm uppercase tracking-wider text-primary-400">

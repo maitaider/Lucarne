@@ -50,7 +50,7 @@ export async function LandingHero() {
           </Link>
           <Link
             href="/login"
-            className="inline-flex shrink-0 items-center justify-center rounded-[8px] border border-white/[0.15] bg-white/[0.07] px-3 py-2 text-sm font-semibold text-text-primary backdrop-blur transition hover:border-primary-500/50 hover:bg-primary-500/[0.12] sm:px-4"
+            className="inline-flex shrink-0 items-center justify-center rounded-sm border border-white/[0.15] bg-white/[0.07] px-3 py-2 text-sm font-semibold text-text-primary backdrop-blur transition hover:border-primary-500/50 hover:bg-primary-500/[0.12] sm:px-4"
           >
             {t("ctaSignIn")}
           </Link>
@@ -58,7 +58,7 @@ export async function LandingHero() {
 
         <div className="flex flex-1 flex-col justify-center py-16 sm:py-20 lg:py-24">
           <div className="lk-stagger max-w-3xl">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-[8px] border border-gold-500/[0.35] bg-abyss/[0.45] px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-gold-400 backdrop-blur">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-sm border border-gold-500/[0.35] bg-abyss/[0.45] px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-gold-400 backdrop-blur">
               <Trophy className="size-3.5" strokeWidth={2} />
               {t("heroEyebrow")}
             </div>
@@ -75,7 +75,7 @@ export async function LandingHero() {
               {proofItems.map(({ icon: Icon, label }) => (
                 <span
                   key={label}
-                  className="inline-flex max-w-full items-center gap-2 rounded-[8px] border border-white/[0.12] bg-white/[0.06] px-3 py-2 text-xs font-semibold text-text-secondary backdrop-blur"
+                  className="inline-flex max-w-full items-center gap-2 rounded-sm border border-white/[0.12] bg-white/[0.06] px-3 py-2 text-xs font-semibold text-text-secondary backdrop-blur"
                 >
                   <Icon className="size-3.5 text-primary-400" strokeWidth={1.8} />
                   {label}
@@ -90,7 +90,7 @@ export async function LandingHero() {
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
                 href="/signup"
-                className="group inline-flex w-full items-center justify-center gap-2 rounded-[8px] bg-primary-500 px-6 py-3.5 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400 hover:shadow-[0_0_34px_var(--color-primary-glow)] sm:w-auto"
+                className="group inline-flex w-full items-center justify-center gap-2 rounded-sm bg-primary-500 px-6 py-3.5 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400 hover:shadow-[0_0_34px_var(--color-primary-glow)] sm:w-auto"
               >
                 <KeyRound className="size-4" />
                 {t("ctaHasCode")}
@@ -98,7 +98,7 @@ export async function LandingHero() {
               </Link>
               <a
                 href="#features"
-                className="inline-flex w-full items-center justify-center gap-2 rounded-[8px] border border-white/[0.15] bg-white/[0.07] px-6 py-3.5 text-sm font-semibold text-text-primary backdrop-blur transition hover:border-primary-500/50 hover:bg-white/[0.11] sm:w-auto"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-sm border border-white/[0.15] bg-white/[0.07] px-6 py-3.5 text-sm font-semibold text-text-primary backdrop-blur transition hover:border-primary-500/50 hover:bg-white/[0.11] sm:w-auto"
               >
                 {t("ctaLearnMore")}
               </a>
@@ -148,7 +148,7 @@ function StatStripItem({
   color: string;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-[8px] border border-white/[0.12] bg-abyss/[0.45] px-4 py-3 backdrop-blur">
+    <div className="flex items-center gap-3 rounded-sm border border-white/[0.12] bg-abyss/[0.45] px-4 py-3 backdrop-blur">
       <Icon className={`size-5 ${color}`} strokeWidth={1.5} />
       <div>
         <div className="font-display text-2xl font-bold tabular-nums text-text-primary">
