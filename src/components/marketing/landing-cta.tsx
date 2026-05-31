@@ -4,6 +4,7 @@ import { ArrowRight, KeyRound, ShieldCheck, Sparkles } from "lucide-react";
 import { Reveal } from "@/components/ui/reveal";
 import { Countdown } from "./countdown";
 import { FloatingFlags } from "./floating-flags";
+import { getPublicAccessPrice } from "@/lib/admin/economy";
 
 /**
  * Closing conversion band. Full-bleed, with the floating-flags backdrop and a
@@ -14,6 +15,11 @@ import { FloatingFlags } from "./floating-flags";
 export async function LandingCta() {
   const locale = await getLocale();
   const fr = locale === "fr";
+  const price = await getPublicAccessPrice();
+  const priceLabel = (price.amount_cents / 100).toLocaleString(
+    fr ? "fr-FR" : "en-US",
+    { style: "currency", currency: price.currency, maximumFractionDigits: 0 },
+  );
 
   const stats = fr
     ? [
@@ -49,8 +55,8 @@ export async function LandingCta() {
 
             <p className="mx-auto mt-5 max-w-xl text-balance text-base leading-relaxed text-text-secondary sm:text-lg">
               {fr
-                ? "Un salon privé entre amis, un accès unique à 20 $, toute la Coupe du Monde à suivre et à pronostiquer. Le classement se met à jour tout seul, et le pot du groupe récompense les meilleurs."
-                : "A private room with friends, a single $20 access, the whole World Cup to follow and predict. The standings update on their own, and the group pot rewards the best."}
+                ? `Un salon privé entre amis, un accès unique à ${priceLabel}, toute la Coupe du Monde à suivre et à pronostiquer. Le classement se met à jour tout seul, et le pot du groupe récompense les meilleurs.`
+                : `A private room with friends, a single ${priceLabel} access, the whole World Cup to follow and predict. The standings update on their own, and the group pot rewards the best.`}
             </p>
 
             <div className="mt-9 flex justify-center">

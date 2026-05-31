@@ -917,7 +917,7 @@ function TicketsCard({
       {bets.length === 0 ? (
         <div className="px-4 py-6 text-center text-sm text-text-tertiary">
           <Sparkles className="mx-auto mb-2 size-5 text-text-tertiary" strokeWidth={1.5} />
-          {fr ? "Pas encore de pari." : "No bet yet."}
+          {fr ? "Pas encore de prono." : "No prediction yet."}
         </div>
       ) : (
         <ul className="divide-y divide-white/[0.06]">
@@ -931,7 +931,11 @@ function TicketsCard({
                   {betLabel(b, locale)}
                 </div>
                 <div className="text-xs text-text-tertiary">
-                  {Math.floor(b.stake_cents / 100)} {fr ? "jetons" : "tokens"}
+                  {b.status === "settled"
+                    ? `${b.points ?? 0} pts`
+                    : fr
+                      ? "En attente"
+                      : "Pending"}
                 </div>
               </div>
               <BetStatusBadge status={b.status} result={b.result} locale={locale} />

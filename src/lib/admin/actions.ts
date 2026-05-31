@@ -38,7 +38,7 @@ export async function recordPayment(
     if (msg.includes("buy_in_deadline_passed"))
       return { ok: false, message: "La date butoir d'achat est passée." };
     if (msg.includes("amount_too_low"))
-      return { ok: false, message: "Montant trop bas pour créditer un jeton." };
+      return { ok: false, message: "Le montant doit être supérieur à 0." };
     if (msg.includes("forbidden"))
       return { ok: false, message: "Accès admin requis." };
     return { ok: false, message: error.message };

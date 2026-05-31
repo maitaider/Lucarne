@@ -206,7 +206,7 @@ export default async function HowItWorksPage({
             icon={Zap}
             title={L === "fr" ? "Premier buteur" : "First scorer"}
             value="+8"
-            sub={L === "fr" ? "si bon en premier" : "if right at minute one"}
+            sub={L === "fr" ? "le 1er buteur du match" : "the match's first scorer"}
             accent="primary"
           />
         </div>

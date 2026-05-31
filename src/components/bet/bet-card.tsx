@@ -1,9 +1,10 @@
 import type { BetListItem } from "@/lib/bets/queries";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
-import { CheckCircle2, Clock, X, Coins, Trophy } from "lucide-react";
+import { CheckCircle2, Clock, X, Target, Trophy } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
 import { TeamEmblem } from "@/components/team/team-emblem";
+import { maxPointsFor, betMultipliers } from "@/lib/bets/types";
 
 /**
  * Signature component: BetCard
@@ -87,11 +88,7 @@ export function BetCard({
         </div>
 
         <div className="flex flex-col items-end gap-1">
-          <div className="flex items-center gap-1 text-xs text-text-tertiary">
-            <Coins className="size-3" />
-            <span className="font-mono tabular-nums">{bet.stake_cents / 100}</span>
-          </div>
-          {bet.status === "settled" && (
+          {bet.status === "settled" ? (
             <div
               className={cn(
                 "flex items-center gap-1 font-display font-semibold tabular-nums",
@@ -101,6 +98,19 @@ export function BetCard({
               {bet.result === "won" && <Trophy className="size-3.5" />}
               <span>{bet.points} pts</span>
             </div>
+          ) : (
+            (() => {
+              const potential =
+                maxPointsFor(bet.bet_type) || betMultipliers[bet.bet_type] || 0;
+              return potential > 0 ? (
+                <div className="flex items-center gap-1 text-xs text-text-tertiary">
+                  <Target className="size-3" />
+                  <span className="font-mono tabular-nums">
+                    +{potential} pts
+                  </span>
+                </div>
+              ) : null;
+            })()
           )}
         </div>
       </div>

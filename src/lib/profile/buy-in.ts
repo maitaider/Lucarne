@@ -97,3 +97,37 @@ export async function getMyBuyInStatus(): Promise<BuyInStatus> {
     can_bet: paid, // payers can keep editing even after the seat-sale deadline
   };
 }
+
+export type PaymentReceipt = {
+  id: string;
+  amount_cents: number;
+  currency: string;
+  method: string;
+  status: string;
+  reference: string | null;
+  received_at: string;
+  refunded_at: string | null;
+};
+
+/**
+ * Lists the signed-in user's own access payments (most recent first), for the
+ * "Mes paiements / reçus" page. RLS restricts rows to the caller.
+ */
+export async function listMyPayments(): Promise<PaymentReceipt[]> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return [];
+  const supabase = await getSupabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data } = await supabase
+    .from("real_payments")
+    .select(
+      "id, amount_cents, currency, method, status, reference, received_at, refunded_at",
+    )
+    .eq("user_id", user.id)
+    .order("received_at", { ascending: false });
+
+  return (data ?? []) as PaymentReceipt[];
+}

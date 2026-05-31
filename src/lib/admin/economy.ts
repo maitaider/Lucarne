@@ -93,6 +93,35 @@ export function effectiveBuyInDeadline(settings: AppSettings): Date {
   );
 }
 
+/**
+ * Public access price for unauthenticated pages (landing). app_settings is
+ * readable only by `authenticated`, so we read it server-side with the
+ * service-role client and expose ONLY the price + currency (never contact_info
+ * etc.). Falls back to the default seat price if unavailable.
+ */
+export async function getPublicAccessPrice(): Promise<{
+  amount_cents: number;
+  currency: string;
+}> {
+  const fallback = {
+    amount_cents: DEFAULT.buy_in_amount_cents,
+    currency: DEFAULT.currency,
+  };
+  const { getSupabaseAdmin } = await import("@/lib/supabase/admin");
+  const admin = getSupabaseAdmin();
+  if (!admin) return fallback;
+  const { data } = await admin
+    .from("app_settings")
+    .select("buy_in_amount_cents, currency")
+    .eq("id", 1)
+    .maybeSingle();
+  if (!data) return fallback;
+  return {
+    amount_cents: data.buy_in_amount_cents ?? fallback.amount_cents,
+    currency: data.currency ?? fallback.currency,
+  };
+}
+
 export type OverviewStats = {
   total_collected_cents: number;
   total_refunded_cents: number;

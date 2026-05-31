@@ -1327,6 +1327,22 @@ export type Database = {
       has_paid_buy_in: { Args: { p_user_id: string }; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
       is_league_member: { Args: { p_league_id: string }; Returns: boolean }
+      league_feed: {
+        Args: { p_league_id: string; p_limit?: number }
+        Returns: {
+          bet_type: string
+          display_name: string
+          id: string
+          match_id: string
+          payload: Json
+          points: number
+          result: string
+          status: string
+          submitted_at: string
+          user_id: string
+          username: string
+        }[]
+      }
       lock_all_tournament_predictions: { Args: never; Returns: number }
       place_bet: {
         Args: {

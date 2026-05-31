@@ -73,9 +73,7 @@ export async function LeagueActivityFeed({
                     </p>
                     {act.bet && (
                       <p className="mt-1 text-xs text-text-tertiary">
-                        {act.bet.home_team ?? "?"} – {act.bet.away_team ?? "?"} ·{" "}
-                        {Math.floor(act.bet.stake_cents / 100)}{" "}
-                        {locale === "fr" ? "jetons" : "tokens"}
+                        {act.bet.home_team ?? "?"} – {act.bet.away_team ?? "?"}
                         {act.kind === "bet_won" && act.bet.points > 0 && (
                           <span className="ml-1 font-semibold text-primary-400">
                             · +{act.bet.points} pts

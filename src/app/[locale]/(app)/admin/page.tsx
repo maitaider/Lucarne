@@ -46,7 +46,6 @@ export default async function AdminOverviewPage({
   ]);
 
   const seatsSold = stats.paying_users_count;
-  const totalTokens = Math.floor(stats.net_cents / settings.token_price_cents);
   const prize = computePrizePool(stats.net_cents, settings);
   const deadline = settings.buy_in_deadline
     ? new Date(settings.buy_in_deadline)
@@ -106,9 +105,9 @@ export default async function AdminOverviewPage({
         />
         <KpiCard
           icon={Coins}
-          label={L === "fr" ? "Jetons en jeu" : "Tokens in play"}
-          value={totalTokens.toLocaleString(L === "fr" ? "fr-FR" : "en-US")}
-          detail={`${fmt(settings.token_price_cents)} ${L === "fr" ? "par jeton" : "per token"}`}
+          label={L === "fr" ? "Net encaissé" : "Net collected"}
+          value={fmt(stats.net_cents)}
+          detail={L === "fr" ? "confirmés − remboursés" : "confirmed − refunded"}
           accent="gold"
         />
         <KpiCard
@@ -185,8 +184,8 @@ export default async function AdminOverviewPage({
                     ? "La date est passée. Les nouveaux paiements sont bloqués."
                     : "Deadline has passed. New payments are blocked."
                   : L === "fr"
-                    ? `Encore ${daysToDeadline} jour${daysToDeadline === 1 ? "" : "s"} pour acheter des jetons.`
-                    : `${daysToDeadline} day${daysToDeadline === 1 ? "" : "s"} left to buy tokens.`}
+                    ? `Encore ${daysToDeadline} jour${daysToDeadline === 1 ? "" : "s"} pour régler l'accès.`
+                    : `${daysToDeadline} day${daysToDeadline === 1 ? "" : "s"} left to pay for access.`}
               </p>
             </>
           ) : (
@@ -274,8 +273,8 @@ export default async function AdminOverviewPage({
             title={L === "fr" ? "Enregistrer un paiement" : "Record a payment"}
             body={
               L === "fr"
-                ? "Cash, virement, PayPal · crédite les jetons direct."
-                : "Cash, transfer, PayPal · credits tokens instantly."
+                ? "Cash, virement, PayPal · débloque l'accès direct."
+                : "Cash, transfer, PayPal · unlocks access instantly."
             }
             accent="primary"
           />
@@ -296,8 +295,8 @@ export default async function AdminOverviewPage({
             title={L === "fr" ? "Régler l'économie" : "Tune economy"}
             body={
               L === "fr"
-                ? "Prix du jeton, deadline, partage cagnotte."
-                : "Token price, deadline, prize split."
+                ? "Prix d'accès, devise, deadline, partage cagnotte."
+                : "Access price, currency, deadline, prize split."
             }
             accent="gold"
           />
@@ -328,8 +327,8 @@ export default async function AdminOverviewPage({
               </h3>
               <p className="mt-1 text-sm text-text-secondary">
                 {L === "fr"
-                  ? "Quand un joueur te paie (cash, virement, PayPal…), enregistre-le dans Paiements. Les jetons seront crédités automatiquement à son solde."
-                  : "When a player pays you (cash, transfer, PayPal…), record it in Payments. Tokens credit to their balance automatically."}
+                  ? "Quand un joueur te paie (cash, virement, PayPal…), enregistre-le dans Paiements. Son accès est débloqué automatiquement."
+                  : "When a player pays you (cash, transfer, PayPal…), record it in Payments. Their access unlocks automatically."}
               </p>
               <Link
                 href="/admin/payments"
@@ -408,7 +407,6 @@ function RecentSignups({
               fr ? "fr-FR" : "en-US",
               { day: "numeric", month: "short" },
             );
-            const tokens = Math.floor(s.balance_cents / 100);
             return (
               <li key={s.id} className="flex items-center gap-3 py-2.5">
                 <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary-500/30 to-violet-500/30 font-mono text-[10px] font-bold uppercase text-text-primary ring-1 ring-white/10">
@@ -422,10 +420,6 @@ function RecentSignups({
                     @{s.username} · {fr ? "inscrit le" : "joined"} {joined}
                   </div>
                 </div>
-                <span className="hidden font-mono text-xs tabular-nums text-text-tertiary sm:inline">
-                  {tokens.toLocaleString(fr ? "fr-FR" : "en-US")}{" "}
-                  {fr ? "jetons" : "tokens"}
-                </span>
                 {s.paid ? (
                   <span className="inline-flex items-center gap-1 rounded-full bg-primary-500/12 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-300 ring-1 ring-primary-500/25">
                     <CheckCircle2 className="size-3" strokeWidth={2.5} />

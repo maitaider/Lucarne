@@ -29,8 +29,8 @@ export default async function AdminSettingsPage({
         </h1>
         <p className="mt-1.5 max-w-2xl text-sm text-text-secondary">
           {fr
-            ? "Fenêtre du tournoi et coordonnées de paiement. Les prix (jeton, place) et le partage de la cagnotte se règlent dans Économie."
-            : "Tournament window and payment details. Prices (token, seat) and the prize split live in Economy."}
+            ? "Fenêtre du tournoi et coordonnées de paiement. Le prix d'accès, la devise et le partage de la cagnotte se règlent dans Économie."
+            : "Tournament window and payment details. Access price, currency, and the prize split live in Economy."}
         </p>
       </header>
 
@@ -57,8 +57,8 @@ export default async function AdminSettingsPage({
           </div>
           <div className="text-xs text-text-tertiary">
             {fr
-              ? "Prix du jeton, place, date butoir, partage du pot."
-              : "Token price, seat price, deadline, prize split."}
+              ? "Prix d'accès, devise, date butoir, partage du pot."
+              : "Access price, currency, deadline, prize split."}
           </div>
         </div>
         <ArrowRight

@@ -29,13 +29,12 @@ export function useRealtimeActivity(): ActivityEvent[] {
           const row = payload.new as {
             id?: string;
             status?: string;
-            stake_cents?: number;
           } | null;
           if (!row?.id) return;
           push({
             id: `bet-${row.id}`,
             kind: "bet_placed",
-            message: `Nouveau pari · ${Math.floor((row.stake_cents ?? 0) / 100)} jetons`,
+            message: `Nouveau pronostic placé`,
             createdAt: new Date().toISOString(),
           });
         },
@@ -47,14 +46,13 @@ export function useRealtimeActivity(): ActivityEvent[] {
           const row = payload.new as {
             id?: string;
             amount_cents?: number;
-            tokens_credited?: number;
             method?: string;
           } | null;
           if (!row?.id) return;
           push({
             id: `pay-${row.id}`,
             kind: "payment",
-            message: `Paiement confirmé · +${row.tokens_credited ?? 0} jetons (${row.method ?? "—"})`,
+            message: `Accès confirmé`,
             createdAt: new Date().toISOString(),
           });
         },

@@ -163,8 +163,8 @@ export function EconomyForm({ initial, totalCollectedCents, locale }: Props) {
         title={locale === "fr" ? "Date butoir d'achat" : "Buy-in deadline"}
         body={
           locale === "fr"
-            ? "Au-delà de cette date, les joueurs ne peuvent plus acheter de jetons."
-            : "After this date, players can no longer buy tokens."
+            ? "Au-delà de cette date, les joueurs ne peuvent plus régler leur accès."
+            : "After this date, players can no longer pay for access."
         }
       >
         <input

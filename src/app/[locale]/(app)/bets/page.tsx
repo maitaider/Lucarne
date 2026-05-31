@@ -7,10 +7,10 @@ import type { Locale } from "@/i18n/routing";
 import { Link } from "@/i18n/navigation";
 import {
   ArrowRight,
-  Coins,
-  Receipt,
+  ListChecks,
   ShieldCheck,
   Sparkles,
+  Target,
   Trophy,
   type LucideIcon,
 } from "lucide-react";
@@ -33,8 +33,8 @@ export default async function MyBetsPage({
       ["rejected", "refunded"].includes(b.status),
     ),
   };
-  const activeStake = groups.validated.reduce(
-    (sum, bet) => sum + Math.floor(bet.stake_cents / 100),
+  const totalPoints = groups.settled.reduce(
+    (sum, bet) => sum + (bet.points ?? 0),
     0,
   );
   const settledWins = groups.settled.filter((bet) => bet.result === "won").length;
@@ -42,16 +42,14 @@ export default async function MyBetsPage({
   return (
     <AppPageShell width="ultra">
       <PageHero
-        kicker={
-          L === "fr" ? "Mes tickets Mondial" : "My World Cup tickets"
-        }
-        kickerIcon={Receipt}
+        kicker={L === "fr" ? "Suivi Mondial 2026" : "World Cup 2026 tracker"}
+        kickerIcon={ListChecks}
         accent="gold"
-        title={L === "fr" ? "Salle des paris" : "Bet room"}
+        title={L === "fr" ? "Mes pronostics" : "My predictions"}
         description={
           L === "fr"
-            ? `${bets.length} ticket${bets.length > 1 ? "s" : ""} placé${bets.length > 1 ? "s" : ""}. Suis la validation, les points en jeu et les résultats sans perdre le fil du tournoi.`
-            : `${bets.length} ticket${bets.length > 1 ? "s" : ""} placed. Track validation, points at stake, and outcomes without losing the tournament thread.`
+            ? `${bets.length} pronostic${bets.length > 1 ? "s" : ""} placé${bets.length > 1 ? "s" : ""}. Suis tes prédictions, les points en jeu et les résultats — c'est gratuit, tout se joue aux points.`
+            : `${bets.length} prediction${bets.length > 1 ? "s" : ""} placed. Track your picks, the points at stake, and the outcomes — it's free, everything is scored in points.`
         }
         actions={
           <Link
@@ -59,17 +57,16 @@ export default async function MyBetsPage({
             className="inline-flex items-center justify-center gap-1.5 rounded-[8px] bg-primary-500 px-4 py-2 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400"
           >
             <ArrowRight className="size-4" strokeWidth={2} />
-            {L === "fr" ? "Ouvrir Pronostique" : "Open Predict"}
+            {L === "fr" ? "Faire un prono" : "Make a pick"}
           </Link>
         }
       />
 
-      <BetStatusConsole
+      <PredictionConsole
         locale={L}
         validated={groups.validated.length}
         settled={groups.settled.length}
-        other={groups.other.length}
-        activeStake={activeStake}
+        totalPoints={totalPoints}
         settledWins={settledWins}
       />
 
@@ -82,42 +79,40 @@ export default async function MyBetsPage({
   );
 }
 
-function BetStatusConsole({
+function PredictionConsole({
   locale,
   validated,
   settled,
-  other,
-  activeStake,
+  totalPoints,
   settledWins,
 }: {
   locale: Locale;
   validated: number;
   settled: number;
-  other: number;
-  activeStake: number;
+  totalPoints: number;
   settledWins: number;
 }) {
   return (
     <section className="mb-8 grid gap-3 sm:grid-cols-3">
       <BetMetric
         icon={ShieldCheck}
-        label={locale === "fr" ? "Actifs" : "Active"}
+        label={locale === "fr" ? "En attente" : "Pending"}
         value={validated}
-        detail={locale === "fr" ? "en jeu" : "in play"}
+        detail={locale === "fr" ? "matchs à venir" : "upcoming matches"}
         accent="primary"
       />
       <BetMetric
-        icon={Trophy}
+        icon={Sparkles}
         label={locale === "fr" ? "Résolus" : "Settled"}
         value={settled}
-        detail={`${settledWins} ${locale === "fr" ? "gagnés" : "won"}`}
-        accent="gold"
+        detail={`${settledWins} ${locale === "fr" ? "réussis" : "correct"}`}
+        accent="violet"
       />
       <BetMetric
-        icon={Sparkles}
-        label={locale === "fr" ? "À traiter" : "To handle"}
-        value={other}
-        detail={locale === "fr" ? "refus/remboursements" : "rejects/refunds"}
+        icon={Trophy}
+        label={locale === "fr" ? "Points cumulés" : "Total points"}
+        value={totalPoints}
+        detail={locale === "fr" ? "depuis le début" : "so far"}
         accent="gold"
       />
     </section>
@@ -171,18 +166,18 @@ function EmptyBets({ locale }: { locale: Locale }) {
           : "Open the calendar and select a group or knockout fixture.",
     },
     {
-      title: locale === "fr" ? "Définir la mise" : "Set the stake",
+      title: locale === "fr" ? "Faire ton prono" : "Make your pick",
       text:
         locale === "fr"
-          ? "Utilise tes jetons pour construire une stratégie progressive."
-          : "Use your tokens to build a progressive strategy.",
+          ? "Vainqueur, score exact, buteurs… plus c'est précis, plus ça rapporte de points."
+          : "Winner, exact score, scorers… the sharper your call, the more points it earns.",
     },
     {
-      title: locale === "fr" ? "Suivre la validation" : "Track validation",
+      title: locale === "fr" ? "Suivre tes points" : "Track your points",
       text:
         locale === "fr"
-          ? "Le statut du ticket apparaît ici dès qu’il passe en revue."
-          : "Ticket status appears here as soon as it enters review.",
+          ? "Tes points apparaissent ici dès qu'un match est terminé, et grimpent au classement."
+          : "Your points show up here as soon as a match ends, and climb the leaderboard.",
     },
   ];
 
@@ -190,16 +185,16 @@ function EmptyBets({ locale }: { locale: Locale }) {
     <div className="rounded-[8px] border border-dashed border-white/[0.14] bg-surface-1/[0.62] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
       <div className="mb-5 flex items-start gap-3">
         <span className="rounded-[8px] bg-gold-500/15 p-2.5 text-gold-400 ring-1 ring-gold-500/30">
-          <Trophy className="size-5" strokeWidth={1.6} />
+          <Target className="size-5" strokeWidth={1.6} />
         </span>
         <div>
           <h2 className="font-display text-lg font-semibold text-text-primary">
-            {locale === "fr" ? "Aucun pari pour le moment" : "No bets yet"}
+            {locale === "fr" ? "Aucun pronostic pour le moment" : "No predictions yet"}
           </h2>
           <p className="mt-1 text-sm leading-6 text-text-secondary">
             {locale === "fr"
-              ? "La salle est prête: elle affichera tes tickets, les mises engagées, la validation et les gains dès le premier pari."
-              : "The room is ready: it will show your tickets, staked tokens, validation, and winnings after the first bet."}
+              ? "Tout est prêt : tes pronostics, les points en jeu et les résultats s'afficheront ici dès ta première prédiction."
+              : "All set: your predictions, the points at stake, and the outcomes will appear here after your first pick."}
           </p>
         </div>
       </div>
@@ -217,4 +212,3 @@ function EmptyBets({ locale }: { locale: Locale }) {
     </div>
   );
 }
-

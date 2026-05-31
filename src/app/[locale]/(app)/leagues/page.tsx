@@ -76,7 +76,7 @@ export default async function LeaguesPage({
       />
 
       {leagues.length === 0 ? (
-        <EmptyLeagues locale={L} />
+        <EmptyLeagues locale={L} isAdmin={admin} />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {leagues.map((league) => (
@@ -243,7 +243,7 @@ function LeagueCardMetric({
   );
 }
 
-function EmptyLeagues({ locale }: { locale: Locale }) {
+function EmptyLeagues({ locale, isAdmin }: { locale: Locale; isAdmin: boolean }) {
   const features = [
     {
       icon: Users,
@@ -258,8 +258,8 @@ function EmptyLeagues({ locale }: { locale: Locale }) {
       title: locale === "fr" ? "Validation claire" : "Clear validation",
       text:
         locale === "fr"
-          ? "Les règles de mise et les statuts restent lisibles pour tout le groupe."
-          : "Stake rules and ticket status stay readable for the whole group.",
+          ? "Le barème de points et les pronos de chacun restent lisibles pour tout le groupe."
+          : "The points scheme and everyone's picks stay readable for the whole group.",
     },
     {
       icon: Trophy,
@@ -276,21 +276,33 @@ function EmptyLeagues({ locale }: { locale: Locale }) {
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 className="font-display text-lg font-semibold text-text-primary">
-            {locale === "fr" ? "Crée ton premier salon" : "Create your first room"}
+            {isAdmin
+              ? locale === "fr"
+                ? "Crée la ligue du groupe"
+                : "Create the group league"
+              : locale === "fr"
+                ? "Aucune ligue pour l'instant"
+                : "No league yet"}
           </h2>
           <p className="mt-1 max-w-2xl text-sm leading-6 text-text-secondary">
-            {locale === "fr"
-              ? "Une ligue transforme le Mondial en compétition privée avec classement, invitations et ambiance trophée."
-              : "A league turns the World Cup into a private competition with standings, invites, and trophy atmosphere."}
+            {isAdmin
+              ? locale === "fr"
+                ? "Lance la ligue de la maison : classement, invitations par code et ambiance trophée pour tout le groupe."
+                : "Spin up the house league: standings, invite codes, and trophy atmosphere for the whole group."
+              : locale === "fr"
+                ? "L'organisateur t'ajoutera à la ligue dès que tu utilises ton code d'invitation. Tu n'as rien à créer."
+                : "The organizer adds you to the league as soon as you redeem your invite code. Nothing to create on your side."}
           </p>
         </div>
-        <Link
-          href="/leagues/new"
-          className="inline-flex items-center justify-center gap-1.5 rounded-[8px] bg-primary-500 px-4 py-2 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400"
-        >
-          {locale === "fr" ? "Nouvelle ligue" : "New league"}
-          <ArrowRight className="size-4" strokeWidth={2} />
-        </Link>
+        {isAdmin && (
+          <Link
+            href="/leagues/new"
+            className="inline-flex items-center justify-center gap-1.5 rounded-[8px] bg-primary-500 px-4 py-2 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400"
+          >
+            {locale === "fr" ? "Nouvelle ligue" : "New league"}
+            <ArrowRight className="size-4" strokeWidth={2} />
+          </Link>
+        )}
       </div>
       <div className="grid gap-3 md:grid-cols-3">
         {features.map((feature) => {

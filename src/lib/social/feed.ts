@@ -9,8 +9,6 @@ export type FeedActivity = {
   bet?: {
     id: string;
     bet_type: string;
-    stake_cents: number;
-    payout_cents: number;
     points: number;
     payload: unknown;
     home_team: string | null;
@@ -36,7 +34,12 @@ type MatchEmbed = {
  *
  * Implementation note: bets.match_id is a cross-schema FK to ref.matches,
  * which PostgREST can't always follow via embed syntax. We split this into
- * two queries (bets first, matches by id second) for stability.
+ * two queries (feed RPC first, matches by id second) for stability.
+ *
+ * The feed comes from the league_feed SECURITY DEFINER RPC: it links members
+ * via league_members (bets.league_id is usually null) and applies the
+ * kickoff-reveal rule server-side, so co-members' locked picks surface without
+ * leaking pre-kickoff picks.
  */
 export async function listLeagueFeed(
   leagueId: string,
@@ -46,20 +49,11 @@ export async function listLeagueFeed(
 
   const supabase = await getSupabaseServer();
 
-  // 1. Pull bets in this league. RLS hides friends' picks before kickoff.
-  const { data: betsData, error: betsErr } = await supabase
-    .from("bets")
-    .select(
-      `
-      id, bet_type, status, result, points, stake_cents, payout_cents,
-      payload, submitted_at, locked_at, user_id, match_id,
-      author:profiles!bets_user_id_fkey(username, display_name)
-    `,
-    )
-    .eq("league_id", leagueId)
-    .in("status", ["validated", "settled"])
-    .order("submitted_at", { ascending: false })
-    .limit(limit);
+  // 1. Pull recent member bets via the definer RPC (reveal rule applied inside).
+  const { data: betsData, error: betsErr } = await supabase.rpc("league_feed", {
+    p_league_id: leagueId,
+    p_limit: limit,
+  });
 
   if (betsErr || !betsData) return [];
 
@@ -103,19 +97,11 @@ export async function listLeagueFeed(
 
   const activities: FeedActivity[] = [];
   for (const row of betsData) {
-    const author = pickOne(
-      row.author as
-        | { username: string; display_name: string | null }
-        | { username: string; display_name: string | null }[]
-        | null,
-    );
     const match = row.match_id ? (matchesById.get(row.match_id) ?? null) : null;
 
     const bet = {
       id: row.id,
       bet_type: row.bet_type,
-      stake_cents: row.stake_cents,
-      payout_cents: row.payout_cents,
       points: row.points,
       payload: row.payload,
       home_team: match?.home_team?.name_fr ?? null,
@@ -124,15 +110,17 @@ export async function listLeagueFeed(
       match_status: match?.status ?? null,
     };
 
+    const user = {
+      username: row.username ?? "?",
+      display_name: row.display_name ?? null,
+    };
+
     if (row.status === "settled") {
       activities.push({
         id: `${row.id}-settled`,
         kind: row.result === "won" ? "bet_won" : "bet_lost",
         created_at: row.submitted_at,
-        user: {
-          username: author?.username ?? "?",
-          display_name: author?.display_name ?? null,
-        },
+        user,
         bet,
       });
     } else {
@@ -140,10 +128,7 @@ export async function listLeagueFeed(
         id: row.id,
         kind: "bet_placed",
         created_at: row.submitted_at,
-        user: {
-          username: author?.username ?? "?",
-          display_name: author?.display_name ?? null,
-        },
+        user,
         bet,
       });
     }

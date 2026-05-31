@@ -74,8 +74,8 @@ export default async function AdminPaymentsPage({
           </h2>
           <p className="mt-1 text-sm text-text-secondary">
             {L === "fr"
-              ? "Enregistre chaque paiement reçu (cash, virement, etc.). Les jetons sont crédités automatiquement."
-              : "Record every payment received (cash, transfer, etc.). Tokens are credited automatically."}
+              ? "Enregistre chaque paiement d'accès reçu hors Stripe (cash, virement, etc.). Ça débloque l'accès du joueur — aucun jeton."
+              : "Record every access payment received outside Stripe (cash, transfer, etc.). It unlocks the player's access — no tokens."}
           </p>
         </div>
         <RecordPaymentForm
@@ -84,7 +84,6 @@ export default async function AdminPaymentsPage({
             username: u.username,
             display_name: u.display_name,
           }))}
-          tokenPriceCents={settings.token_price_cents}
           currency={settings.currency}
           locale={L}
         />
@@ -112,8 +111,8 @@ export default async function AdminPaymentsPage({
           value={fmt(totalConfirmed - totalRefunded)}
           detail={
             L === "fr"
-              ? `Prix jeton : ${fmt(settings.token_price_cents)}`
-              : `Token price: ${fmt(settings.token_price_cents)}`
+              ? `Prix d'accès : ${fmt(settings.buy_in_amount_cents)}`
+              : `Access price: ${fmt(settings.buy_in_amount_cents)}`
           }
           accent="gold"
         />
@@ -149,7 +148,6 @@ export default async function AdminPaymentsPage({
                   <th className="px-4 py-3 text-right font-bold">
                     {L === "fr" ? "Montant" : "Amount"}
                   </th>
-                  <th className="px-4 py-3 text-right font-bold">Jetons</th>
                   <th className="px-4 py-3 text-left font-bold">Réf.</th>
                   <th className="px-4 py-3 text-left font-bold">Date</th>
                   <th className="px-4 py-3 text-left font-bold">Statut</th>
@@ -187,11 +185,6 @@ export default async function AdminPaymentsPage({
                       <td className="px-4 py-3 text-right">
                         <span className="font-display text-sm font-bold tabular-nums text-text-primary">
                           {fmt(p.amount_cents)}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <span className="font-mono text-xs tabular-nums text-primary-300">
-                          +{p.tokens_credited}
                         </span>
                       </td>
                       <td className="px-4 py-3">

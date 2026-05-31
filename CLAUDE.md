@@ -29,7 +29,7 @@ pnpm db:types     # régénère src/lib/supabase/types.generated.ts
 2. **Jamais d'INSERT direct sur `bets`** depuis le client — passer par RPC.
 3. **`private.*` non exposé** via PostgREST (RLS + REVOKE).
 4. **Codes d'invitation** : `gen_random_bytes(16)` base32 lisible, expiration max 30j.
-5. **Balances** : `transactions` append-only, trigger recompute `profiles.balance_cents`.
+5. **Pas de jetons / pas de balance gameplay** : le jeu est **gratuit, scoré en points**. Le buy-in (Stripe **ou** saisie admin manuelle) est un **accès** : les deux rails écrivent juste une ligne `real_payments` `confirmed` (`tokens_credited = 0`, aucune écriture `profiles.balance_cents`, aucune ligne `transactions`). `balance_cents` / `transactions` / `token_price_cents` sont **résiduels** (dette à retirer) — ne pas s'en servir pour débloquer une fonctionnalité ; l'accès se vérifie via `getMyBuyInStatus()` (lit `real_payments`).
 
 ## Débogage — leçons de prod (À LIRE avant de deviner)
 
@@ -45,6 +45,10 @@ Quand un comportement est cassé **sans message d'erreur** (login qui reboucle, 
 
 ## Phase actuelle
 
-Sprint 0 livré : scaffold + design + auth + migration. Prochain : Sprint 1 (intégration API-Football + import matchs).
+**Phase 0 (sécurité & argent) livrée** : C1 escalade privilèges (colonnes `profiles` en liste blanche), C2 fuite classements (anon revoke + `mv_league_standings` filtrée au caller), C3 `isAdmin()` fail-closed, gardes `set_user_role`, Stripe anti double-crédit (M3) + anti sous-paiement (M2), économie éditable (prix d'accès + devise, M1).
 
-Plan complet : `~/.claude/plans/je-veux-que-tu-golden-coral.md`.
+**Phase 1 (cohérence du modèle) livrée** : purge jetons côté joueur (`/bets` → « Mes pronostics / points », `bet-card`, feed temps réel, dashboard), unification des 2 rails de paiement (le manuel = accès, 0 jeton, comme Stripe), feed de ligue O5 via RPC `league_feed` SECURITY DEFINER (lié aux membres, pas à `bets.league_id`), page reçus `/profile/wallet` (M6), copy (ligue admin-only, prix landing dynamique, coquilles EN).
+
+**Reste (dette / phases suivantes)** : retrait du feature `adjust_balance` + colonne « Solde » admin (résiduel jetons) ; Phase 2 ops live (O1 recompute match, O2 buteurs préservés, O3 cron sync `api_football_fixture_id`, O4 `LiveRefresh` sur /live & /matches, audit-log consultable, réponse tickets, distribution cagnotte) ; Phase 3 (profils publics, notifs sociales, i18n next-intl, états loading/not-found, a11y).
+
+Plan complet : `~/.claude/plans/lucarne-plan-consolide-2026-05-31.md`.

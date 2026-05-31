@@ -37,19 +37,17 @@ const METHOD_LABELS: Record<
 
 export function RecordPaymentForm({
   users,
-  tokenPriceCents,
   currency,
   locale,
 }: {
   users: UserOption[];
-  tokenPriceCents: number;
   currency: string;
   locale: Locale;
 }) {
   const symbol = CURRENCY_SYMBOL[currency] ?? currency;
   const [open, setOpen] = useState(false);
   const [userId, setUserId] = useState("");
-  const [amountEur, setAmountEur] = useState("20");
+  const [amountStr, setAmountStr] = useState("20");
   const [method, setMethod] = useState<(typeof PAYMENT_METHODS)[number]>("cash");
   const [reference, setReference] = useState("");
   const [note, setNote] = useState("");
@@ -57,8 +55,7 @@ export function RecordPaymentForm({
   const router = useRouter();
   const toast = useToast();
 
-  const amountCents = Math.round(Number(amountEur || 0) * 100);
-  const tokensPreview = Math.floor(amountCents / Math.max(tokenPriceCents, 1));
+  const amountCents = Math.round(Number(amountStr || 0) * 100);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -84,12 +81,12 @@ export function RecordPaymentForm({
       if (res.ok) {
         toast.success(
           locale === "fr"
-            ? `Paiement enregistré : ${tokensPreview} jetons crédités.`
-            : `Payment recorded: ${tokensPreview} tokens credited.`,
+            ? "Paiement enregistré — accès débloqué."
+            : "Payment recorded — access unlocked.",
         );
         setOpen(false);
         setUserId("");
-        setAmountEur("20");
+        setAmountStr("20");
         setReference("");
         setNote("");
         router.refresh();
@@ -169,8 +166,8 @@ export function RecordPaymentForm({
                       min={1}
                       max={10000}
                       step={1}
-                      value={amountEur}
-                      onChange={(e) => setAmountEur(e.target.value)}
+                      value={amountStr}
+                      onChange={(e) => setAmountStr(e.target.value)}
                       className="w-full rounded-[8px] border border-white/[0.1] bg-abyss/[0.6] px-3 py-2.5 text-sm tabular-nums text-text-primary outline-none transition focus:border-primary-500/50"
                       required
                     />
@@ -240,18 +237,19 @@ export function RecordPaymentForm({
                 <div className="rounded-[8px] border border-primary-500/25 bg-primary-500/[0.08] px-4 py-3">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-text-secondary">
-                      {locale === "fr" ? "Jetons crédités" : "Tokens credited"}
+                      {locale === "fr" ? "Montant enregistré" : "Recorded amount"}
                     </span>
                     <span className="font-display text-xl font-bold tabular-nums text-primary-300">
-                      {tokensPreview.toLocaleString(
+                      {(amountCents / 100).toLocaleString(
                         locale === "fr" ? "fr-FR" : "en-US",
+                        { style: "currency", currency },
                       )}
                     </span>
                   </div>
                   <p className="mt-1 text-[10px] text-text-tertiary">
                     {locale === "fr"
-                      ? `Au prix actuel : ${(tokenPriceCents / 100).toFixed(2)} ${symbol} par jeton.`
-                      : `At current rate: ${(tokenPriceCents / 100).toFixed(2)} ${symbol} per token.`}
+                      ? "Débloque l'accès du joueur. Aucun jeton — les pronostics sont gratuits et comptés en points."
+                      : "Unlocks the player's access. No tokens — predictions are free and scored in points."}
                   </p>
                 </div>
 
