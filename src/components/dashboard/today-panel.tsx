@@ -136,7 +136,7 @@ function FeaturedCard({
   );
   const timeLabel = kickoff.toLocaleTimeString(
     locale === "fr" ? "fr-CA" : "en-CA",
-    { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" },
+    { hour: "2-digit", minute: "2-digit", timeZone: "America/Toronto" },
   );
 
   return (
@@ -338,7 +338,7 @@ function UpcomingRow({
     ? kickoff.toLocaleTimeString(locale === "fr" ? "fr-CA" : "en-CA", {
         hour: "2-digit",
         minute: "2-digit",
-        timeZone: "Europe/Paris",
+        timeZone: "America/Toronto",
       })
     : kickoff.toLocaleDateString(locale === "fr" ? "fr-CA" : "en-CA", {
         day: "2-digit",

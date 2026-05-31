@@ -45,7 +45,7 @@ export function PickRow({
   const kickoff = new Date(match.kickoff_at);
   const timeStr = kickoff.toLocaleTimeString(
     locale === "fr" ? "fr-CA" : "en-CA",
-    { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" },
+    { hour: "2-digit", minute: "2-digit", timeZone: "America/Toronto" },
   );
 
   const hasExtras = pick.total_goals !== null || pick.scorers.length > 0;

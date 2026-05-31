@@ -21,7 +21,7 @@ export default async function SupportPage() {
   const supabase = await getSupabaseServer();
   const { data: tickets } = await supabase
     .from("support_tickets")
-    .select("id, subject, message, status, created_at")
+    .select("id, subject, message, status, admin_note, created_at")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -81,6 +81,16 @@ export default async function SupportPage() {
                 <p className="mt-1.5 whitespace-pre-wrap text-xs leading-6 text-text-secondary">
                   {t.message}
                 </p>
+                {t.admin_note && (
+                  <div className="mt-2 rounded-[8px] border border-primary-500/25 bg-primary-500/[0.06] p-2.5">
+                    <div className="mb-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-300">
+                      {fr ? "Réponse de l'organisateur" : "Reply from the organizer"}
+                    </div>
+                    <p className="whitespace-pre-wrap text-xs leading-6 text-text-secondary">
+                      {t.admin_note}
+                    </p>
+                  </div>
+                )}
                 <p className="mt-1.5 text-[10px] text-text-tertiary">
                   {new Date(t.created_at).toLocaleString(
                     fr ? "fr-CA" : "en-CA",

@@ -182,12 +182,12 @@ function QuickBetSheet({
     month: "short",
     hour: "2-digit",
     minute: "2-digit",
-    timeZone: "Europe/Paris",
+    timeZone: "America/Toronto",
   });
   const lockStr = lockTime.toLocaleTimeString(fr ? "fr-CA" : "en-CA", {
     hour: "2-digit",
     minute: "2-digit",
-    timeZone: "Europe/Paris",
+    timeZone: "America/Toronto",
   });
 
   const cleanScorers = scorers

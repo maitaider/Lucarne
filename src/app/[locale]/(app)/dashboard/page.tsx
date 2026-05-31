@@ -447,7 +447,7 @@ function FeaturedMatch({
   const timeLabel = kickoff.toLocaleTimeString(fr ? "fr-CA" : "en-CA", {
     hour: "2-digit",
     minute: "2-digit",
-    timeZone: "Europe/Paris",
+    timeZone: "America/Toronto",
   });
   const hasPick = myPicks?.some((p) => p.status === "validated") ?? false;
   const scorePick = myPicks?.find(
@@ -635,7 +635,7 @@ function UpcomingCard({
               ? k.toLocaleTimeString(fr ? "fr-CA" : "en-CA", {
                   hour: "2-digit",
                   minute: "2-digit",
-                  timeZone: "Europe/Paris",
+                  timeZone: "America/Toronto",
                 })
               : k.toLocaleDateString(fr ? "fr-CA" : "en-CA", {
                   day: "2-digit",

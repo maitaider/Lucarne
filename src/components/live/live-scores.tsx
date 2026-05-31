@@ -144,7 +144,7 @@ function MatchRow({
       : (match.away_placeholder ?? "?");
   const time = new Date(match.kickoff_at).toLocaleTimeString(
     locale === "fr" ? "fr-CA" : "en-CA",
-    { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" },
+    { hour: "2-digit", minute: "2-digit", timeZone: "America/Toronto" },
   );
 
   return (

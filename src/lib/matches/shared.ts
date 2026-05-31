@@ -59,7 +59,7 @@ export type MatchListItem = {
 /** Group an array of matches by ISO date (YYYY-MM-DD in app timezone). */
 export function groupMatchesByDate(
   matches: MatchListItem[],
-  timeZone = "Europe/Paris",
+  timeZone = "America/Toronto",
 ): Map<string, MatchListItem[]> {
   const groups = new Map<string, MatchListItem[]>();
   const formatter = new Intl.DateTimeFormat("en-CA", {

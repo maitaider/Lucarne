@@ -492,7 +492,7 @@ function formatDate(kickoffAt: string, locale: Locale): string {
     weekday: "short",
     day: "2-digit",
     month: "short",
-    timeZone: "Europe/Paris",
+    timeZone: "America/Toronto",
   });
 }
 
@@ -500,6 +500,6 @@ function formatTime(kickoffAt: string, locale: Locale): string {
   return new Date(kickoffAt).toLocaleTimeString(locale === "fr" ? "fr-FR" : "en-US", {
     hour: "2-digit",
     minute: "2-digit",
-    timeZone: "Europe/Paris",
+    timeZone: "America/Toronto",
   });
 }

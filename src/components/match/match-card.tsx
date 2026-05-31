@@ -28,12 +28,12 @@ export function MatchCard({
   const timeStr = kickoff.toLocaleTimeString(locale === "fr" ? "fr-FR" : "en-US", {
     hour: "2-digit",
     minute: "2-digit",
-    timeZone: "Europe/Paris",
+    timeZone: "America/Toronto",
   });
   const dateStr = kickoff.toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US", {
     day: "2-digit",
     month: "short",
-    timeZone: "Europe/Paris",
+    timeZone: "America/Toronto",
   });
 
   const homeWon =

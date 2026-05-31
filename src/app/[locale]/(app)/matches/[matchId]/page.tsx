@@ -83,7 +83,7 @@ export default async function MatchDetailPage({
   const timeLabel = kickoff.toLocaleTimeString(fr ? "fr-FR" : "en-US", {
     hour: "2-digit",
     minute: "2-digit",
-    timeZone: "Europe/Paris",
+    timeZone: "America/Toronto",
   });
 
   return (

@@ -251,7 +251,7 @@ function TeamFixtureRow({
   const time = kickoff.toLocaleTimeString(fr ? "fr-FR" : "en-US", {
     hour: "2-digit",
     minute: "2-digit",
-    timeZone: "Europe/Paris",
+    timeZone: "America/Toronto",
   });
   const stageLabel =
     match.stage === "group" && match.group_label

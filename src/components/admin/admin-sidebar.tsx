@@ -6,6 +6,7 @@ import {
   Goal,
   LayoutDashboard,
   LifeBuoy,
+  ScrollText,
   Settings,
   Shirt,
   Users,
@@ -29,6 +30,7 @@ const ITEMS: {
   { href: "/admin/matches", icon: Goal, fr: "Résultats", en: "Results" },
   { href: "/admin/users", icon: Users, fr: "Usagers", en: "Users" },
   { href: "/admin/support", icon: LifeBuoy, fr: "Support", en: "Support" },
+  { href: "/admin/audit", icon: ScrollText, fr: "Audit", en: "Audit" },
   { href: "/admin/settings", icon: Settings, fr: "Réglages", en: "Settings" },
 ];
 

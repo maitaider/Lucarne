@@ -1267,7 +1267,24 @@ export type Database = {
         Returns: undefined
       }
       admin_delete_player: { Args: { p_id: string }; Returns: undefined }
+      admin_list_audit_log: {
+        Args: { p_limit?: number }
+        Returns: {
+          action: string
+          actor_id: string
+          actor_username: string
+          created_at: string
+          id: string
+          payload: Json
+          target_id: string
+          target_table: string
+        }[]
+      }
       admin_recompute_match: { Args: { p_match_id: string }; Returns: number }
+      admin_reply_ticket: {
+        Args: { p_note: string; p_resolve?: boolean; p_ticket_id: string }
+        Returns: undefined
+      }
       admin_set_match_result: {
         Args: {
           p_away_score?: number
@@ -1302,6 +1319,15 @@ export type Database = {
           p_visibility?: Database["public"]["Enums"]["league_visibility"]
         }
         Returns: string
+      }
+      cron_sync_match: {
+        Args: {
+          p_away?: number
+          p_fixture_id: number
+          p_home?: number
+          p_status: string
+        }
+        Returns: boolean
       }
       fulfill_stripe_checkout: {
         Args: { p_session_id: string }

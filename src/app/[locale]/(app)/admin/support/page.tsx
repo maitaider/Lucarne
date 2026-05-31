@@ -1,6 +1,6 @@
 import { getLocale } from "next-intl/server";
 import { getSupabaseServer } from "@/lib/supabase/server";
-import { SupportResolveButton } from "@/components/admin/support-resolve-button";
+import { SupportReplyForm } from "@/components/admin/support-reply-form";
 import { LifeBuoy } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
 
@@ -11,7 +11,7 @@ export default async function AdminSupportPage() {
   const { data: tickets } = await supabase
     .from("support_tickets")
     .select(
-      "id, subject, message, status, created_at, sender:user_id(username, display_name)",
+      "id, subject, message, status, admin_note, created_at, sender:user_id(username, display_name)",
     )
     .order("created_at", { ascending: false });
 
@@ -20,6 +20,7 @@ export default async function AdminSupportPage() {
     subject: string;
     message: string;
     status: string;
+    admin_note: string | null;
     created_at: string;
     sender: { username: string; display_name: string | null } | null;
   };
@@ -83,13 +84,26 @@ export default async function AdminSupportPage() {
                     )}
                   </div>
                 </div>
-                {t.status !== "resolved" && (
-                  <SupportResolveButton ticketId={t.id} locale={locale} />
-                )}
               </div>
               <p className="mt-2.5 whitespace-pre-wrap text-sm leading-6 text-text-secondary">
                 {t.message}
               </p>
+              {t.admin_note && (
+                <div className="mt-2.5 rounded-[8px] border border-primary-500/25 bg-primary-500/[0.06] p-3">
+                  <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-primary-300">
+                    {fr ? "Ta réponse" : "Your reply"}
+                  </div>
+                  <p className="whitespace-pre-wrap text-sm leading-6 text-text-secondary">
+                    {t.admin_note}
+                  </p>
+                </div>
+              )}
+              <SupportReplyForm
+                ticketId={t.id}
+                resolved={t.status === "resolved"}
+                existingNote={t.admin_note}
+                locale={locale}
+              />
             </li>
           ))}
         </ul>
