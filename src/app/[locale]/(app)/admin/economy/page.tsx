@@ -28,14 +28,15 @@ export default async function AdminEconomyPage({
         </h2>
         <p className="mt-1 text-sm text-text-secondary">
           {L === "fr"
-            ? "Configure le prix du jeton, la date butoir et la répartition de la cagnotte. Tes changements sont visibles immédiatement par tous les joueurs."
-            : "Configure token price, deadline, and prize split. Your changes are visible to all players instantly."}
+            ? "Configure le prix d'accès, la devise, la date butoir et la répartition de la cagnotte. Tes changements sont visibles immédiatement par tous les joueurs."
+            : "Configure access price, currency, deadline, and prize split. Your changes are visible to all players instantly."}
         </p>
       </header>
 
       <EconomyForm
         initial={{
           token_price_cents: settings.token_price_cents,
+          buy_in_amount_cents: settings.buy_in_amount_cents,
           buy_in_deadline: settings.buy_in_deadline,
           prize_distribution: settings.prize_distribution,
           contact_info: settings.contact_info,

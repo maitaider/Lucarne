@@ -19,6 +19,7 @@ import type { Locale } from "@/i18n/routing";
 type Props = {
   initial: {
     token_price_cents: number;
+    buy_in_amount_cents: number;
     buy_in_deadline: string | null;
     prize_distribution: {
       shares: number[];
@@ -41,9 +42,10 @@ const CURRENCY_SYMBOL: Record<string, string> = {
 };
 
 export function EconomyForm({ initial, totalCollectedCents, locale }: Props) {
-  const symbol = CURRENCY_SYMBOL[initial.currency] ?? initial.currency;
-  const [tokenPriceEur, setTokenPriceEur] = useState(
-    (initial.token_price_cents / 100).toFixed(2),
+  const [currency, setCurrency] = useState(initial.currency || "CAD");
+  const symbol = CURRENCY_SYMBOL[currency] ?? currency;
+  const [buyInDollars, setBuyInDollars] = useState(
+    (initial.buy_in_amount_cents / 100).toFixed(2),
   );
   const [deadlineLocal, setDeadlineLocal] = useState(
     initial.buy_in_deadline
@@ -88,7 +90,8 @@ export function EconomyForm({ initial, totalCollectedCents, locale }: Props) {
     }
     startTransition(async () => {
       const res = await updateAppSettings({
-        token_price_cents: Math.round(Number(tokenPriceEur) * 100),
+        buy_in_amount_cents: Math.round(Number(buyInDollars) * 100),
+        currency,
         buy_in_deadline: deadlineLocal ? new Date(deadlineLocal).toISOString() : null,
         prize_distribution: {
           shares,
@@ -111,34 +114,46 @@ export function EconomyForm({ initial, totalCollectedCents, locale }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Token price */}
+      {/* Access price (buy-in) + currency */}
       <Card
         icon={Coins}
-        title={locale === "fr" ? "Prix du jeton" : "Token price"}
+        title={locale === "fr" ? "Prix d'accès" : "Access price"}
         body={
           locale === "fr"
-            ? "Combien d'euros un joueur paie pour 1 jeton."
-            : "How many euros a player pays for 1 token."
+            ? "Montant unique payé par Stripe pour accéder à l'app et participer (ex. 20 $ CA)."
+            : "One-time amount paid via Stripe to access the app and join (e.g. CA$20)."
         }
       >
-        <div className="grid grid-cols-[1fr_auto] items-center gap-3">
-          <input
-            type="number"
-            min={0.01}
-            max={1000}
-            step={0.01}
-            value={tokenPriceEur}
-            onChange={(e) => setTokenPriceEur(e.target.value)}
-            className="w-full rounded-[8px] border border-white/[0.1] bg-abyss/[0.6] px-3 py-2.5 text-lg tabular-nums text-text-primary outline-none transition focus:border-primary-500/50"
-          />
-          <span className="font-display text-base text-text-tertiary">
-            {symbol} / {locale === "fr" ? "jeton" : "token"}
-          </span>
+        <div className="grid grid-cols-[1fr_7rem] items-center gap-3">
+          <div className="grid grid-cols-[1fr_auto] items-center gap-2">
+            <input
+              type="number"
+              min={1}
+              max={10000}
+              step={0.01}
+              value={buyInDollars}
+              onChange={(e) => setBuyInDollars(e.target.value)}
+              className="w-full rounded-[8px] border border-white/[0.1] bg-abyss/[0.6] px-3 py-2.5 text-lg tabular-nums text-text-primary outline-none transition focus:border-primary-500/50"
+            />
+            <span className="font-display text-base text-text-tertiary">{symbol}</span>
+          </div>
+          <select
+            value={currency}
+            onChange={(e) => setCurrency(e.target.value)}
+            className="w-full rounded-[8px] border border-white/[0.1] bg-abyss/[0.6] px-2 py-2.5 text-sm text-text-primary outline-none transition focus:border-primary-500/50"
+            aria-label={locale === "fr" ? "Devise" : "Currency"}
+          >
+            {["CAD", "USD", "EUR", "GBP"].map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
         </div>
         <p className="mt-2 text-[11px] text-text-tertiary">
           {locale === "fr"
-            ? `Exemple : 20 ${symbol} = ${Math.floor(20 / Math.max(Number(tokenPriceEur), 0.01))} jetons`
-            : `Example: 20 ${symbol} = ${Math.floor(20 / Math.max(Number(tokenPriceEur), 0.01))} tokens`}
+            ? `Modifie le montant débité au checkout Stripe et affiché sur la page d'accès.`
+            : `Changes the amount charged at Stripe checkout and shown on the access page.`}
         </p>
       </Card>
 
@@ -230,7 +245,7 @@ export function EconomyForm({ initial, totalCollectedCents, locale }: Props) {
                   {projectedPayouts[idx] != null
                     ? new Intl.NumberFormat(
                         locale === "fr" ? "fr-FR" : "en-US",
-                        { style: "currency", currency: initial.currency },
+                        { style: "currency", currency },
                       ).format(projectedPayouts[idx]! / 100)
                     : "—"}
                 </span>

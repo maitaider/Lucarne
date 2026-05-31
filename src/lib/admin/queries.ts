@@ -2,7 +2,9 @@ import "server-only";
 import { getSupabaseServer } from "@/lib/supabase/server";
 
 export async function isAdmin(): Promise<boolean> {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return true; // dev-friendly
+  // Fail closed: if Supabase isn't configured, deny admin access (never expose
+  // the admin panel just because an env var went missing in production).
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return false;
   const supabase = await getSupabaseServer();
   const {
     data: { user },

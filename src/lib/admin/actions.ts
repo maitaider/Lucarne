@@ -107,6 +107,8 @@ export async function setUserRole(input: {
 
 const settingsSchema = z.object({
   token_price_cents: z.number().int().min(1).max(100_000).optional(),
+  buy_in_amount_cents: z.number().int().min(100).max(1_000_000).optional(),
+  currency: z.string().length(3).optional(),
   buy_in_deadline: z.string().nullable().optional(),
   tournament_start_at: z.string().nullable().optional(),
   tournament_end_at: z.string().nullable().optional(),
@@ -146,6 +148,8 @@ export async function updateAppSettings(
   const supabase = await getSupabaseServer();
   const { error } = await supabase.rpc("update_app_settings", {
     p_token_price_cents: parsed.data.token_price_cents,
+    p_buy_in_amount_cents: parsed.data.buy_in_amount_cents,
+    p_currency: parsed.data.currency,
     p_buy_in_deadline: parsed.data.buy_in_deadline ?? undefined,
     p_tournament_start_at: parsed.data.tournament_start_at ?? undefined,
     p_tournament_end_at: parsed.data.tournament_end_at ?? undefined,

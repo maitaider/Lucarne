@@ -1390,6 +1390,7 @@ export type Database = {
           p_buy_in_deadline?: string
           p_contact_info?: string
           p_contact_label?: string
+          p_currency?: string
           p_prize_distribution?: Json
           p_scoring_rules?: Json
           p_token_price_cents?: number

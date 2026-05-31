@@ -212,6 +212,13 @@ export async function confirmStripeCheckout(
     return { ok: false, code: "not_paid" };
   }
 
+  // M2: verify the amount actually paid covers the buy-in (reject underpayment
+  // from a tampered/forged session).
+  const settings = await getAppSettings();
+  if ((session.amount_total ?? 0) < settings.buy_in_amount_cents) {
+    return { ok: false, code: "underpaid" };
+  }
+
   const admin = getSupabaseAdmin();
   if (!admin) return { ok: false, code: "no_admin" };
 
@@ -224,7 +231,7 @@ export async function confirmStripeCheckout(
     {
       user_id: user.id,
       session_id: sessionId,
-      amount_cents: session.amount_total ?? 2000,
+      amount_cents: session.amount_total ?? settings.buy_in_amount_cents,
       currency: (session.currency ?? "cad").toUpperCase(),
       tokens_to_credit: 1,
       status: "pending",
