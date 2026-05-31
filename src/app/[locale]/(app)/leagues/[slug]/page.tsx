@@ -7,6 +7,7 @@ import {
 } from "@/lib/leagues/queries";
 import { LeaderboardPodium } from "@/components/leaderboard/podium";
 import { StandingsTable } from "@/components/leaderboard/standings-table";
+import { LiveRefresh } from "@/components/live/live-refresh";
 import { LeagueActivityFeed } from "@/components/social/league-activity-feed";
 import { LeagueFeedBoard } from "@/components/social/league-feed-board";
 import { listLeagueFeed } from "@/lib/social/feed";
@@ -59,6 +60,7 @@ export default async function LeagueDetailPage({
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-10 lg:px-8">
+      <LiveRefresh />
       <header className="mb-4 rounded-[8px] border border-white/[0.1] bg-surface-1/[0.68] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.25),inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-xl">
         <div className="mb-3 inline-flex items-center gap-2 rounded-[8px] border border-gold-500/30 bg-gold-500/[0.1] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-gold-400 shadow-glow-gold">
           {league.visibility === "private" ? <Lock className="size-3" /> : <Globe className="size-3" />}

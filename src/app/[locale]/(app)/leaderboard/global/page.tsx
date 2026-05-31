@@ -6,6 +6,7 @@ import { AppPageShell } from "@/components/layout/app-page-shell";
 import { PageHero } from "@/components/layout/page-hero";
 import { LeaderboardPodium } from "@/components/leaderboard/podium";
 import { StandingsTable } from "@/components/leaderboard/standings-table";
+import { LiveRefresh } from "@/components/live/live-refresh";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import {
   Coins,
@@ -52,6 +53,7 @@ export default async function GlobalLeaderboardPage({
 
   return (
     <AppPageShell width="ultra">
+      <LiveRefresh />
       <PageHero
         kicker={L === "fr" ? "Course au trophée" : "Trophy race"}
         kickerIcon={Trophy}

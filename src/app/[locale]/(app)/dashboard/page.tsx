@@ -10,6 +10,7 @@ import {
   listMyLeagues,
   type StandingEntry,
 } from "@/lib/leagues/queries";
+import { LiveRefresh } from "@/components/live/live-refresh";
 import { getMyPicksByMatch, type MyPick } from "@/lib/bets/my-picks";
 import { picksToExisting } from "@/lib/bets/picks-to-existing";
 import { getMyBuyInStatus } from "@/lib/profile/buy-in";
@@ -69,7 +70,7 @@ export default async function DashboardPage({
     listMatches(),
     listMyBets(),
     listMyLeagues(),
-    getGlobalStandings(6),
+    getGlobalStandings(10),
     getMyPicksByMatch(),
     getMyBuyInStatus(),
     getMyTournamentPrediction(),
@@ -141,6 +142,7 @@ export default async function DashboardPage({
 
   return (
     <main className="lk-stagger mx-auto flex w-full max-w-[1700px] flex-col gap-5 px-4 pb-24 pt-6 sm:px-6 lg:px-8">
+      <LiveRefresh />
       {!buyIn.can_bet && (
         <BuyInBanner
           amountCents={buyIn.amount_cents}
