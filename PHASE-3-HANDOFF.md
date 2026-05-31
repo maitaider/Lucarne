@@ -33,6 +33,7 @@ Remplace `<ITEM CI-DESSOUS>` par un des blocs **Prompts** plus bas.
 - **Phase 2 (ops live)** : `admin_recompute_match` + recompute auto au `finished`, buteurs pré-remplis dans `/admin/matches`, `LiveRefresh` sur /live & /matches, fuseau **America/Toronto** par défaut, réponse aux tickets (`admin_reply_ticket`) + journal d'audit (`admin_list_audit_log` → `/admin/audit`), scaffold cron (`cron_sync_match`).
 - **Phase 3 (amorce)** : `React.cache(listMatches)`, `loading.tsx`, `not-found.tsx` localisé, a11y formulaire support.
 - **Phase 3 — item A** : profils publics `/u/[username]` + `@username` cliquables, en prod (2026-05-31). Voir le détail sous « Phase 3 — items restants ».
+- **Phase 3 — item B** : notifs sociales (réaction / commentaire / dépassement) + classement filtré par phase/journée + partage de prono (lien public + OG), en prod (2026-05-31). Détail sous « Phase 3 — items restants ».
 
 ## Conventions clés (détail dans CLAUDE.md)
 
@@ -56,12 +57,14 @@ Remplace `<ITEM CI-DESSOUS>` par un des blocs **Prompts** plus bas.
 - `@username` cliquables → `/u/<username>` dans `standings-table.tsx`, `podium.tsx`, `league-activity-feed.tsx`, `comment-thread.tsx`.
 - Vérifié : test SQL e2e local (gate allow/deny/admin, joins, casts) + RPC live remote (HTTP 200) + Vercel `● Ready` + route prod 307→login (FR & EN). *Non fait : rendu navigateur authentifié (dev server bloqué par le sandbox local ; pas de session prod headless).*
 
-### B. Notifs sociales + classement par phase + partage de prono — [XL]
-**Objectif** : émettre les notifs sociales (infra `notifications` existe, jamais déclenchée), filtrer le classement par phase/journée, partager un prono.
-**Fichiers clés** : table `notifications` + `notif_type` (migrations) ; `src/lib/social/`, `src/components/leaderboard/`, actions réactions/commentaires.
+### B. Notifs sociales + classement par phase + partage de prono — ✅ LIVRÉ (2026-05-31, commits `fce84ab` / `a539045` / `4e20f35`)
+**Livré en 3 sous-lots vérifiés (chacun e2e en SQL) :**
 
-**Prompt :**
-> Active les notifications sociales Lucarne. Émets une notif quand : un joueur est dépassé au classement, quelqu'un réagit à son prono, quelqu'un répond à son commentaire. Inserts cross-user → RPC/trigger SECURITY DEFINER (modèle `admin_reply_ticket`). Ajoute un filtre du classement global par phase (groupes / 8es / …) et par journée. Ajoute le partage d'un prono (lien public + image OG). Procède par sous-lots vérifiés (notifs, puis filtre, puis partage). Vérifie + commit + déploie.
+1. **Notifs sociales** (`20260531210000` + `20260531210100`) — triggers definer : `reaction_received` (réaction sur prono/commentaire → proprio, exclut self), `comment_received` (commentaire → commentateurs précédents + proprio du prono), `league_position` (dépassé au classement → snapshot des rangs diffé dans `admin_recompute_match`, table `standings_snapshot`, seed anti-spam). UI : rendu des 3 types dans `notifications-list.tsx` + `notifications-bell.tsx`.
+2. **Classement par phase/journée** (`20260531220000`) — RPC `standings_filtered(p_stage, p_matchday)` ; filtres server-first sur `/leaderboard/global` (`?phase=&jour=`, onglets Phase + sous-onglets Journée J1-3 ; journée de groupe dérivée chronologiquement). Cagnotte masquée hors « Tout ».
+3. **Partage de prono** (`20260531230000`) — RPC `shared_prediction` (anon+auth, révèle uniquement post-coup d'envoi). Page publique `/[locale]/p/[betId]` (hors `(app)`) + `opengraph-image.tsx` (next/og) + `<SharePredictionButton>` sur `/matches/[id]` (match démarré).
+
+**Vérifié** : SQL e2e local (3 triggers + exclusion self + idempotence ; filtre J1/J2/final ; révèle/cache/bogus) + 4 migrations live remote (RPC `shared_prediction` anon HTTP 200, `standings_filtered` HTTP 200) + build + Vercel. *Non fait : rendu navigateur authentifié (sandbox).*
 
 ### C. Données match riches — [XL] · *dépend en partie d'O3*
 **Objectif** : timeline de buts, compos, classement de groupe « live », fiche stade sur `/matches/[matchId]`.
