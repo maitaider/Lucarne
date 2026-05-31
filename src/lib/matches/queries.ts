@@ -93,7 +93,7 @@ async function _listMatches(opts?: {
       home_score, away_score, home_placeholder, away_placeholder,
       home_team:teams!matches_home_team_id_fkey(id, fifa_code, iso_code, name_fr, name_en, flag_emoji, logo_url),
       away_team:teams!matches_away_team_id_fkey(id, fifa_code, iso_code, name_fr, name_en, flag_emoji, logo_url),
-      venue:venue_id(id, name, city_fr, city_en)
+      venue:venue_id(id, name, city_fr, city_en, country, capacity)
     `,
     )
     .order("kickoff_at", { ascending: true });
@@ -124,7 +124,7 @@ export async function getMatchById(id: string): Promise<MatchListItem | null> {
       home_score, away_score, home_placeholder, away_placeholder,
       home_team:teams!matches_home_team_id_fkey(id, fifa_code, iso_code, name_fr, name_en, flag_emoji, logo_url),
       away_team:teams!matches_away_team_id_fkey(id, fifa_code, iso_code, name_fr, name_en, flag_emoji, logo_url),
-      venue:venue_id(id, name, city_fr, city_en)
+      venue:venue_id(id, name, city_fr, city_en, country, capacity)
     `,
     )
     .eq("id", id)
@@ -135,6 +135,42 @@ export async function getMatchById(id: string): Promise<MatchListItem | null> {
     return null;
   }
   return data ? toMatchListItem(data) : null;
+}
+
+export type MatchEvent = {
+  id: string;
+  minute: number;
+  event_type:
+    | "goal"
+    | "own_goal"
+    | "penalty_goal"
+    | "red_card"
+    | "yellow_card"
+    | "substitution"
+    | string;
+  player_name: string | null;
+  team_id: string | null;
+};
+
+/**
+ * Goal/card/sub events for one match, sorted by minute. Admin-entered today
+ * (and, once O3 lands, API-synced). `ref.match_events` is granted SELECT to
+ * authenticated, so a direct read is fine.
+ */
+export async function getMatchEvents(matchId: string): Promise<MatchEvent[]> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return [];
+  const supabase = await getSupabaseServer();
+  const { data, error } = await supabase
+    .schema("ref")
+    .from("match_events")
+    .select("id, minute, event_type, player_name, team_id")
+    .eq("match_id", matchId)
+    .order("minute", { ascending: true });
+  if (error || !data) {
+    if (error) console.error("[matches:getMatchEvents]", error);
+    return [];
+  }
+  return data as MatchEvent[];
 }
 
 function filterMatches(

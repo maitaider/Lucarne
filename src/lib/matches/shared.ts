@@ -38,6 +38,9 @@ export type VenueSnippet = {
   name: string;
   city_fr: string;
   city_en: string;
+  /** Optional so the static (no-Supabase) fallback data stays valid. */
+  country?: string | null;
+  capacity?: number | null;
 };
 
 export type MatchListItem = {

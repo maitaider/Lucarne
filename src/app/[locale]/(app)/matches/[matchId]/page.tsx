@@ -1,8 +1,19 @@
 import { setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Link } from "@/i18n/navigation";
-import { getMatchById, type MatchListItem } from "@/lib/matches/queries";
+import {
+  getMatchById,
+  getMatchEvents,
+  type MatchListItem,
+  type MatchEvent,
+} from "@/lib/matches/queries";
 import { getMyPicksByMatch } from "@/lib/bets/my-picks";
+import { listPlayersForTeams, type PlayerRow } from "@/lib/players/queries";
+import {
+  getGroupStandings,
+  type GroupTable,
+} from "@/lib/matches/group-standings";
+import { GroupTableCard } from "@/components/match/group-table";
 import { getTeamByCode, type WorldCupTeam } from "@/data/world-cup-2026";
 import {
   ArrowLeft,
@@ -15,6 +26,7 @@ import {
   Pencil,
   Target,
   Users,
+  Goal,
 } from "lucide-react";
 import { CommentThread } from "@/components/social/comment-thread";
 import { listComments } from "@/lib/social/queries";
@@ -39,18 +51,37 @@ export default async function MatchDetailPage({
   const match = await getMatchById(matchId);
   if (!match) notFound();
 
-  const [comments, myPicks, currentUserId] = await Promise.all([
-    listComments("match", matchId, 50),
-    getMyPicksByMatch(),
-    (async () => {
-      if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return null;
-      const supabase = await getSupabaseServer();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      return user?.id ?? null;
-    })(),
-  ]);
+  const teamIds = [match.home_team?.id, match.away_team?.id].filter(
+    (id): id is string => Boolean(id),
+  );
+  const [comments, myPicks, currentUserId, events, roster, groupTables] =
+    await Promise.all([
+      listComments("match", matchId, 50),
+      getMyPicksByMatch(),
+      (async () => {
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return null;
+        const supabase = await getSupabaseServer();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        return user?.id ?? null;
+      })(),
+      getMatchEvents(matchId),
+      listPlayersForTeams(teamIds),
+      match.stage === "group"
+        ? getGroupStandings()
+        : Promise.resolve([] as GroupTable[]),
+    ]);
+
+  const goals = events.filter((e) =>
+    ["goal", "own_goal", "penalty_goal"].includes(e.event_type),
+  );
+  const groupTable =
+    match.stage === "group" && match.group_label
+      ? (groupTables.find((g) => g.group_label === match.group_label) ?? null)
+      : null;
+  const homeRoster = roster.filter((p) => p.team_id === match.home_team?.id);
+  const awayRoster = roster.filter((p) => p.team_id === match.away_team?.id);
 
   // --- My prediction for this match (synced with /predict) -------------------
   const picks = myPicks.get(matchId) ?? [];
@@ -162,6 +193,26 @@ export default async function MatchDetailPage({
         />
       </Reveal>
 
+      {/* ── Goal timeline ──────────────────────────────────────────────── */}
+      {goals.length > 0 && (
+        <Reveal className="mt-6" delayMs={60}>
+          <GoalTimeline
+            goals={goals}
+            homeId={match.home_team?.id ?? null}
+            homeIso={match.home_team?.iso_code ?? null}
+            awayIso={match.away_team?.iso_code ?? null}
+            locale={L}
+          />
+        </Reveal>
+      )}
+
+      {/* ── Group standings (live) ─────────────────────────────────────── */}
+      {groupTable && (
+        <Reveal className="mt-6" delayMs={80}>
+          <GroupTableCard group={groupTable} locale={L} />
+        </Reveal>
+      )}
+
       {/* ── Players to watch ───────────────────────────────────────────── */}
       {(homeTeamData || awayTeamData) && (
         <Reveal className="mt-6" delayMs={80}>
@@ -181,6 +232,28 @@ export default async function MatchDetailPage({
               />
             )}
           </section>
+        </Reveal>
+      )}
+
+      {/* ── Squad / rosters ────────────────────────────────────────────── */}
+      {(homeRoster.length > 0 || awayRoster.length > 0) && (
+        <Reveal className="mt-6" delayMs={80}>
+          <SquadSection
+            homeName={homeName}
+            awayName={awayName}
+            homeIso={match.home_team?.iso_code ?? null}
+            awayIso={match.away_team?.iso_code ?? null}
+            homeRoster={homeRoster}
+            awayRoster={awayRoster}
+            locale={L}
+          />
+        </Reveal>
+      )}
+
+      {/* ── Stadium ────────────────────────────────────────────────────── */}
+      {match.venue && (
+        <Reveal className="mt-6" delayMs={100}>
+          <StadiumCard venue={match.venue} locale={L} />
         </Reveal>
       )}
 
@@ -582,4 +655,216 @@ function parseScorers(payload: unknown): string[] {
     }
   }
   return [];
+}
+
+/* ───────────────────────── Rich match data (C) ───────────────────────── */
+
+function GoalTimeline({
+  goals,
+  homeId,
+  homeIso,
+  awayIso,
+  locale,
+}: {
+  goals: MatchEvent[];
+  homeId: string | null;
+  homeIso: string | null;
+  awayIso: string | null;
+  locale: Locale;
+}) {
+  const fr = locale === "fr";
+  return (
+    <section className="overflow-hidden rounded-[14px] border border-white/[0.1] bg-surface-1/[0.62] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-xl">
+      <div className="flex items-center gap-2 border-b border-white/[0.08] px-5 py-3">
+        <h2 className="flex items-center gap-2 font-display text-base font-semibold text-text-primary">
+          <Goal className="size-4 text-primary-400" strokeWidth={1.8} />
+          {fr ? "Buts" : "Goals"}
+        </h2>
+      </div>
+      <ol className="divide-y divide-white/[0.05]">
+        {goals.map((g) => {
+          const iso = g.team_id === homeId ? homeIso : awayIso;
+          const marker =
+            g.event_type === "penalty_goal"
+              ? fr
+                ? "pén."
+                : "pen."
+              : g.event_type === "own_goal"
+                ? fr
+                  ? "csc"
+                  : "og"
+                : null;
+          return (
+            <li key={g.id} className="flex items-center gap-3 px-5 py-2.5">
+              <span className="w-9 shrink-0 text-right font-mono text-sm tabular-nums text-text-tertiary">
+                {g.minute}&#39;
+              </span>
+              <Flag isoCode={iso} size="sm" />
+              <span className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary">
+                {g.player_name ?? "—"}
+                {marker && (
+                  <span className="ml-1.5 text-xs font-semibold uppercase text-text-tertiary">
+                    ({marker})
+                  </span>
+                )}
+              </span>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
+  );
+}
+
+const POSITION_ORDER = ["GK", "DEF", "MID", "FWD"] as const;
+
+function posLabel(pos: string, fr: boolean): string {
+  const map: Record<string, { fr: string; en: string }> = {
+    GK: { fr: "Gardiens", en: "Goalkeepers" },
+    DEF: { fr: "Défenseurs", en: "Defenders" },
+    MID: { fr: "Milieux", en: "Midfielders" },
+    FWD: { fr: "Attaquants", en: "Forwards" },
+  };
+  return map[pos]?.[fr ? "fr" : "en"] ?? (fr ? "Autres" : "Others");
+}
+
+function SquadSection({
+  homeName,
+  awayName,
+  homeIso,
+  awayIso,
+  homeRoster,
+  awayRoster,
+  locale,
+}: {
+  homeName: string;
+  awayName: string;
+  homeIso: string | null;
+  awayIso: string | null;
+  homeRoster: PlayerRow[];
+  awayRoster: PlayerRow[];
+  locale: Locale;
+}) {
+  return (
+    <section className="grid gap-4 md:grid-cols-2">
+      <SquadColumn name={homeName} iso={homeIso} roster={homeRoster} locale={locale} />
+      <SquadColumn name={awayName} iso={awayIso} roster={awayRoster} locale={locale} />
+    </section>
+  );
+}
+
+function SquadColumn({
+  name,
+  iso,
+  roster,
+  locale,
+}: {
+  name: string;
+  iso: string | null;
+  roster: PlayerRow[];
+  locale: Locale;
+}) {
+  const fr = locale === "fr";
+  if (roster.length === 0) return null;
+  const groups = new Map<string, PlayerRow[]>();
+  for (const p of roster) {
+    const key = (p.position ?? "OTHER").toUpperCase();
+    const arr = groups.get(key) ?? [];
+    arr.push(p);
+    groups.set(key, arr);
+  }
+  const known = POSITION_ORDER as readonly string[];
+  const orderedKeys = [
+    ...known.filter((k) => groups.has(k)),
+    ...[...groups.keys()].filter((k) => !known.includes(k)),
+  ];
+
+  return (
+    <div className="rounded-[12px] border border-white/[0.08] bg-surface-1/[0.62] p-4 backdrop-blur-xl">
+      <div className="mb-3 flex items-center gap-2.5">
+        <Flag isoCode={iso} size="lg" className="ring-1 ring-white/15" />
+        <div className="min-w-0">
+          <h3 className="truncate font-display text-base font-semibold text-text-primary">
+            {name}
+          </h3>
+          <p className="text-xs font-semibold uppercase tracking-wider text-text-tertiary">
+            {fr ? "Effectif" : "Squad"} · {roster.length}
+          </p>
+        </div>
+      </div>
+      <div className="space-y-3">
+        {orderedKeys.map((key) => {
+          const players = [...(groups.get(key) ?? [])].sort(
+            (a, b) => (a.shirt_number ?? 99) - (b.shirt_number ?? 99),
+          );
+          return (
+            <div key={key}>
+              <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
+                {posLabel(key, fr)}
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {players.map((p) => (
+                  <span
+                    key={p.id}
+                    className="inline-flex items-center gap-1.5 rounded-[8px] border border-white/[0.06] bg-white/[0.035] px-2 py-1 text-xs"
+                  >
+                    {p.shirt_number != null && (
+                      <span className="font-mono text-[10px] font-bold tabular-nums text-text-tertiary">
+                        {p.shirt_number}
+                      </span>
+                    )}
+                    <span className="font-medium text-text-primary">
+                      {p.display_name}
+                    </span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function StadiumCard({
+  venue,
+  locale,
+}: {
+  venue: NonNullable<MatchListItem["venue"]>;
+  locale: Locale;
+}) {
+  const fr = locale === "fr";
+  return (
+    <section className="rounded-[14px] border border-white/[0.1] bg-surface-1/[0.62] p-5 backdrop-blur-xl">
+      <h2 className="mb-3 flex items-center gap-2 font-display text-base font-semibold text-text-primary">
+        <MapPin className="size-4 text-primary-400" strokeWidth={1.8} />
+        {fr ? "Stade" : "Stadium"}
+      </h2>
+      <div className="flex flex-wrap gap-x-8 gap-y-3 text-sm">
+        <StadiumFact label={fr ? "Enceinte" : "Venue"} value={venue.name} />
+        <StadiumFact
+          label={fr ? "Ville" : "City"}
+          value={`${fr ? venue.city_fr : venue.city_en}${venue.country ? `, ${venue.country}` : ""}`}
+        />
+        {venue.capacity ? (
+          <StadiumFact
+            label={fr ? "Capacité" : "Capacity"}
+            value={venue.capacity.toLocaleString(fr ? "fr-CA" : "en-CA")}
+          />
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+function StadiumFact({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
+        {label}
+      </p>
+      <p className="mt-0.5 font-semibold text-text-primary">{value}</p>
+    </div>
+  );
 }
