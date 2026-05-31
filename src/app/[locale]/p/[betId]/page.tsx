@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { getSharedPrediction, type SharedPrediction } from "@/lib/social/share";
 import { Flag } from "@/components/team/flag";
@@ -9,18 +9,19 @@ import type { Locale } from "@/i18n/routing";
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ betId: string }>;
+  params: Promise<{ locale: string; betId: string }>;
 }): Promise<Metadata> {
-  const { betId } = await params;
+  const { locale, betId } = await params;
+  const t = await getTranslations({ locale, namespace: "metadata" });
   const pred = await getSharedPrediction(betId);
-  if (!pred) return { title: "Pronostic · Lucarne" };
-  const home = pred.home.name_fr ?? "?";
-  const away = pred.away.name_fr ?? "?";
+  if (!pred) return { title: t("sharedTitleFallback") };
+  const home = (locale === "en" ? pred.home.name_en : pred.home.name_fr) ?? "?";
+  const away = (locale === "en" ? pred.away.name_en : pred.away.name_fr) ?? "?";
   const sc = parseScore(pred.payload);
   const line = sc ? `${sc.home}–${sc.away}` : "vs";
   return {
     title: `@${pred.username} — ${home} ${line} ${away}`,
-    description: `Le pronostic de @${pred.username} sur Lucarne, le pool de pronos de la Coupe du Monde 2026.`,
+    description: t("sharedDescription", { username: pred.username }),
   };
 }
 

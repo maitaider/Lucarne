@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, Inter, Geist_Mono } from "next/font/google";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { notFound } from "next/navigation";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import "../globals.css";
 
@@ -24,43 +24,50 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.lucarne.ca"),
-  title: {
-    default: "Lucarne",
-    template: "%s · Lucarne",
-  },
-  description:
-    "Lucarne — l'app privée pour vivre la Coupe du Monde 2026 entre amis : tous les matchs, scores en direct, news et analyses, et un concours de pronostics amical.",
-  applicationName: "Lucarne",
-  authors: [{ name: "Lucarne" }],
-  openGraph: {
-    title: "Lucarne · Ton app privée pour le Mondial 2026",
-    description:
-      "Accès privé à la Coupe du Monde 2026 : tous les matchs, scores en direct, news et analyses, et un concours de pronostics entre amis.",
-    type: "website",
-    images: [
-      {
-        url: "/marketing/lucarne-hero-stadium.jpg",
-        width: 1672,
-        height: 941,
-        alt: "Interface Lucarne dans un stade de football nocturne.",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Lucarne · Ton app privée pour le Mondial 2026",
-    description:
-      "Accès privé à la Coupe du Monde 2026 : matchs, scores en direct, news, analyses et concours de pronos entre amis.",
-    images: ["/marketing/lucarne-hero-stadium.jpg"],
-  },
-  appleWebApp: {
-    title: "Lucarne",
-    statusBarStyle: "black-translucent",
-    capable: true,
-  },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "metadata" });
+  return {
+    metadataBase: new URL(
+      process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.lucarne.ca",
+    ),
+    title: {
+      default: "Lucarne",
+      template: "%s · Lucarne",
+    },
+    description: t("description"),
+    applicationName: "Lucarne",
+    authors: [{ name: "Lucarne" }],
+    openGraph: {
+      title: t("ogTitle"),
+      description: t("ogDescription"),
+      type: "website",
+      images: [
+        {
+          url: "/marketing/lucarne-hero-stadium.jpg",
+          width: 1672,
+          height: 941,
+          alt: t("ogImageAlt"),
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("ogTitle"),
+      description: t("twitterDescription"),
+      images: ["/marketing/lucarne-hero-stadium.jpg"],
+    },
+    appleWebApp: {
+      title: "Lucarne",
+      statusBarStyle: "black-translucent",
+      capable: true,
+    },
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: "#0e1014",

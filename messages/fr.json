@@ -12,7 +12,7 @@
   "landing": {
     "heroEyebrow": "Coupe du Monde 2026",
     "heroTitle": "Lucarne",
-    "heroSubtitle": "La plateforme privée pour organiser tes pronostics du Mondial, gérer les mises entre amis et garder un classement clair jusqu'à la finale.",
+    "heroSubtitle": "La plateforme privée pour organiser tes pronostics du Mondial entre amis et garder un classement clair jusqu'à la finale.",
     "heroProofPrivate": "Ligues privées sur invitation",
     "heroProofInstant": "Accès immédiat",
     "heroProofCup": "Format 2026 complet",
@@ -37,9 +37,9 @@
     "workflow1Title": "Créer la ligue",
     "workflow1Body": "Définis les règles, le plafond de membres et le niveau de confidentialité avant d'inviter le groupe.",
     "workflow2Title": "Inviter les joueurs",
-    "workflow2Body": "Chaque membre rejoint via un code lisible, règle son accès en un paiement unique, et démarre avec son portefeuille prêt.",
+    "workflow2Body": "Chaque membre rejoint via un code lisible, règle son accès en un paiement unique, et entre directement dans la partie.",
     "workflow3Title": "Suivre le tournoi",
-    "workflow3Body": "Les matchs, paris, cagnottes et classements restent synchronisés dans une seule interface.",
+    "workflow3Body": "Les matchs, pronostics et classements restent synchronisés dans une seule interface.",
     "trustEyebrow": "Confiance",
     "trustTitle": "Pensé pour les groupes où l'enjeu reste amical, mais l'organisation doit être sérieuse.",
     "trustIntro": "Lucarne sépare clairement le jeu, les paiements et l'historique pour éviter les malentendus en fin de soirée ou après un gros match.",
@@ -63,5 +63,26 @@
     "hasAccount": "Déjà un compte ?",
     "invitationCodeLabel": "Code d'invitation",
     "invitationCodePlaceholder": "LUC-XXXX-XX"
+  },
+  "metadata": {
+    "description": "Lucarne — l'app privée pour vivre la Coupe du Monde 2026 entre amis : tous les matchs, scores en direct, news et analyses, et un concours de pronostics amical.",
+    "ogTitle": "Lucarne · Ton app privée pour le Mondial 2026",
+    "ogDescription": "Accès privé à la Coupe du Monde 2026 : tous les matchs, scores en direct, news et analyses, et un concours de pronostics entre amis.",
+    "twitterDescription": "Accès privé à la Coupe du Monde 2026 : matchs, scores en direct, news, analyses et concours de pronos entre amis.",
+    "ogImageAlt": "Interface Lucarne dans un stade de football nocturne.",
+    "sharedTitleFallback": "Pronostic · Lucarne",
+    "sharedDescription": "Le pronostic de @{username} sur Lucarne, le pool de pronos de la Coupe du Monde 2026."
+  },
+  "errors": {
+    "updatingTitle": "Mise à jour…",
+    "errorTitle": "Une erreur est survenue",
+    "updatingBody": "Nouvelle version chargée, on rafraîchit la page.",
+    "errorBody": "Quelque chose s'est mal passé. Réessaie — si ça persiste, recharge la page.",
+    "retry": "Réessayer"
+  },
+  "notFound": {
+    "title": "Page introuvable",
+    "body": "Cette page n'existe pas ou n'est plus disponible. Retourne à ton tableau de bord.",
+    "back": "Retour au tableau de bord"
   }
 }

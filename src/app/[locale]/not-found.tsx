@@ -1,15 +1,13 @@
-import { getLocale } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Compass, ArrowRight } from "lucide-react";
-import type { Locale } from "@/i18n/routing";
 
 /**
  * Localized 404 for anything under /[locale] (e.g. a match/team id that doesn't
  * exist calling notFound()). Keeps the brand shell instead of the bare default.
  */
 export default async function LocaleNotFound() {
-  const locale = (await getLocale()) as Locale;
-  const fr = locale === "fr";
+  const t = await getTranslations("notFound");
 
   return (
     <main className="mx-auto flex min-h-[60vh] max-w-lg flex-col items-center justify-center px-6 py-16 text-center">
@@ -20,18 +18,16 @@ export default async function LocaleNotFound() {
         404
       </p>
       <h1 className="mt-2 font-display text-2xl font-semibold text-text-primary">
-        {fr ? "Page introuvable" : "Page not found"}
+        {t("title")}
       </h1>
       <p className="mt-2 text-sm leading-6 text-text-secondary">
-        {fr
-          ? "Cette page n'existe pas ou n'est plus disponible. Retourne à ton tableau de bord."
-          : "This page doesn't exist or is no longer available. Head back to your dashboard."}
+        {t("body")}
       </p>
       <Link
         href="/dashboard"
         className="mt-6 inline-flex items-center gap-1.5 rounded-[8px] bg-primary-500 px-4 py-2.5 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400"
       >
-        {fr ? "Retour au tableau de bord" : "Back to dashboard"}
+        {t("back")}
         <ArrowRight className="size-4" strokeWidth={2} />
       </Link>
     </main>

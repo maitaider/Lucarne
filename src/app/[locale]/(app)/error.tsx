@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useTranslations } from "next-intl";
 
 /**
  * Error boundary for the authenticated app segment.
@@ -29,6 +30,7 @@ export default function AppError({
   reset: () => void;
 }) {
   const chunk = isChunkError(error);
+  const t = useTranslations("errors");
 
   useEffect(() => {
     if (!chunk) return;
@@ -45,12 +47,10 @@ export default function AppError({
     <div className="mx-auto flex min-h-[60vh] max-w-md flex-col items-center justify-center px-6 text-center">
       <div className="rounded-md border border-border-subtle bg-surface-1 p-6 shadow-card">
         <h2 className="font-display text-lg font-semibold text-text-primary">
-          {chunk ? "Mise à jour…" : "Une erreur est survenue"}
+          {chunk ? t("updatingTitle") : t("errorTitle")}
         </h2>
         <p className="mt-2 text-sm leading-6 text-text-secondary">
-          {chunk
-            ? "Nouvelle version chargée, on rafraîchit la page."
-            : "Quelque chose s'est mal passé. Réessaie — si ça persiste, recharge la page."}
+          {chunk ? t("updatingBody") : t("errorBody")}
         </p>
         {!chunk && (
           <button
@@ -58,7 +58,7 @@ export default function AppError({
             onClick={() => reset()}
             className="mt-4 inline-flex h-10 items-center justify-center rounded-sm bg-primary-500 px-5 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400"
           >
-            Réessayer
+            {t("retry")}
           </button>
         )}
       </div>

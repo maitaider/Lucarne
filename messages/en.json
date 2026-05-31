@@ -12,7 +12,7 @@
   "landing": {
     "heroEyebrow": "FIFA World Cup 2026",
     "heroTitle": "Lucarne",
-    "heroSubtitle": "The private platform for running World Cup predictions, friend-group stakes, and a clean leaderboard all the way to the final.",
+    "heroSubtitle": "The private platform for running World Cup predictions with friends and a clean leaderboard all the way to the final.",
     "heroProofPrivate": "Invite-only private leagues",
     "heroProofInstant": "Instant access",
     "heroProofCup": "Complete 2026 format",
@@ -37,9 +37,9 @@
     "workflow1Title": "Create the league",
     "workflow1Body": "Set rules, member limits, and visibility before inviting your group.",
     "workflow2Title": "Invite players",
-    "workflow2Body": "Each member joins with a readable code, unlocks access with a single payment, and starts with their wallet ready.",
+    "workflow2Body": "Each member joins with a readable code, unlocks access with a single payment, and jumps straight into the game.",
     "workflow3Title": "Follow the Cup",
-    "workflow3Body": "Matches, bets, pots, and leaderboards stay synchronized in one interface.",
+    "workflow3Body": "Matches, predictions, and leaderboards stay synchronized in one interface.",
     "trustEyebrow": "Trust",
     "trustTitle": "Built for groups where the stakes are friendly, but the organization needs to be serious.",
     "trustIntro": "Lucarne keeps gameplay, payments, and history clearly separate so everyone can see what happened after a late goal or a big match.",
@@ -63,5 +63,26 @@
     "hasAccount": "Already have an account?",
     "invitationCodeLabel": "Invitation code",
     "invitationCodePlaceholder": "LUC-XXXX-XX"
+  },
+  "metadata": {
+    "description": "Lucarne — the private app to live the 2026 World Cup with friends: every match, live scores, news and analysis, and a friendly prediction contest.",
+    "ogTitle": "Lucarne · Your private app for the 2026 World Cup",
+    "ogDescription": "Private access to the 2026 World Cup: every match, live scores, news and analysis, and a prediction contest with friends.",
+    "twitterDescription": "Private access to the 2026 World Cup: matches, live scores, news, analysis and a prediction contest with friends.",
+    "ogImageAlt": "Lucarne interface inside a football stadium at night.",
+    "sharedTitleFallback": "Prediction · Lucarne",
+    "sharedDescription": "@{username}'s prediction on Lucarne, the 2026 World Cup prediction pool."
+  },
+  "errors": {
+    "updatingTitle": "Updating…",
+    "errorTitle": "Something went wrong",
+    "updatingBody": "A new version loaded — refreshing the page.",
+    "errorBody": "Something went wrong. Try again — if it persists, reload the page.",
+    "retry": "Try again"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "This page doesn't exist or is no longer available. Head back to your dashboard.",
+    "back": "Back to dashboard"
   }
 }
