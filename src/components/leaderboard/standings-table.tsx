@@ -2,6 +2,7 @@ import type { StandingEntry } from "@/lib/leagues/queries";
 import { TrendingUp, TrendingDown, Minus, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "@/i18n/navigation";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { FlashRow } from "./flash-row";
 
 export function StandingsTable({
@@ -41,12 +42,6 @@ export function StandingsTable({
             const isMe = highlightUserId === e.user_id;
             const isAdmin = e.role === "admin" || e.role === "super_admin";
             const winRate = e.bets_count > 0 ? e.wins / e.bets_count : 0;
-            const initials = (e.display_name ?? e.username)
-              .split(/\s+/)
-              .map((s) => s[0])
-              .join("")
-              .slice(0, 2)
-              .toUpperCase();
             const barWidth = (e.total_points / maxPoints) * 100;
             const draws = Math.max(e.bets_count - e.wins - e.losses, 0);
             return (
@@ -68,20 +63,30 @@ export function StandingsTable({
                 </td>
                 <td className="py-3">
                   <div className="flex items-center gap-2.5">
-                    <div
+                    <UserAvatar
+                      src={e.avatar_url}
+                      name={e.display_name ?? e.username}
                       className={cn(
-                        "flex size-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br font-mono text-[10px] font-bold uppercase ring-1",
+                        "size-8 ring-1",
                         e.rank === 1
-                          ? "from-gold-500/30 to-gold-500/10 ring-gold-500/30 text-gold-100"
+                          ? "ring-gold-500/30"
                           : e.rank === 2
-                            ? "from-text-secondary/30 to-text-tertiary/10 ring-text-secondary/30 text-text-primary"
+                            ? "ring-text-secondary/30"
                             : e.rank === 3
-                              ? "from-amber-700/30 to-amber-700/10 ring-amber-700/30 text-amber-100"
-                              : "from-primary-500/20 to-violet-500/15 ring-border-subtle text-text-primary",
+                              ? "ring-amber-700/30"
+                              : "ring-border-subtle",
                       )}
-                    >
-                      {initials}
-                    </div>
+                      fallbackClassName={cn(
+                        "bg-gradient-to-br font-mono text-[10px] font-bold",
+                        e.rank === 1
+                          ? "from-gold-500/30 to-gold-500/10 text-gold-100"
+                          : e.rank === 2
+                            ? "from-text-secondary/30 to-text-tertiary/10 text-text-primary"
+                            : e.rank === 3
+                              ? "from-amber-700/30 to-amber-700/10 text-amber-100"
+                              : "from-primary-500/20 to-violet-500/15 text-text-primary",
+                      )}
+                    />
                     <div className="min-w-0">
                       <div
                         className={cn(

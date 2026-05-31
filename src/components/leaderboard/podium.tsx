@@ -2,6 +2,7 @@ import type { StandingEntry } from "@/lib/leagues/queries";
 import { Crown, Trophy, Medal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "@/i18n/navigation";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import { formatMoney } from "@/lib/admin/economy";
 
 type PayoutInfo = {
@@ -55,13 +56,6 @@ function Step({
       </div>
     );
   }
-
-  const initials = (entry.display_name ?? entry.username)
-    .split(/\s+/)
-    .map((s) => s[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
 
   const config = {
     1: {
@@ -118,20 +112,16 @@ function Step({
     <div className="flex flex-col items-center">
       <div className="relative mb-3">
         {config.icon}
-        <div
-          className={cn(
-            "flex items-center justify-center rounded-full bg-gradient-to-br font-display font-bold uppercase text-text-primary",
-            config.avatarSize,
+        <UserAvatar
+          src={entry.avatar_url}
+          name={entry.display_name ?? entry.username}
+          className={cn(config.avatarSize, config.avatarRing)}
+          fallbackClassName={cn(
+            "bg-gradient-to-br font-display font-bold text-text-primary",
             config.avatarBg,
-            config.avatarRing,
+            rank === 1 ? "text-2xl sm:text-3xl" : "text-xl sm:text-2xl",
           )}
-        >
-          <span
-            className={rank === 1 ? "text-2xl sm:text-3xl" : "text-xl sm:text-2xl"}
-          >
-            {initials}
-          </span>
-        </div>
+        />
       </div>
 
       <div className="mb-3 max-w-full text-center">
