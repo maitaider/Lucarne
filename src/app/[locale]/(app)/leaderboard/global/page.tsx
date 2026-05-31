@@ -85,13 +85,6 @@ export default async function GlobalLeaderboardPage({
             />
           </>
         }
-        visual={{
-          src: "/assets/lucarne/claude-pack-20260525/svg/10-wallet-prize-pool.svg",
-          alt:
-            L === "fr"
-              ? "Cagnotte projetée et podium"
-              : "Projected prize pool and podium",
-        }}
       />
 
       {standings.length === 0 ? (

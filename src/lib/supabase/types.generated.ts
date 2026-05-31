@@ -85,6 +85,20 @@ export type Database = {
             foreignKeyName: "app_settings_updated_by_fkey"
             columns: ["updated_by"]
             isOneToOne: false
+            referencedRelation: "mv_global_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "app_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "mv_league_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "app_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -160,6 +174,20 @@ export type Database = {
             foreignKeyName: "bets_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "mv_global_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "bets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "mv_league_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "bets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -194,6 +222,20 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "mv_global_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "mv_league_standings"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "comments_user_id_fkey"
             columns: ["user_id"]
@@ -242,6 +284,20 @@ export type Database = {
             foreignKeyName: "invitations_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "mv_global_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "invitations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "mv_league_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "invitations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -283,6 +339,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "leagues"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "league_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "mv_global_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "league_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "mv_league_standings"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "league_members_user_id_fkey"
@@ -334,6 +404,20 @@ export type Database = {
           pinned_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "league_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "mv_global_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "league_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "mv_league_standings"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "league_posts_author_id_fkey"
             columns: ["author_id"]
@@ -420,6 +504,20 @@ export type Database = {
             foreignKeyName: "leagues_owner_id_fkey"
             columns: ["owner_id"]
             isOneToOne: false
+            referencedRelation: "mv_global_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "leagues_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "mv_league_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "leagues_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -474,6 +572,20 @@ export type Database = {
             foreignKeyName: "news_posts_author_id_fkey"
             columns: ["author_id"]
             isOneToOne: false
+            referencedRelation: "mv_global_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "news_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "mv_league_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "news_posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -505,6 +617,20 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "mv_global_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "mv_league_standings"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "notifications_user_id_fkey"
             columns: ["user_id"]
@@ -555,6 +681,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "leagues"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "predictions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "mv_global_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "predictions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "mv_league_standings"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "predictions_user_id_fkey"
@@ -646,6 +786,20 @@ export type Database = {
             foreignKeyName: "reactions_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "mv_global_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "mv_league_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -708,8 +862,36 @@ export type Database = {
             foreignKeyName: "real_payments_recorded_by_fkey"
             columns: ["recorded_by"]
             isOneToOne: false
+            referencedRelation: "mv_global_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "real_payments_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "mv_league_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "real_payments_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "real_payments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "mv_global_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "real_payments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "mv_league_standings"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "real_payments_user_id_fkey"
@@ -796,6 +978,20 @@ export type Database = {
             foreignKeyName: "stripe_checkouts_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "mv_global_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "stripe_checkouts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "mv_league_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "stripe_checkouts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -837,6 +1033,20 @@ export type Database = {
             foreignKeyName: "support_tickets_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "mv_global_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "support_tickets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "mv_league_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "support_tickets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -874,6 +1084,20 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "tournament_predictions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "mv_global_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "tournament_predictions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "mv_league_standings"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "tournament_predictions_user_id_fkey"
             columns: ["user_id"]
@@ -935,6 +1159,20 @@ export type Database = {
             foreignKeyName: "transactions_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
+            referencedRelation: "mv_global_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "transactions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "mv_league_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "transactions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -944,6 +1182,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "leagues"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "mv_global_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "mv_league_standings"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "transactions_user_id_fkey"
@@ -978,15 +1230,7 @@ export type Database = {
           username: string | null
           wins: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "bets_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       mv_league_standings: {
         Row: {
@@ -1006,17 +1250,10 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "bets_league_id_fkey"
+            foreignKeyName: "league_members_league_id_fkey"
             columns: ["league_id"]
             isOneToOne: false
             referencedRelation: "leagues"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "bets_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
