@@ -6,6 +6,7 @@ type StandingRow = {
   username: string | null;
   display_name: string | null;
   avatar_url: string | null;
+  role: string | null;
   total_points: number | null;
   wins: number | null;
   losses: number | null;
@@ -19,6 +20,7 @@ function toStanding(r: StandingRow): StandingEntry {
     username: r.username ?? "",
     display_name: r.display_name,
     avatar_url: r.avatar_url,
+    role: r.role ?? "player",
     total_points: r.total_points ?? 0,
     wins: r.wins ?? 0,
     losses: r.losses ?? 0,
@@ -44,6 +46,7 @@ export type StandingEntry = {
   username: string;
   display_name: string | null;
   avatar_url: string | null;
+  role: string;
   total_points: number;
   wins: number;
   losses: number;

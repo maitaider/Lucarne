@@ -11,6 +11,7 @@ import {
   type StandingEntry,
 } from "@/lib/leagues/queries";
 import { LiveRefresh } from "@/components/live/live-refresh";
+import { FlashRow } from "@/components/leaderboard/flash-row";
 import { getMyPicksByMatch, type MyPick } from "@/lib/bets/my-picks";
 import { picksToExisting } from "@/lib/bets/picks-to-existing";
 import { getMyBuyInStatus } from "@/lib/profile/buy-in";
@@ -756,10 +757,14 @@ function LeaderRow({
   isMe: boolean;
   locale: Locale;
 }) {
+  const isAdmin = row.role === "admin" || row.role === "super_admin";
   return (
-    <div
+    <FlashRow
+      as="div"
+      points={row.total_points}
       className={cn(
         "flex items-center gap-3 px-4 py-2.5 text-sm",
+        isAdmin && !isMe && "bg-gold-500/[0.06]",
         isMe && "bg-primary-500/[0.07]",
       )}
     >
@@ -776,6 +781,11 @@ function LeaderRow({
             {locale === "fr" ? "Toi" : "You"}
           </span>
         )}
+        {isAdmin && (
+          <span className="ml-1.5 rounded-full bg-gold-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-gold-300 ring-1 ring-gold-500/30">
+            Admin
+          </span>
+        )}
       </span>
       <span
         className={cn(
@@ -788,7 +798,7 @@ function LeaderRow({
           pts
         </span>
       </span>
-    </div>
+    </FlashRow>
   );
 }
 

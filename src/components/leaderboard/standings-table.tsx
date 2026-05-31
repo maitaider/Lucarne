@@ -1,6 +1,7 @@
 import type { StandingEntry } from "@/lib/leagues/queries";
-import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { FlashRow } from "./flash-row";
 
 export function StandingsTable({
   entries,
@@ -37,6 +38,7 @@ export function StandingsTable({
         <tbody className="divide-y divide-white/[0.06]">
           {entries.map((e) => {
             const isMe = highlightUserId === e.user_id;
+            const isAdmin = e.role === "admin" || e.role === "super_admin";
             const winRate = e.bets_count > 0 ? e.wins / e.bets_count : 0;
             const initials = (e.display_name ?? e.username)
               .split(/\s+/)
@@ -47,10 +49,15 @@ export function StandingsTable({
             const barWidth = (e.total_points / maxPoints) * 100;
             const draws = Math.max(e.bets_count - e.wins - e.losses, 0);
             return (
-              <tr
+              <FlashRow
+                as="tr"
                 key={e.user_id}
+                points={e.total_points}
                 className={cn(
                   "group transition hover:bg-white/[0.045]",
+                  isAdmin &&
+                    !isMe &&
+                    "bg-gold-500/[0.06] ring-1 ring-inset ring-gold-500/25",
                   isMe &&
                     "bg-primary-500/[0.06] ring-1 ring-inset ring-primary-500/30",
                 )}
@@ -85,6 +92,12 @@ export function StandingsTable({
                         {isMe && (
                           <span className="ml-1.5 rounded-full bg-primary-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary-400">
                             {locale === "fr" ? "Toi" : "You"}
+                          </span>
+                        )}
+                        {isAdmin && (
+                          <span className="ml-1.5 inline-flex items-center gap-0.5 rounded-full bg-gold-500/15 px-1.5 py-0.5 align-middle text-[9px] font-bold uppercase tracking-wider text-gold-300 ring-1 ring-gold-500/30">
+                            <ShieldCheck className="size-2.5" strokeWidth={2.5} />
+                            Admin
                           </span>
                         )}
                       </div>
@@ -138,7 +151,7 @@ export function StandingsTable({
                     {e.total_points}
                   </span>
                 </td>
-              </tr>
+              </FlashRow>
             );
           })}
         </tbody>

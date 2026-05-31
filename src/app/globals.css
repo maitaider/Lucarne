@@ -257,3 +257,18 @@ main {
     scroll-behavior: auto !important;
   }
 }
+
+/* Live leaderboard: flash a row green when its points just increased. */
+@keyframes lk-flash-points {
+  0% {
+    background-color: rgba(34, 217, 130, 0.32);
+    box-shadow: inset 0 0 0 1px rgba(34, 217, 130, 0.5);
+  }
+  100% {
+    background-color: transparent;
+    box-shadow: inset 0 0 0 1px transparent;
+  }
+}
+.lk-flash-points {
+  animation: lk-flash-points 1.7s ease-out;
+}

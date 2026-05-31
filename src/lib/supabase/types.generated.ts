@@ -1224,6 +1224,7 @@ export type Database = {
           display_name: string | null
           losses: number | null
           rank: number | null
+          role: Database["public"]["Enums"]["app_role"] | null
           settled_count: number | null
           total_points: number | null
           user_id: string | null
@@ -1240,6 +1241,7 @@ export type Database = {
           league_id: string | null
           losses: number | null
           rank: number | null
+          role: Database["public"]["Enums"]["app_role"] | null
           settled_count: number | null
           total_payout_cents: number | null
           total_points: number | null
