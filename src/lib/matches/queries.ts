@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import {
   getStaticWorldCupMatchById,
   getStaticWorldCupMatches,
@@ -67,7 +68,11 @@ export { groupMatchesByDate } from "./shared";
  * Fetch all matches with team + venue joins. Server-only.
  * Returns empty array (and logs) if Supabase isn't configured.
  */
-export async function listMatches(opts?: {
+// Cached per request (React.cache) — listMatches is called by the (app) layout
+// AND most pages within the same render, so this dedupes those round-trips.
+export const listMatches = cache(_listMatches);
+
+async function _listMatches(opts?: {
   stage?: MatchStage | "all";
   groupLabel?: string;
   fromDate?: string;

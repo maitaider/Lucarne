@@ -37,10 +37,14 @@ export function SupportForm({ locale }: { locale: Locale }) {
   return (
     <form onSubmit={submit} className="space-y-3">
       <div>
-        <label className="mb-1.5 block text-xs font-medium text-text-secondary">
+        <label
+          htmlFor="support-subject"
+          className="mb-1.5 block text-xs font-medium text-text-secondary"
+        >
           {fr ? "Sujet" : "Subject"}
         </label>
         <input
+          id="support-subject"
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
           maxLength={120}
@@ -50,10 +54,14 @@ export function SupportForm({ locale }: { locale: Locale }) {
         />
       </div>
       <div>
-        <label className="mb-1.5 block text-xs font-medium text-text-secondary">
+        <label
+          htmlFor="support-message"
+          className="mb-1.5 block text-xs font-medium text-text-secondary"
+        >
           {fr ? "Message" : "Message"}
         </label>
         <textarea
+          id="support-message"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           maxLength={4000}

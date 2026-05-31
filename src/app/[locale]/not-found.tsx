@@ -1,0 +1,39 @@
+import { getLocale } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
+import { Compass, ArrowRight } from "lucide-react";
+import type { Locale } from "@/i18n/routing";
+
+/**
+ * Localized 404 for anything under /[locale] (e.g. a match/team id that doesn't
+ * exist calling notFound()). Keeps the brand shell instead of the bare default.
+ */
+export default async function LocaleNotFound() {
+  const locale = (await getLocale()) as Locale;
+  const fr = locale === "fr";
+
+  return (
+    <main className="mx-auto flex min-h-[60vh] max-w-lg flex-col items-center justify-center px-6 py-16 text-center">
+      <span className="mb-5 flex size-14 items-center justify-center rounded-full bg-primary-500/12 text-primary-300 ring-1 ring-primary-500/30">
+        <Compass className="size-7" strokeWidth={1.6} />
+      </span>
+      <p className="font-mono text-sm font-bold uppercase tracking-[0.2em] text-text-tertiary">
+        404
+      </p>
+      <h1 className="mt-2 font-display text-2xl font-semibold text-text-primary">
+        {fr ? "Page introuvable" : "Page not found"}
+      </h1>
+      <p className="mt-2 text-sm leading-6 text-text-secondary">
+        {fr
+          ? "Cette page n'existe pas ou n'est plus disponible. Retourne à ton tableau de bord."
+          : "This page doesn't exist or is no longer available. Head back to your dashboard."}
+      </p>
+      <Link
+        href="/dashboard"
+        className="mt-6 inline-flex items-center gap-1.5 rounded-[8px] bg-primary-500 px-4 py-2.5 text-sm font-semibold text-abyss shadow-glow-primary transition hover:bg-primary-400"
+      >
+        {fr ? "Retour au tableau de bord" : "Back to dashboard"}
+        <ArrowRight className="size-4" strokeWidth={2} />
+      </Link>
+    </main>
+  );
+}
