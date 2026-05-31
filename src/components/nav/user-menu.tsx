@@ -10,6 +10,7 @@ import {
   LogOut,
   Languages,
   HelpCircle,
+  LifeBuoy,
   User,
   UserRound,
   UserPlus,
@@ -146,6 +147,12 @@ export function UserMenu({ user, locale }: Props) {
               href="/how-it-works"
               icon={HelpCircle}
               label={locale === "fr" ? "Comment ça marche" : "How it works"}
+              onClick={() => setOpen(false)}
+            />
+            <MenuItem
+              href="/support"
+              icon={LifeBuoy}
+              label={locale === "fr" ? "Support" : "Support"}
               onClick={() => setOpen(false)}
             />
             {isAdmin && (

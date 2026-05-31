@@ -801,6 +801,47 @@ export type Database = {
           },
         ]
       }
+      support_tickets: {
+        Row: {
+          admin_note: string | null
+          created_at: string
+          id: string
+          message: string
+          resolved_at: string | null
+          status: string
+          subject: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          resolved_at?: string | null
+          status?: string
+          subject: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          resolved_at?: string | null
+          status?: string
+          subject?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tournament_predictions: {
         Row: {
           champion_team_id: string | null
@@ -1187,6 +1228,7 @@ export type Database = {
         | "league_position"
         | "comment_reply"
         | "daily_challenge"
+        | "support_ticket"
       payment_method:
         | "cash"
         | "transfer"
@@ -1708,6 +1750,7 @@ export const Constants = {
         "league_position",
         "comment_reply",
         "daily_challenge",
+        "support_ticket",
       ],
       payment_method: [
         "cash",

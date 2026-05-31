@@ -5,6 +5,7 @@ import {
   Coins,
   Goal,
   LayoutDashboard,
+  LifeBuoy,
   Settings,
   Shirt,
   Users,
@@ -27,6 +28,7 @@ const ITEMS: {
   { href: "/admin/players", icon: Shirt, fr: "Effectifs", en: "Rosters" },
   { href: "/admin/matches", icon: Goal, fr: "Résultats", en: "Results" },
   { href: "/admin/users", icon: Users, fr: "Usagers", en: "Users" },
+  { href: "/admin/support", icon: LifeBuoy, fr: "Support", en: "Support" },
   { href: "/admin/settings", icon: Settings, fr: "Réglages", en: "Settings" },
 ];
 
