@@ -25,12 +25,12 @@ export async function LandingCta() {
     ? [
         { n: "48", l: "nations" },
         { n: "104", l: "matchs" },
-        { n: "1", l: "cagnotte" },
+        { n: "1", l: "accès" },
       ]
     : [
         { n: "48", l: "nations" },
         { n: "104", l: "matches" },
-        { n: "1", l: "prize pot" },
+        { n: "1", l: "pass" },
       ];
 
   return (
@@ -55,8 +55,8 @@ export async function LandingCta() {
 
             <p className="mx-auto mt-5 max-w-xl text-balance text-base leading-relaxed text-text-secondary sm:text-lg">
               {fr
-                ? `Un salon privé entre amis, un accès unique à ${priceLabel}, toute la Coupe du Monde à suivre et à pronostiquer. Le classement se met à jour tout seul, et le pot du groupe récompense les meilleurs.`
-                : `A private room with friends, a single ${priceLabel} access, the whole World Cup to follow and predict. The standings update on their own, and the group pot rewards the best.`}
+                ? `Un salon privé entre amis, un accès unique à ${priceLabel}, toute la Coupe du Monde à suivre et à pronostiquer. Le classement se met à jour tout seul et désigne le meilleur pronostiqueur du groupe.`
+                : `A private room with friends, a single ${priceLabel} access, the whole World Cup to follow and predict. The standings update on their own and crown the group's best predictor.`}
             </p>
 
             <div className="mt-9 flex justify-center">
