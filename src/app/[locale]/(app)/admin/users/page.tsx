@@ -1,7 +1,8 @@
 import { setRequestLocale } from "next-intl/server";
 import { listAdminUsers, formatMoney, getAppSettings } from "@/lib/admin/economy";
 import { getCurrentUser } from "@/lib/profile/queries";
-import { AdjustBalanceButton } from "@/components/admin/user-actions";
+import { ManageUserButton } from "@/components/admin/user-actions";
+import { CreateUserButton } from "@/components/admin/create-user-dialog";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { Crown, ShieldCheck, User } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -25,15 +26,18 @@ export default async function AdminUsersPage({
 
   return (
     <div className="space-y-6">
-      <header>
-        <h2 className="font-display text-2xl font-semibold text-text-primary">
-          {L === "fr" ? "Joueurs" : "Players"}
-        </h2>
-        <p className="mt-1 text-sm text-text-secondary">
-          {L === "fr"
-            ? `${users.length} comptes au total. Ajuste leur solde, promeus-les, suis leur activité.`
-            : `${users.length} accounts total. Adjust balances, promote, track activity.`}
-        </p>
+      <header className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="font-display text-2xl font-semibold text-text-primary">
+            {L === "fr" ? "Joueurs" : "Players"}
+          </h2>
+          <p className="mt-1 text-sm text-text-secondary">
+            {L === "fr"
+              ? `${users.length} comptes au total. Ajoute, ajuste le solde, promeus, archive.`
+              : `${users.length} accounts total. Add, adjust balances, promote, archive.`}
+          </p>
+        </div>
+        <CreateUserButton locale={L} isSuperAdmin={isSuperAdmin} />
       </header>
 
       <section className="overflow-hidden rounded-[12px] border border-white/[0.08] bg-surface-1/[0.55] backdrop-blur-xl">
@@ -66,6 +70,7 @@ export default async function AdminUsersPage({
                   className={cn(
                     "transition hover:bg-white/[0.03]",
                     me?.id === u.id && "bg-primary-500/[0.04]",
+                    u.is_archived && "opacity-55",
                   )}
                 >
                   <td className="px-4 py-3">
@@ -89,6 +94,11 @@ export default async function AdminUsersPage({
                           {me?.id === u.id && (
                             <span className="ml-1.5 rounded-full bg-primary-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary-400">
                               {L === "fr" ? "Toi" : "You"}
+                            </span>
+                          )}
+                          {u.is_archived && (
+                            <span className="ml-1.5 rounded-full bg-error/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-error">
+                              {L === "fr" ? "Archivé" : "Archived"}
                             </span>
                           )}
                         </div>
@@ -131,11 +141,14 @@ export default async function AdminUsersPage({
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <AdjustBalanceButton
+                    <ManageUserButton
                       userId={u.id}
                       username={u.username}
                       currentRole={u.role}
                       isSuperAdmin={isSuperAdmin}
+                      isArchived={u.is_archived}
+                      canPurge={u.can_purge}
+                      isSelf={me?.id === u.id}
                       locale={L}
                     />
                   </td>

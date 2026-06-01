@@ -17,7 +17,9 @@ export default async function AdminAuditPage() {
   const locale = (await getLocale()) as Locale;
   const fr = locale === "fr";
   const supabase = await getSupabaseServer();
-  const { data } = await supabase.rpc("admin_list_audit_log", { p_limit: 200 });
+  const { data, error } = await supabase.rpc("admin_list_audit_log", {
+    p_limit: 200,
+  });
   const rows = (data ?? []) as AuditRow[];
 
   return (
@@ -38,7 +40,13 @@ export default async function AdminAuditPage() {
         </div>
       </div>
 
-      {rows.length === 0 ? (
+      {error ? (
+        <div className="rounded-[10px] border border-error/30 bg-error/[0.08] px-4 py-8 text-center text-sm text-error">
+          {fr
+            ? "Impossible de charger le journal d'audit."
+            : "Could not load the audit log."}
+        </div>
+      ) : rows.length === 0 ? (
         <div className="rounded-[10px] border border-white/[0.08] bg-white/[0.02] px-4 py-8 text-center text-sm text-text-tertiary">
           {fr ? "Aucune entrée." : "No entries."}
         </div>
@@ -52,8 +60,12 @@ export default async function AdminAuditPage() {
                   {fr ? "Acteur" : "Actor"}
                 </th>
                 <th className="px-4 py-3 text-left font-bold">Action</th>
-                <th className="px-4 py-3 text-left font-bold">Cible</th>
-                <th className="px-4 py-3 text-left font-bold">Détails</th>
+                <th className="px-4 py-3 text-left font-bold">
+                  {fr ? "Cible" : "Target"}
+                </th>
+                <th className="px-4 py-3 text-left font-bold">
+                  {fr ? "Détails" : "Details"}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/[0.05]">

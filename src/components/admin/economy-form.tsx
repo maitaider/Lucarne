@@ -18,7 +18,6 @@ import type { Locale } from "@/i18n/routing";
 
 type Props = {
   initial: {
-    token_price_cents: number;
     buy_in_amount_cents: number;
     buy_in_deadline: string | null;
     prize_distribution: {

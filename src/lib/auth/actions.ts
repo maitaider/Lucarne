@@ -21,8 +21,29 @@ export async function signInWithPasswordAction(
   password: string,
 ): Promise<{ error: string } | void> {
   const supabase = await getSupabaseServer();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
   if (error) return { error: error.message };
+
+  // Reject archived (admin-disabled) accounts with a clean message instead of
+  // letting them in and bouncing on every page (getCurrentUser returns null).
+  const uid = data.user?.id;
+  if (uid) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("deleted_at")
+      .eq("id", uid)
+      .maybeSingle();
+    if (profile?.deleted_at) {
+      await supabase.auth.signOut();
+      return {
+        error: "Ce compte a été désactivé. Contacte un administrateur.",
+      };
+    }
+  }
+
   const locale = await getLocale();
   redirect({ href: "/dashboard", locale });
 }

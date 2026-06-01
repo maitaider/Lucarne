@@ -239,16 +239,22 @@ export type AdminUserRow = {
   bets_count: number;
   total_paid_cents: number;
   created_at: string;
+  /** Archived (soft-deleted) — login disabled, hidden from standings. */
+  is_archived: boolean;
+  /** True when a hard purge is possible (no payments, not a recorder, owns no league). */
+  can_purge: boolean;
 };
 
 export async function listAdminUsers(): Promise<AdminUserRow[]> {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return [];
   const supabase = await getSupabaseServer();
 
-  // Get all profiles with their balance + role
+  // Get all profiles with their balance + role (archived included, flagged)
   const { data: profiles } = await supabase
     .from("profiles")
-    .select("id, username, display_name, avatar_url, role, balance_cents, created_at")
+    .select(
+      "id, username, display_name, avatar_url, role, balance_cents, created_at, deleted_at",
+    )
     .order("created_at", { ascending: true });
   if (!profiles) return [];
 
@@ -262,17 +268,31 @@ export async function listAdminUsers(): Promise<AdminUserRow[]> {
     betsByUser.set(row.user_id, (betsByUser.get(row.user_id) ?? 0) + 1);
   }
 
-  // Get total paid per user (confirmed only)
+  // All payments: confirmed total per user, plus the FK-blocker sets used to
+  // decide purge eligibility (real_payments.user_id / recorded_by are
+  // `on delete restrict`). Admins can read every payment (RLS).
   const { data: payments } = await supabase
     .from("real_payments")
-    .select("user_id, amount_cents")
-    .eq("status", "confirmed");
+    .select("user_id, recorded_by, amount_cents, status");
   const paidByUser = new Map<string, number>();
+  const hasPayment = new Set<string>();
+  const isRecorder = new Set<string>();
   for (const row of payments ?? []) {
-    paidByUser.set(
-      row.user_id,
-      (paidByUser.get(row.user_id) ?? 0) + row.amount_cents,
-    );
+    hasPayment.add(row.user_id);
+    if (row.recorded_by) isRecorder.add(row.recorded_by);
+    if (row.status === "confirmed") {
+      paidByUser.set(
+        row.user_id,
+        (paidByUser.get(row.user_id) ?? 0) + row.amount_cents,
+      );
+    }
+  }
+
+  // League owners (leagues.owner_id is `on delete restrict`). Admins read all.
+  const { data: leagues } = await supabase.from("leagues").select("owner_id");
+  const ownsLeague = new Set<string>();
+  for (const row of leagues ?? []) {
+    if (row.owner_id) ownsLeague.add(row.owner_id);
   }
 
   return profiles.map((p) => ({
@@ -285,6 +305,9 @@ export async function listAdminUsers(): Promise<AdminUserRow[]> {
     bets_count: betsByUser.get(p.id) ?? 0,
     total_paid_cents: paidByUser.get(p.id) ?? 0,
     created_at: p.created_at,
+    is_archived: p.deleted_at != null,
+    can_purge:
+      !hasPayment.has(p.id) && !isRecorder.has(p.id) && !ownsLeague.has(p.id),
   }));
 }
 

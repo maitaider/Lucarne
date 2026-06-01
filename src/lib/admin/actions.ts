@@ -1,6 +1,10 @@
 "use server";
 
+import { randomBytes } from "node:crypto";
 import { getSupabaseServer } from "@/lib/supabase/server";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { getCurrentUser, isAdminRole } from "@/lib/profile/queries";
+import { getAppSettings } from "./economy";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { PAYMENT_METHODS } from "./constants";
@@ -115,8 +119,215 @@ export async function setUserRole(input: {
   return { ok: true };
 }
 
+// -----------------------------------------------------------------------------
+// User lifecycle — create / archive / restore / purge
+// (RPCs are SECURITY DEFINER with their own role guards; we call them through the
+// admin's AUTHENTICATED client so auth.uid() resolves. Creating an auth account
+// is the one step that needs the service-role client.)
+// -----------------------------------------------------------------------------
+
+/** Map raw RPC error messages to friendly, localized-ish text. */
+function mapUserMgmtError(raw: string): string {
+  const m = raw.toLowerCase();
+  if (m.includes("forbidden") || m.includes("only_super_admin"))
+    return "Action non autorisée (super admin requis).";
+  if (m.includes("cannot_archive_self") || m.includes("cannot_purge_self"))
+    return "Tu ne peux pas faire ça sur ton propre compte.";
+  if (m.includes("cannot_remove_last_super_admin"))
+    return "Impossible : c'est le dernier super admin.";
+  if (m.includes("cannot_purge_has_history"))
+    return "Suppression définitive impossible : ce compte a des paiements ou possède une ligue. Archive-le plutôt.";
+  if (m.includes("user_not_found")) return "Joueur introuvable.";
+  return raw;
+}
+
+const createUserSchema = z.object({
+  email: z.string().email().max(160),
+  username: z
+    .string()
+    .regex(/^[a-zA-Z0-9_-]+$/, "username_invalid")
+    .min(3)
+    .max(24),
+  display_name: z.string().trim().max(40).optional(),
+  password: z.string().min(8).max(72).optional(),
+  role: z.enum(["player", "admin", "super_admin"]).default("player"),
+  mark_paid: z.boolean().default(false),
+});
+
+export type CreateUserResult =
+  | {
+      ok: true;
+      email: string;
+      username: string;
+      password: string;
+      access_granted: boolean;
+    }
+  | { ok: false; message: string };
+
+/** Readable, unambiguous temp password (no 0/O/1/l/I). */
+function generatePassword(): string {
+  const alphabet =
+    "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const bytes = randomBytes(14);
+  let out = "";
+  for (let i = 0; i < bytes.length; i++) out += alphabet[bytes[i] % alphabet.length];
+  return out;
+}
+
+export async function createUser(
+  input: z.infer<typeof createUserSchema>,
+): Promise<CreateUserResult> {
+  const parsed = createUserSchema.safeParse(input);
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0];
+    const msg =
+      issue?.message === "username_invalid"
+        ? "Nom d'utilisateur invalide (lettres, chiffres, - et _ uniquement)."
+        : (issue?.message ?? "Entrée invalide.");
+    return { ok: false, message: msg };
+  }
+
+  const admin = getSupabaseAdmin();
+  if (!admin) {
+    return { ok: false, message: "Service-role Supabase non configuré." };
+  }
+
+  // Authorize against the caller's own session.
+  const me = await getCurrentUser();
+  if (!me || !isAdminRole(me.role)) {
+    return { ok: false, message: "Accès admin requis." };
+  }
+  if (parsed.data.role !== "player" && me.role !== "super_admin") {
+    return { ok: false, message: "Seul un super admin peut créer un admin." };
+  }
+
+  const supabase = await getSupabaseServer();
+
+  // Pre-check username availability for a clean error (the trigger would
+  // otherwise fail the whole createUser with a raw unique_violation).
+  const { data: taken } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("username", parsed.data.username)
+    .maybeSingle();
+  if (taken) {
+    return { ok: false, message: "Ce nom d'utilisateur est déjà pris." };
+  }
+
+  const password = parsed.data.password ?? generatePassword();
+
+  // Create the auth account. handle_new_user() creates the profile from the
+  // metadata; email is auto-confirmed (project has confirmations disabled).
+  const { data: created, error: createErr } = await admin.auth.admin.createUser({
+    email: parsed.data.email,
+    password,
+    email_confirm: true,
+    user_metadata: {
+      username: parsed.data.username,
+      display_name: parsed.data.display_name ?? null,
+      locale: me.locale,
+    },
+  });
+  if (createErr || !created?.user) {
+    const m = (createErr?.message ?? "").toLowerCase();
+    if (m.includes("registered") || m.includes("already"))
+      return { ok: false, message: "Un compte existe déjà avec cet email." };
+    if (m.includes("password"))
+      return { ok: false, message: "Mot de passe trop faible (8 caractères min)." };
+    return {
+      ok: false,
+      message: createErr?.message ?? "Création du compte échouée.",
+    };
+  }
+  const newId = created.user.id;
+
+  // Set role + auto-join the house league + audit (auth-checked RPC as the admin).
+  const { error: finErr } = await supabase.rpc("admin_finalize_new_user", {
+    p_user_id: newId,
+    p_role: parsed.data.role,
+  });
+  if (finErr) {
+    revalidatePath("/admin", "layout");
+    return {
+      ok: false,
+      message: `Compte créé, mais finalisation partielle : ${finErr.message}`,
+    };
+  }
+
+  // Optionally grant access by recording a manual seat payment (0 jetons, like
+  // every access payment — see record_payment / unify_payment_rails).
+  let accessGranted = false;
+  if (parsed.data.mark_paid) {
+    const settings = await getAppSettings();
+    const { error: payErr } = await supabase.rpc("record_payment", {
+      p_user_id: newId,
+      p_amount_cents: settings.buy_in_amount_cents,
+      p_method: "cash",
+      p_currency: settings.currency,
+      p_reference: undefined,
+      p_note: "Accès accordé à la création (admin)",
+    });
+    accessGranted = !payErr;
+  }
+
+  revalidatePath("/admin", "layout");
+  return {
+    ok: true,
+    email: parsed.data.email,
+    username: parsed.data.username,
+    password,
+    access_granted: accessGranted,
+  };
+}
+
+export async function archiveUser(input: {
+  user_id: string;
+  reason?: string;
+}): Promise<{ ok: boolean; message?: string }> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    return { ok: false, message: "Supabase non configuré" };
+  }
+  const supabase = await getSupabaseServer();
+  const { error } = await supabase.rpc("admin_archive_user", {
+    p_user_id: input.user_id,
+    p_reason: input.reason?.trim() || undefined,
+  });
+  if (error) return { ok: false, message: mapUserMgmtError(error.message) };
+  revalidatePath("/admin", "layout");
+  return { ok: true };
+}
+
+export async function restoreUser(input: {
+  user_id: string;
+}): Promise<{ ok: boolean; message?: string }> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    return { ok: false, message: "Supabase non configuré" };
+  }
+  const supabase = await getSupabaseServer();
+  const { error } = await supabase.rpc("admin_restore_user", {
+    p_user_id: input.user_id,
+  });
+  if (error) return { ok: false, message: mapUserMgmtError(error.message) };
+  revalidatePath("/admin", "layout");
+  return { ok: true };
+}
+
+export async function purgeUser(input: {
+  user_id: string;
+}): Promise<{ ok: boolean; message?: string }> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    return { ok: false, message: "Supabase non configuré" };
+  }
+  const supabase = await getSupabaseServer();
+  const { error } = await supabase.rpc("admin_purge_user", {
+    p_user_id: input.user_id,
+  });
+  if (error) return { ok: false, message: mapUserMgmtError(error.message) };
+  revalidatePath("/admin", "layout");
+  return { ok: true };
+}
+
 const settingsSchema = z.object({
-  token_price_cents: z.number().int().min(1).max(100_000).optional(),
   buy_in_amount_cents: z.number().int().min(100).max(1_000_000).optional(),
   currency: z.string().length(3).optional(),
   buy_in_deadline: z.string().nullable().optional(),
@@ -157,7 +368,6 @@ export async function updateAppSettings(
   }
   const supabase = await getSupabaseServer();
   const { error } = await supabase.rpc("update_app_settings", {
-    p_token_price_cents: parsed.data.token_price_cents,
     p_buy_in_amount_cents: parsed.data.buy_in_amount_cents,
     p_currency: parsed.data.currency,
     p_buy_in_deadline: parsed.data.buy_in_deadline ?? undefined,

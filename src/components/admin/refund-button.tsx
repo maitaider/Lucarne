@@ -83,6 +83,7 @@ export function RefundButton({
         type="button"
         onClick={() => setConfirming(false)}
         disabled={isPending}
+        aria-label={locale === "fr" ? "Annuler" : "Cancel"}
         className="rounded-md px-2 py-1 text-[11px] text-text-tertiary hover:text-text-primary"
       >
         ✕
