@@ -7,6 +7,7 @@ import {
 } from "@/lib/admin/economy";
 import { RecordPaymentForm } from "@/components/admin/record-payment-form";
 import { RefundButton } from "@/components/admin/refund-button";
+import { DeletePaymentButton } from "@/components/admin/delete-payment-button";
 import {
   AlertCircle,
   Banknote,
@@ -108,8 +109,8 @@ export default async function AdminPaymentsPage({
         />
         <SummaryCard
           icon={Wallet}
-          label={L === "fr" ? "Solde net" : "Net"}
-          value={fmt(totalConfirmed - totalRefunded)}
+          label={L === "fr" ? "En caisse" : "In hand"}
+          value={fmt(totalConfirmed)}
           detail={
             L === "fr"
               ? `Prix d'accès : ${fmt(settings.buy_in_amount_cents)}`
@@ -205,9 +206,12 @@ export default async function AdminPaymentsPage({
                         <StatusBadge status={p.status} locale={L} />
                       </td>
                       <td className="px-4 py-3 text-right">
-                        {p.status === "confirmed" && (
-                          <RefundButton paymentId={p.id} locale={L} />
-                        )}
+                        <div className="inline-flex items-center justify-end gap-1">
+                          {p.status === "confirmed" && (
+                            <RefundButton paymentId={p.id} locale={L} />
+                          )}
+                          <DeletePaymentButton paymentId={p.id} locale={L} />
+                        </div>
                       </td>
                     </tr>
                   );

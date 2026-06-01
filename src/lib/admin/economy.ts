@@ -152,7 +152,10 @@ export async function getOverviewStats(): Promise<OverviewStats> {
     total_refunded_cents: refunded,
     payment_count: Number(data.payment_count ?? 0),
     paying_users_count: Number(data.paying_users_count ?? 0),
-    net_cents: collected - refunded,
+    // Money in hand = confirmed total. A refunded payment already left
+    // `confirmed` (its status flipped), so subtracting `refunded` again would
+    // double-count and push net negative — it must NOT be subtracted.
+    net_cents: collected,
   };
 }
 
@@ -267,27 +270,21 @@ export async function listAdminUsers(): Promise<AdminUserRow[]> {
     betsByUser.set(row.user_id, (betsByUser.get(row.user_id) ?? 0) + 1);
   }
 
-  // All payments: confirmed total per user, plus the FK-blocker sets used to
-  // decide purge eligibility (real_payments.user_id / recorded_by are
-  // `on delete restrict`). Admins can read every payment (RLS).
+  // Confirmed payments → total paid per user. Admins can read every payment (RLS).
   const { data: payments } = await supabase
     .from("real_payments")
-    .select("user_id, recorded_by, amount_cents, status");
+    .select("user_id, amount_cents")
+    .eq("status", "confirmed");
   const paidByUser = new Map<string, number>();
-  const hasPayment = new Set<string>();
-  const isRecorder = new Set<string>();
   for (const row of payments ?? []) {
-    hasPayment.add(row.user_id);
-    if (row.recorded_by) isRecorder.add(row.recorded_by);
-    if (row.status === "confirmed") {
-      paidByUser.set(
-        row.user_id,
-        (paidByUser.get(row.user_id) ?? 0) + row.amount_cents,
-      );
-    }
+    paidByUser.set(
+      row.user_id,
+      (paidByUser.get(row.user_id) ?? 0) + row.amount_cents,
+    );
   }
 
-  // League owners (leagues.owner_id is `on delete restrict`). Admins read all.
+  // Only owning a league still blocks a hard purge (leagues.owner_id is
+  // `on delete restrict`); admin_purge_user now cascades the user's payments.
   const { data: leagues } = await supabase.from("leagues").select("owner_id");
   const ownsLeague = new Set<string>();
   for (const row of leagues ?? []) {
@@ -304,8 +301,7 @@ export async function listAdminUsers(): Promise<AdminUserRow[]> {
     total_paid_cents: paidByUser.get(p.id) ?? 0,
     created_at: p.created_at,
     is_archived: p.deleted_at != null,
-    can_purge:
-      !hasPayment.has(p.id) && !isRecorder.has(p.id) && !ownsLeague.has(p.id),
+    can_purge: !ownsLeague.has(p.id),
   }));
 }
 

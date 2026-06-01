@@ -106,9 +106,9 @@ export default async function AdminOverviewPage({
         />
         <KpiCard
           icon={Coins}
-          label={L === "fr" ? "Net encaissé" : "Net collected"}
+          label={L === "fr" ? "En caisse" : "In hand"}
           value={fmt(stats.net_cents)}
-          detail={L === "fr" ? "confirmés − remboursés" : "confirmed − refunded"}
+          detail={L === "fr" ? "paiements confirmés" : "confirmed payments"}
           accent="gold"
         />
         <KpiCard

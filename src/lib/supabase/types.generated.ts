@@ -1313,6 +1313,10 @@ export type Database = {
         Args: { p_reason?: string; p_user_id: string }
         Returns: undefined
       }
+      admin_delete_payment: {
+        Args: { p_payment_id: string }
+        Returns: undefined
+      }
       admin_delete_player: { Args: { p_id: string }; Returns: undefined }
       admin_finalize_new_user: {
         Args: {

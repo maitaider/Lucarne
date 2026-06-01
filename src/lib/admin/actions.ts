@@ -79,6 +79,34 @@ export async function refundPayment(input: {
   return { ok: true };
 }
 
+/**
+ * Permanently delete a payment row (correct a mistake, clear test money, or a
+ * payment refunded in cash outside the app). Removing a confirmed payment
+ * revokes that player's access. Admin-only (RPC re-checks the role).
+ */
+export async function deletePayment(input: {
+  payment_id: string;
+}): Promise<{ ok: boolean; message?: string }> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    return { ok: false, message: "Supabase non configuré" };
+  }
+  const supabase = await getSupabaseServer();
+  const { error } = await supabase.rpc("admin_delete_payment", {
+    p_payment_id: input.payment_id,
+  });
+  if (error) {
+    const m = error.message.toLowerCase();
+    if (m.includes("payment_not_found"))
+      return { ok: false, message: "Paiement introuvable." };
+    if (m.includes("forbidden"))
+      return { ok: false, message: "Accès admin requis." };
+    return { ok: false, message: error.message };
+  }
+  revalidatePath("/admin", "layout");
+  revalidatePath("/profile/wallet");
+  return { ok: true };
+}
+
 // adjustBalance removed 2026-06-01: the game is free and scored in points —
 // there are no gameplay jetons/balance to adjust (residual debt). The admin
 // "Solde" column + balance editor are gone. The `adjust_balance` RPC stays in
