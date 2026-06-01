@@ -23,6 +23,7 @@ export default async function AdminUsersPage({
     getAppSettings(),
   ]);
   const isSuperAdmin = me?.role === "super_admin";
+  const archivedCount = users.filter((u) => u.is_archived).length;
 
   return (
     <div className="space-y-6">
@@ -33,8 +34,8 @@ export default async function AdminUsersPage({
           </h2>
           <p className="mt-1 text-sm text-text-secondary">
             {L === "fr"
-              ? `${users.length} comptes au total. Ajoute, gère les rôles et l'accès, archive ou supprime.`
-              : `${users.length} accounts total. Add, manage roles and access, archive or delete.`}
+              ? `${users.length} comptes${archivedCount > 0 ? ` · ${archivedCount} archivé${archivedCount > 1 ? "s" : ""}` : ""}. Ajoute, gère les rôles et l'accès, archive ou supprime.`
+              : `${users.length} accounts${archivedCount > 0 ? ` · ${archivedCount} archived` : ""}. Add, manage roles and access, archive or delete.`}
           </p>
         </div>
         <CreateUserButton locale={L} isSuperAdmin={isSuperAdmin} />
@@ -67,7 +68,7 @@ export default async function AdminUsersPage({
                   className={cn(
                     "transition hover:bg-white/[0.03]",
                     me?.id === u.id && "bg-primary-500/[0.04]",
-                    u.is_archived && "opacity-55",
+                    u.is_archived && "bg-error/[0.03]",
                   )}
                 >
                   <td className="px-4 py-3">

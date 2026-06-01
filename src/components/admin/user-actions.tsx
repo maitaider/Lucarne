@@ -276,8 +276,8 @@ export function ManageUserButton({
                           </div>
                           <p className="mb-2.5 text-xs leading-5 text-text-secondary">
                             {fr
-                              ? "Efface le compte et toutes ses données (pronostics, ligues, messages). Irréversible."
-                              : "Erases the account and all its data (picks, leagues, messages). Irreversible."}
+                              ? "Efface le compte et toutes ses données — y compris ses paiements (pronostics, ligues, messages). Irréversible."
+                              : "Erases the account and all its data — including its payments (picks, leagues, messages). Irreversible."}
                           </p>
 
                           {!canPurge ? (
@@ -292,8 +292,8 @@ export function ManageUserButton({
                               </button>
                               <p className="mt-2 text-[11px] leading-4 text-text-tertiary">
                                 {fr
-                                  ? "Ce joueur a déjà payé ou possède une ligue : ses données ne peuvent pas être effacées. Archive-le plutôt."
-                                  : "This player has paid or owns a league: their data can't be erased. Archive instead."}
+                                  ? "Ce joueur possède une ligue (elle deviendrait orpheline). Transfère-la ou archive-le."
+                                  : "This player owns a league (it would be orphaned). Transfer it or archive them."}
                               </p>
                             </>
                           ) : confirmingPurge ? (
