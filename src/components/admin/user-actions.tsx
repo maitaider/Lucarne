@@ -3,7 +3,6 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "@/i18n/navigation";
 import {
-  adjustBalance,
   archiveUser,
   purgeUser,
   restoreUser,
@@ -11,9 +10,8 @@ import {
 } from "@/lib/admin/actions";
 import { useToast } from "@/components/ui/toast-provider";
 import {
-  AlertTriangle,
+  Archive,
   ArchiveRestore,
-  Coins,
   Loader2,
   ShieldCheck,
   Trash2,
@@ -42,8 +40,6 @@ export function ManageUserButton({
 }) {
   const fr = locale === "fr";
   const [open, setOpen] = useState(false);
-  const [delta, setDelta] = useState("0");
-  const [reason, setReason] = useState("");
   const [archiveReason, setArchiveReason] = useState("");
   const [confirmingPurge, setConfirmingPurge] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -56,34 +52,6 @@ export function ManageUserButton({
   function close() {
     setOpen(false);
     setConfirmingPurge(false);
-  }
-
-  function handleAdjust() {
-    const d = Number(delta);
-    if (!Number.isFinite(d) || d === 0) {
-      toast.error(fr ? "Saisis un montant non nul." : "Enter a non-zero amount.");
-      return;
-    }
-    if (reason.trim().length < 3) {
-      toast.error(fr ? "Raison trop courte." : "Reason too short.");
-      return;
-    }
-    startTransition(async () => {
-      const res = await adjustBalance({
-        user_id: userId,
-        delta_tokens: Math.round(d),
-        reason: reason.trim(),
-      });
-      if (res.ok) {
-        toast.success(fr ? "Solde mis à jour." : "Balance updated.");
-        close();
-        setDelta("0");
-        setReason("");
-        router.refresh();
-      } else {
-        toast.error(res.message ?? "Erreur");
-      }
-    });
   }
 
   function handleRoleChange() {
@@ -134,7 +102,7 @@ export function ManageUserButton({
     startTransition(async () => {
       const res = await purgeUser({ user_id: userId });
       if (res.ok) {
-        toast.success(fr ? "Joueur supprimé définitivement." : "Player deleted.");
+        toast.success(fr ? "Joueur supprimé." : "Player deleted.");
         close();
         router.refresh();
       } else {
@@ -167,65 +135,17 @@ export function ManageUserButton({
                 <h3 className="font-display text-lg font-semibold text-text-primary">
                   {fr ? "Gérer" : "Manage"} @{username}
                 </h3>
+                <p className="mt-0.5 text-xs text-text-tertiary">
+                  {fr
+                    ? "Rôle et accès au tournoi. Toutes les actions sont tracées."
+                    : "Role and tournament access. Every action is audited."}
+                </p>
               </header>
 
               <div className="space-y-5 p-5">
-                {/* Adjust balance */}
-                <section>
-                  <div className="mb-2 flex items-center gap-2">
-                    <Coins className="size-4 text-primary-400" strokeWidth={1.7} />
-                    <h4 className="text-sm font-bold text-text-primary">
-                      {fr ? "Ajuster le solde" : "Adjust balance"}
-                    </h4>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        step={1}
-                        value={delta}
-                        onChange={(e) => setDelta(e.target.value)}
-                        placeholder="ex: +100 ou -50"
-                        className="flex-1 rounded-sm border border-white/[0.1] bg-abyss/[0.6] px-3 py-2 text-sm tabular-nums text-text-primary outline-none focus:border-primary-500/50"
-                      />
-                      <span className="text-xs text-text-tertiary">
-                        {fr ? "jetons" : "tokens"}
-                      </span>
-                    </div>
-                    <input
-                      type="text"
-                      value={reason}
-                      onChange={(e) => setReason(e.target.value)}
-                      maxLength={200}
-                      placeholder={
-                        fr
-                          ? "Raison (ex: bonus participation)"
-                          : "Reason (e.g. participation bonus)"
-                      }
-                      className="w-full rounded-sm border border-white/[0.1] bg-abyss/[0.6] px-3 py-2 text-sm text-text-primary outline-none placeholder:text-text-tertiary focus:border-primary-500/50"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleAdjust}
-                      disabled={isPending}
-                      className={cn(
-                        "inline-flex w-full items-center justify-center gap-1.5 rounded-sm px-4 py-2 text-sm font-bold transition",
-                        isPending
-                          ? "bg-white/[0.06] text-text-tertiary"
-                          : "bg-primary-500 text-abyss shadow-glow-primary hover:bg-primary-400",
-                      )}
-                    >
-                      {isPending && (
-                        <Loader2 className="size-3.5 animate-spin" strokeWidth={2} />
-                      )}
-                      {fr ? "Appliquer" : "Apply"}
-                    </button>
-                  </div>
-                </section>
-
-                {/* Role */}
+                {/* Role (super admin only) */}
                 {isSuperAdmin && (
-                  <section className="border-t border-white/[0.08] pt-4">
+                  <section>
                     <div className="mb-2 flex items-center gap-2">
                       <ShieldCheck className="size-4 text-gold-400" strokeWidth={1.7} />
                       <h4 className="text-sm font-bold text-text-primary">
@@ -242,7 +162,7 @@ export function ManageUserButton({
                         }
                         className="flex-1 rounded-sm border border-white/[0.1] bg-abyss/[0.6] px-3 py-2 text-sm text-text-primary outline-none focus:border-primary-500/50"
                       >
-                        <option value="player">Player</option>
+                        <option value="player">{fr ? "Joueur" : "Player"}</option>
                         <option value="admin">Admin</option>
                         <option value="super_admin">Super admin</option>
                       </select>
@@ -263,79 +183,121 @@ export function ManageUserButton({
                   </section>
                 )}
 
-                {/* Danger zone — archive / restore / purge (never on self) */}
-                {!isSelf && (
-                  <section className="border-t border-error/15 pt-4">
-                    <div className="mb-2 flex items-center gap-2">
-                      <AlertTriangle className="size-4 text-error" strokeWidth={1.7} />
-                      <h4 className="text-sm font-bold text-text-primary">
-                        {fr ? "Zone de danger" : "Danger zone"}
-                      </h4>
-                    </div>
+                {/* Remove player — archive / restore / delete */}
+                {isSelf ? (
+                  <p className="rounded-sm border border-white/[0.08] bg-white/[0.03] px-3 py-2.5 text-xs text-text-tertiary">
+                    {fr
+                      ? "C'est ton propre compte — tu ne peux pas t'archiver ni te supprimer."
+                      : "This is your own account — you can't archive or delete yourself."}
+                  </p>
+                ) : (
+                  <section
+                    className={cn(
+                      isSuperAdmin && "border-t border-white/[0.08] pt-4",
+                    )}
+                  >
+                    <h4 className="mb-3 text-sm font-bold text-text-primary">
+                      {fr ? "Retirer ce joueur" : "Remove this player"}
+                    </h4>
 
                     {isArchived ? (
-                      <div className="space-y-2">
-                        <p className="text-xs text-text-tertiary">
+                      <div className="rounded-[10px] border border-white/[0.1] bg-white/[0.03] p-4">
+                        <p className="mb-3 text-xs text-text-secondary">
                           {fr
-                            ? "Compte archivé : connexion bloquée, masqué des classements."
-                            : "Account archived: login disabled, hidden from standings."}
+                            ? "Ce compte est archivé : connexion bloquée et masqué des classements."
+                            : "This account is archived: login disabled and hidden from standings."}
                         </p>
                         <button
                           type="button"
                           onClick={handleRestore}
                           disabled={isPending}
-                          className={cn(
-                            "inline-flex w-full items-center justify-center gap-1.5 rounded-sm px-4 py-2 text-sm font-bold transition",
-                            isPending
-                              ? "bg-white/[0.06] text-text-tertiary"
-                              : "bg-primary-500/15 text-primary-200 ring-1 ring-primary-500/30 hover:bg-primary-500/25",
-                          )}
+                          className="inline-flex w-full items-center justify-center gap-1.5 rounded-sm bg-primary-500/15 px-4 py-2.5 text-sm font-bold text-primary-200 ring-1 ring-primary-500/30 transition hover:bg-primary-500/25 disabled:opacity-60"
                         >
                           {isPending ? (
-                            <Loader2 className="size-3.5 animate-spin" strokeWidth={2} />
+                            <Loader2 className="size-4 animate-spin" strokeWidth={2} />
                           ) : (
-                            <ArchiveRestore className="size-3.5" strokeWidth={2} />
+                            <ArchiveRestore className="size-4" strokeWidth={1.9} />
                           )}
                           {fr ? "Restaurer le compte" : "Restore account"}
                         </button>
                       </div>
                     ) : (
                       <div className="space-y-3">
-                        {/* Archive */}
-                        <div className="space-y-2">
+                        {/* Archive — the safe, reversible removal */}
+                        <div className="rounded-[10px] border border-gold-500/25 bg-gold-500/[0.05] p-4">
+                          <div className="mb-1 flex items-center gap-2">
+                            <Archive className="size-4 text-gold-300" strokeWidth={1.8} />
+                            <span className="text-sm font-bold text-text-primary">
+                              {fr ? "Archiver" : "Archive"}
+                            </span>
+                            <span className="ml-auto rounded-full bg-gold-500/15 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-gold-300">
+                              {fr ? "Réversible" : "Reversible"}
+                            </span>
+                          </div>
+                          <p className="mb-2.5 text-xs leading-5 text-text-secondary">
+                            {fr
+                              ? "Désactive le compte : connexion bloquée, retiré des classements. Réactivable à tout moment. À privilégier."
+                              : "Disables the account: login blocked, removed from standings. Re-enable anytime. Preferred option."}
+                          </p>
                           <input
                             type="text"
                             value={archiveReason}
                             onChange={(e) => setArchiveReason(e.target.value)}
                             maxLength={200}
-                            placeholder={
-                              fr ? "Raison (optionnel)" : "Reason (optional)"
-                            }
-                            className="w-full rounded-sm border border-white/[0.1] bg-abyss/[0.6] px-3 py-2 text-sm text-text-primary outline-none placeholder:text-text-tertiary focus:border-error/50"
+                            placeholder={fr ? "Raison (optionnel)" : "Reason (optional)"}
+                            className="mb-2 w-full rounded-sm border border-white/[0.1] bg-abyss/[0.6] px-3 py-2 text-sm text-text-primary outline-none placeholder:text-text-tertiary focus:border-gold-500/50"
                           />
                           <button
                             type="button"
                             onClick={handleArchive}
                             disabled={isPending}
-                            className="inline-flex w-full items-center justify-center gap-1.5 rounded-sm bg-gold-500/15 px-4 py-2 text-sm font-bold text-gold-200 ring-1 ring-gold-500/30 transition hover:bg-gold-500/25 disabled:opacity-60"
+                            className="inline-flex w-full items-center justify-center gap-1.5 rounded-sm bg-gold-500 px-4 py-2.5 text-sm font-bold text-abyss transition hover:bg-gold-400 disabled:opacity-60"
                           >
-                            {fr ? "Archiver (réversible)" : "Archive (reversible)"}
+                            {isPending ? (
+                              <Loader2 className="size-4 animate-spin" strokeWidth={2} />
+                            ) : (
+                              <Archive className="size-4" strokeWidth={1.9} />
+                            )}
+                            {fr ? "Archiver le joueur" : "Archive player"}
                           </button>
-                          <p className="text-[11px] leading-4 text-text-tertiary">
-                            {fr
-                              ? "Bloque la connexion et retire des classements. Réversible à tout moment."
-                              : "Disables login and removes from standings. Reversible anytime."}
-                          </p>
                         </div>
 
-                        {/* Hard purge */}
-                        {canPurge ? (
-                          confirmingPurge ? (
+                        {/* Delete — permanent */}
+                        <div className="rounded-[10px] border border-error/25 bg-error/[0.05] p-4">
+                          <div className="mb-1 flex items-center gap-2">
+                            <Trash2 className="size-4 text-error" strokeWidth={1.8} />
+                            <span className="text-sm font-bold text-text-primary">
+                              {fr ? "Supprimer définitivement" : "Delete permanently"}
+                            </span>
+                          </div>
+                          <p className="mb-2.5 text-xs leading-5 text-text-secondary">
+                            {fr
+                              ? "Efface le compte et toutes ses données (pronostics, ligues, messages). Irréversible."
+                              : "Erases the account and all its data (picks, leagues, messages). Irreversible."}
+                          </p>
+
+                          {!canPurge ? (
+                            <>
+                              <button
+                                type="button"
+                                disabled
+                                className="inline-flex w-full cursor-not-allowed items-center justify-center gap-1.5 rounded-sm bg-white/[0.04] px-4 py-2.5 text-sm font-bold text-text-tertiary"
+                              >
+                                <Trash2 className="size-4" strokeWidth={1.9} />
+                                {fr ? "Indisponible" : "Unavailable"}
+                              </button>
+                              <p className="mt-2 text-[11px] leading-4 text-text-tertiary">
+                                {fr
+                                  ? "Ce joueur a déjà payé ou possède une ligue : ses données ne peuvent pas être effacées. Archive-le plutôt."
+                                  : "This player has paid or owns a league: their data can't be erased. Archive instead."}
+                              </p>
+                            </>
+                          ) : confirmingPurge ? (
                             <div className="space-y-2 rounded-sm border border-error/30 bg-error/[0.08] p-3">
                               <p className="text-xs font-semibold text-error">
                                 {fr
-                                  ? "Supprimer définitivement ce compte et toutes ses données ? Irréversible."
-                                  : "Permanently delete this account and all its data? Irreversible."}
+                                  ? "Confirmer la suppression définitive ? Cette action est irréversible."
+                                  : "Confirm permanent deletion? This cannot be undone."}
                               </p>
                               <div className="flex gap-2">
                                 <button
@@ -365,19 +327,13 @@ export function ManageUserButton({
                             <button
                               type="button"
                               onClick={() => setConfirmingPurge(true)}
-                              className="inline-flex w-full items-center justify-center gap-1.5 rounded-sm px-4 py-2 text-sm font-bold text-error transition hover:bg-error/10"
+                              className="inline-flex w-full items-center justify-center gap-1.5 rounded-sm bg-error/15 px-4 py-2.5 text-sm font-bold text-error ring-1 ring-error/30 transition hover:bg-error/25"
                             >
-                              <Trash2 className="size-3.5" strokeWidth={2} />
+                              <Trash2 className="size-4" strokeWidth={1.9} />
                               {fr ? "Supprimer définitivement" : "Delete permanently"}
                             </button>
-                          )
-                        ) : (
-                          <p className="text-[11px] leading-4 text-text-tertiary">
-                            {fr
-                              ? "Suppression définitive indisponible (paiements ou ligue liés). Archive plutôt."
-                              : "Permanent delete unavailable (linked payments or league). Archive instead."}
-                          </p>
-                        )}
+                          )}
+                        </div>
                       </div>
                     )}
                   </section>

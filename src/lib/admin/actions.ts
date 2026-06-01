@@ -79,28 +79,10 @@ export async function refundPayment(input: {
   return { ok: true };
 }
 
-export async function adjustBalance(input: {
-  user_id: string;
-  delta_tokens: number;
-  reason: string;
-}): Promise<{ ok: boolean; message?: string }> {
-  if (input.reason.trim().length < 3) {
-    return { ok: false, message: "Raison trop courte." };
-  }
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
-    return { ok: false, message: "Supabase non configuré" };
-  }
-  const supabase = await getSupabaseServer();
-  const { error } = await supabase.rpc("adjust_balance", {
-    p_user_id: input.user_id,
-    p_delta_tokens: input.delta_tokens,
-    p_reason: input.reason.trim(),
-  });
-  if (error) return { ok: false, message: error.message };
-  revalidatePath("/admin", "layout");
-  revalidatePath("/profile/wallet");
-  return { ok: true };
-}
+// adjustBalance removed 2026-06-01: the game is free and scored in points —
+// there are no gameplay jetons/balance to adjust (residual debt). The admin
+// "Solde" column + balance editor are gone. The `adjust_balance` RPC stays in
+// the DB as dead residual (no migration to drop it yet).
 
 export async function setUserRole(input: {
   user_id: string;

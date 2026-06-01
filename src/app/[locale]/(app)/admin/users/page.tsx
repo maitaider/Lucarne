@@ -33,8 +33,8 @@ export default async function AdminUsersPage({
           </h2>
           <p className="mt-1 text-sm text-text-secondary">
             {L === "fr"
-              ? `${users.length} comptes au total. Ajoute, ajuste le solde, promeus, archive.`
-              : `${users.length} accounts total. Add, adjust balances, promote, archive.`}
+              ? `${users.length} comptes au total. Ajoute, gère les rôles et l'accès, archive ou supprime.`
+              : `${users.length} accounts total. Add, manage roles and access, archive or delete.`}
           </p>
         </div>
         <CreateUserButton locale={L} isSuperAdmin={isSuperAdmin} />
@@ -52,10 +52,7 @@ export default async function AdminUsersPage({
                   {L === "fr" ? "Rôle" : "Role"}
                 </th>
                 <th className="px-4 py-3 text-right font-bold">
-                  {L === "fr" ? "Solde" : "Balance"}
-                </th>
-                <th className="px-4 py-3 text-right font-bold">
-                  {L === "fr" ? "Paris" : "Bets"}
+                  {L === "fr" ? "Pronos" : "Picks"}
                 </th>
                 <th className="px-4 py-3 text-right font-bold">
                   {L === "fr" ? "Payé" : "Paid"}
@@ -110,16 +107,6 @@ export default async function AdminUsersPage({
                   </td>
                   <td className="px-4 py-3">
                     <RoleBadge role={u.role} locale={L} />
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <span className="font-display text-sm font-bold tabular-nums text-text-primary">
-                      {Math.floor(u.balance_cents / 100).toLocaleString(
-                        L === "fr" ? "fr-FR" : "en-US",
-                      )}
-                    </span>
-                    <span className="ml-1 text-[10px] text-text-tertiary">
-                      {L === "fr" ? "j" : "t"}
-                    </span>
                   </td>
                   <td className="px-4 py-3 text-right">
                     <span className="font-mono text-sm tabular-nums text-text-secondary">
