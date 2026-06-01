@@ -235,7 +235,6 @@ export type AdminUserRow = {
   display_name: string | null;
   avatar_url: string | null;
   role: "player" | "admin" | "super_admin";
-  balance_cents: number;
   bets_count: number;
   total_paid_cents: number;
   created_at: string;
@@ -249,11 +248,11 @@ export async function listAdminUsers(): Promise<AdminUserRow[]> {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return [];
   const supabase = await getSupabaseServer();
 
-  // Get all profiles with their balance + role (archived included, flagged)
+  // Get all profiles with their role (archived included, flagged)
   const { data: profiles } = await supabase
     .from("profiles")
     .select(
-      "id, username, display_name, avatar_url, role, balance_cents, created_at, deleted_at",
+      "id, username, display_name, avatar_url, role, created_at, deleted_at",
     )
     .order("created_at", { ascending: true });
   if (!profiles) return [];
@@ -301,7 +300,6 @@ export async function listAdminUsers(): Promise<AdminUserRow[]> {
     display_name: p.display_name,
     avatar_url: p.avatar_url,
     role: p.role,
-    balance_cents: p.balance_cents,
     bets_count: betsByUser.get(p.id) ?? 0,
     total_paid_cents: paidByUser.get(p.id) ?? 0,
     created_at: p.created_at,
