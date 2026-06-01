@@ -13,6 +13,7 @@ type UserOption = {
   id: string;
   username: string;
   display_name: string | null;
+  paid?: boolean;
 };
 
 const CURRENCY_SYMBOL: Record<string, string> = {
@@ -51,11 +52,13 @@ export function RecordPaymentForm({
   const [method, setMethod] = useState<(typeof PAYMENT_METHODS)[number]>("cash");
   const [reference, setReference] = useState("");
   const [note, setNote] = useState("");
+  const [allowDuplicate, setAllowDuplicate] = useState(false);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const toast = useToast();
 
   const amountCents = Math.round(Number(amountStr || 0) * 100);
+  const selectedPaid = users.find((u) => u.id === userId)?.paid ?? false;
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -77,6 +80,7 @@ export function RecordPaymentForm({
         currency,
         reference: reference || undefined,
         note: note || undefined,
+        allow_duplicate: allowDuplicate,
       });
       if (res.ok) {
         toast.success(
@@ -89,6 +93,7 @@ export function RecordPaymentForm({
         setAmountStr("20");
         setReference("");
         setNote("");
+        setAllowDuplicate(false);
         router.refresh();
       } else {
         toast.error(res.message);
@@ -146,7 +151,13 @@ export function RecordPaymentForm({
                     </option>
                     {users.map((u) => (
                       <option key={u.id} value={u.id}>
+                        {u.paid ? "✓ " : ""}
                         {u.display_name ?? u.username} (@{u.username})
+                        {u.paid
+                          ? locale === "fr"
+                            ? " — déjà payé"
+                            : " — already paid"
+                          : ""}
                       </option>
                     ))}
                   </select>
@@ -234,6 +245,22 @@ export function RecordPaymentForm({
                   />
                 </Field>
 
+                {selectedPaid && (
+                  <label className="flex items-start gap-2.5 rounded-sm border border-gold-500/30 bg-gold-500/[0.08] px-4 py-3 text-xs leading-5 text-text-secondary">
+                    <input
+                      type="checkbox"
+                      checked={allowDuplicate}
+                      onChange={(e) => setAllowDuplicate(e.target.checked)}
+                      className="mt-0.5 size-4 shrink-0 accent-gold-500"
+                    />
+                    <span>
+                      {locale === "fr"
+                        ? "Ce joueur a déjà un accès payé. Coche pour forcer un 2ᵉ paiement (rare — ça gonfle la cagnotte)."
+                        : "This player already has a paid seat. Check to force a 2nd payment (rare — it inflates the pot)."}
+                    </span>
+                  </label>
+                )}
+
                 <div className="rounded-sm border border-primary-500/25 bg-primary-500/[0.08] px-4 py-3">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-text-secondary">
@@ -255,10 +282,18 @@ export function RecordPaymentForm({
 
                 <button
                   type="submit"
-                  disabled={isPending || !userId || amountCents <= 0}
+                  disabled={
+                    isPending ||
+                    !userId ||
+                    amountCents <= 0 ||
+                    (selectedPaid && !allowDuplicate)
+                  }
                   className={cn(
                     "inline-flex w-full items-center justify-center gap-2 rounded-sm px-4 py-3 text-sm font-bold transition",
-                    isPending || !userId || amountCents <= 0
+                    isPending ||
+                      !userId ||
+                      amountCents <= 0 ||
+                      (selectedPaid && !allowDuplicate)
                       ? "bg-white/[0.06] text-text-tertiary"
                       : "bg-primary-500 text-abyss shadow-glow-primary hover:bg-primary-400",
                   )}

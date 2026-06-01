@@ -1372,6 +1372,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      delete_comment: { Args: { p_comment_id: string }; Returns: undefined }
       fulfill_stripe_checkout: {
         Args: { p_session_id: string }
         Returns: string
@@ -1487,6 +1488,7 @@ export type Database = {
       }
       record_payment: {
         Args: {
+          p_allow_duplicate?: boolean
           p_amount_cents: number
           p_currency?: string
           p_method: Database["public"]["Enums"]["payment_method"]

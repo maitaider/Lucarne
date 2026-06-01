@@ -100,6 +100,13 @@ export async function createCheckoutSession(input: {
       cancel_url: cancelUrl,
       customer_email: user.email ?? undefined,
       client_reference_id: user.id,
+      // Shared Stripe account (also serves Yieldcove): tag the bank statement so
+      // Lucarne buyers recognize the charge instead of the account's default
+      // descriptor. Appended to the account prefix (kept short to fit Stripe's
+      // 22-char total limit).
+      payment_intent_data: {
+        statement_descriptor_suffix: "LUCARNE",
+      },
       metadata: {
         user_id: user.id,
         kind: "buy_in",

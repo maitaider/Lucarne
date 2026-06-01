@@ -78,12 +78,15 @@ export async function getMyBuyInStatus(): Promise<BuyInStatus> {
     };
   }
 
+  // I-4: access is granted by the existence of a confirmed payment, NOT by
+  // re-comparing its amount to the *current* price. Both rails already validate
+  // the amount at creation (Stripe rejects underpayment; manual is the admin's
+  // call), so a later price increase must not revoke a paid player's access.
   const { data: payment } = await supabase
     .from("real_payments")
     .select("amount_cents, received_at")
     .eq("user_id", user.id)
     .eq("status", "confirmed")
-    .gte("amount_cents", settings.buy_in_amount_cents)
     .order("received_at", { ascending: false })
     .limit(1)
     .maybeSingle();

@@ -12,6 +12,9 @@ const recordPaymentSchema = z.object({
   currency: z.string().length(3).default("CAD"),
   reference: z.string().max(120).optional(),
   note: z.string().max(500).optional(),
+  // I-5: explicit override to record a 2nd access payment for a player who
+  // already has one (the RPC otherwise raises `already_has_access`).
+  allow_duplicate: z.boolean().optional().default(false),
 });
 
 export async function recordPayment(
@@ -32,9 +35,16 @@ export async function recordPayment(
     p_currency: parsed.data.currency,
     p_reference: parsed.data.reference,
     p_note: parsed.data.note,
+    p_allow_duplicate: parsed.data.allow_duplicate,
   });
   if (error) {
     const msg = error.message.toLowerCase();
+    if (msg.includes("already_has_access"))
+      return {
+        ok: false,
+        message:
+          "Ce joueur a déjà un accès payé. Coche « Forcer un 2ᵉ paiement » pour l'enregistrer quand même.",
+      };
     if (msg.includes("buy_in_deadline_passed"))
       return { ok: false, message: "La date butoir d'achat est passée." };
     if (msg.includes("amount_too_low"))

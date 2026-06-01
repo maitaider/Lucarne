@@ -54,7 +54,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: true, ignored: event.type });
   }
 
-  const session = event.data.object as { id: string; payment_status?: string };
+  const session = event.data.object as {
+    id: string;
+    payment_status?: string;
+    metadata?: { kind?: string } | null;
+  };
+
+  // Shared Stripe account (also serves Yieldcove): Stripe fans this event out to
+  // EVERY endpoint on the account, so we receive Yieldcove's checkouts too. Only
+  // Lucarne buy-ins carry metadata.kind === "buy_in" (set in createCheckoutSession).
+  // Ignore the rest with a 200 so Stripe doesn't retry on `checkout_not_found`.
+  if (session.metadata?.kind !== "buy_in") {
+    return NextResponse.json({ received: true, ignored: "not_lucarne" });
+  }
+
   if (session.payment_status !== "paid") {
     return NextResponse.json({ received: true, status: session.payment_status });
   }
