@@ -1309,7 +1309,18 @@ export type Database = {
         Args: { p_delta_tokens: number; p_reason: string; p_user_id: string }
         Returns: undefined
       }
+      admin_archive_user: {
+        Args: { p_reason?: string; p_user_id: string }
+        Returns: undefined
+      }
       admin_delete_player: { Args: { p_id: string }; Returns: undefined }
+      admin_finalize_new_user: {
+        Args: {
+          p_role?: Database["public"]["Enums"]["app_role"]
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       admin_list_audit_log: {
         Args: { p_limit?: number }
         Returns: {
@@ -1323,11 +1334,13 @@ export type Database = {
           target_table: string
         }[]
       }
+      admin_purge_user: { Args: { p_user_id: string }; Returns: undefined }
       admin_recompute_match: { Args: { p_match_id: string }; Returns: number }
       admin_reply_ticket: {
         Args: { p_note: string; p_resolve?: boolean; p_ticket_id: string }
         Returns: undefined
       }
+      admin_restore_user: { Args: { p_user_id: string }; Returns: undefined }
       admin_set_match_result: {
         Args: {
           p_away_score?: number

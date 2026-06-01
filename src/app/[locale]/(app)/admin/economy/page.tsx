@@ -35,7 +35,6 @@ export default async function AdminEconomyPage({
 
       <EconomyForm
         initial={{
-          token_price_cents: settings.token_price_cents,
           buy_in_amount_cents: settings.buy_in_amount_cents,
           buy_in_deadline: settings.buy_in_deadline,
           prize_distribution: settings.prize_distribution,

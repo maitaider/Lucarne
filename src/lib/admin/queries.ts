@@ -13,9 +13,10 @@ export async function isAdmin(): Promise<boolean> {
 
   const { data } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, deleted_at")
     .eq("id", user.id)
     .maybeSingle();
 
-  return data?.role === "admin" || data?.role === "super_admin";
+  if (!data || data.deleted_at) return false;
+  return data.role === "admin" || data.role === "super_admin";
 }

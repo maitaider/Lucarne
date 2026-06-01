@@ -24,12 +24,15 @@ export default async function AdminMatchesPage() {
 
   if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
     const supabase = await getSupabaseServer();
-    const { data: events } = await supabase
+    const { data: events, error: eventsError } = await supabase
       .schema("ref")
       .from("match_events")
       .select("match_id, player_name, team_id, minute, event_type")
       .in("event_type", ["goal", "penalty_goal", "own_goal"])
       .order("minute", { ascending: true });
+    if (eventsError) {
+      console.error("admin/matches: failed to load match_events", eventsError);
+    }
     for (const e of events ?? []) {
       if (!e.match_id || !e.player_name) continue;
       (scorersByMatch[e.match_id] ??= []).push({

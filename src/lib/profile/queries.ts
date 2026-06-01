@@ -30,11 +30,14 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("username, display_name, avatar_url, locale, role, balance_cents")
+    .select(
+      "username, display_name, avatar_url, locale, role, balance_cents, deleted_at",
+    )
     .eq("id", user.id)
     .maybeSingle();
 
-  if (!profile) return null;
+  // Archived (admin-disabled) accounts are treated as logged-out everywhere.
+  if (!profile || profile.deleted_at) return null;
 
   return {
     id: user.id,
