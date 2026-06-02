@@ -158,7 +158,7 @@ export function NotificationsBell({
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-[calc(100%+8px)] z-50 w-[360px] max-w-[90vw] overflow-hidden rounded-[10px] border border-white/[0.1] bg-abyss/95 shadow-2xl backdrop-blur-2xl"
+          className="fixed inset-x-2 top-[60px] z-50 w-auto overflow-hidden rounded-[10px] border border-white/[0.1] bg-abyss/95 shadow-2xl backdrop-blur-2xl sm:absolute sm:inset-x-auto sm:right-0 sm:top-[calc(100%+8px)] sm:w-[360px] sm:max-w-[90vw]"
         >
           <header className="flex items-center justify-between border-b border-white/[0.08] px-4 py-3">
             <div>

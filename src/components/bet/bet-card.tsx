@@ -3,7 +3,7 @@ import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { CheckCircle2, Clock, X, Target, Trophy } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
-import { TeamEmblem } from "@/components/team/team-emblem";
+import { Flag } from "@/components/team/flag";
 import { maxPointsFor, betMultipliers } from "@/lib/bets/types";
 
 /**
@@ -60,18 +60,10 @@ export function BetCard({
               href={`/matches/${bet.match.id}`}
               className="mt-3 flex flex-wrap items-center gap-2 font-display text-base font-semibold text-text-primary hover:text-primary-400"
             >
-              <TeamEmblem
-                code={bet.match.home_team?.fifa_code}
-                name={homeName}
-                size="sm"
-              />
+              <Flag isoCode={bet.match.home_team?.iso_code ?? null} size="sm" />
               <span>{homeName}</span>
               <span className="mx-2 text-text-tertiary">vs</span>
-              <TeamEmblem
-                code={bet.match.away_team?.fifa_code}
-                name={awayName}
-                size="sm"
-              />
+              <Flag isoCode={bet.match.away_team?.iso_code ?? null} size="sm" />
               <span>{awayName}</span>
             </Link>
           )}
