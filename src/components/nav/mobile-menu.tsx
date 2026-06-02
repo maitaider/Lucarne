@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link, usePathname } from "@/i18n/navigation";
 import {
   CalendarDays,
@@ -89,7 +90,7 @@ export function MobileMenu({ locale }: { locale: Locale }) {
         <Menu className="size-4" strokeWidth={1.5} />
       </button>
 
-      {open && (
+      {open && createPortal(
         <div
           className="fixed inset-0 z-[100] md:hidden"
           role="dialog"
@@ -158,7 +159,8 @@ export function MobileMenu({ locale }: { locale: Locale }) {
               ))}
             </nav>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   );

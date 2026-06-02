@@ -211,11 +211,53 @@ export default async function HowItWorksPage({
           />
         </div>
 
-        <p className="mt-4 rounded-[10px] border border-white/[0.08] bg-surface-1/[0.5] p-4 text-xs leading-5 text-text-secondary backdrop-blur-xl">
-          {L === "fr"
-            ? "Le bracket complet vaut aussi des points (groupes correctement classés, vainqueurs de tour, finalistes, champion) — barème détaillé bientôt sur cette page. Les pronos par match sont indépendants du bracket : tu cumules les deux."
-            : "The full bracket also scores points (correctly ranked groups, round winners, finalists, champion) — full table coming soon. Per-match picks stack independently of the bracket."}
-        </p>
+        <div className="mt-4 space-y-3">
+          {/* Cumulative model */}
+          <div className="rounded-[10px] border border-primary-500/25 bg-primary-500/[0.07] p-4 text-xs leading-6 text-text-secondary backdrop-blur-xl">
+            <p className="mb-1 font-semibold text-text-primary">
+              {L === "fr"
+                ? "Un seul pronostic de score = jusqu'à 3 gains cumulés"
+                : "One score pick = up to 3 stacked rewards"}
+            </p>
+            {L === "fr"
+              ? "Quand tu pronostiques un score (ex. 2-1), dès que le match est terminé tu marques tout ce qui est juste, en même temps : le bon vainqueur (+3), le bon total de buts (+5 si exact, +2 à ±1), et le score exact (+5). Cumulés, jusqu'à +13 points sur un seul match — pas besoin de tomber pile pour marquer."
+              : "When you predict a score (e.g. 2-1), once the match ends you earn everything that's right, all at once: the correct winner (+3), the correct total goals (+5 exact, +2 within 1), and the exact score (+5). Stacked, up to +13 on a single match — you don't need the exact score to score."}
+          </div>
+
+          {/* Worked example */}
+          <div className="rounded-[10px] border border-white/[0.08] bg-surface-1/[0.5] p-4 backdrop-blur-xl">
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
+              {L === "fr"
+                ? "Exemple — tu pronostiques 2-1"
+                : "Example — you predict 2-1"}
+            </p>
+            <ul className="space-y-1.5 text-xs leading-5 text-text-secondary">
+              <li className="flex items-baseline justify-between gap-3">
+                <span>{L === "fr" ? "Résultat 2-1 — vainqueur + total + exact" : "Result 2-1 — winner + total + exact"}</span>
+                <b className="shrink-0 tabular-nums text-primary-300">13 pts</b>
+              </li>
+              <li className="flex items-baseline justify-between gap-3">
+                <span>{L === "fr" ? "Résultat 3-0 — vainqueur + total (3)" : "Result 3-0 — winner + total (3)"}</span>
+                <b className="shrink-0 tabular-nums text-primary-300">8 pts</b>
+              </li>
+              <li className="flex items-baseline justify-between gap-3">
+                <span>{L === "fr" ? "Résultat 1-0 — bon vainqueur seulement" : "Result 1-0 — winner only"}</span>
+                <b className="shrink-0 tabular-nums text-primary-300">3 pts</b>
+              </li>
+              <li className="flex items-baseline justify-between gap-3">
+                <span>{L === "fr" ? "Résultat 0-1 — mauvais vainqueur, total trop loin" : "Result 0-1 — wrong winner, total too far"}</span>
+                <b className="shrink-0 tabular-nums text-text-tertiary">0 pt</b>
+              </li>
+            </ul>
+          </div>
+
+          {/* Scorers + bracket note */}
+          <p className="rounded-[10px] border border-white/[0.08] bg-surface-1/[0.5] p-4 text-xs leading-6 text-text-secondary backdrop-blur-xl">
+            {L === "fr"
+              ? "Buteurs : ajoute jusqu'à 4 buteurs par match — +4 chacun s'il marque. Ta phase finale (le bracket) te sert à bâtir tes qualifiés et désigner ton champion ; les points, eux, viennent de tes pronostics de score et de buteurs, match par match."
+              : "Scorers: add up to 4 scorers per match — +4 each if they score. Your bracket lets you build your qualifiers and pick your champion; points themselves come from your per-match score and scorer picks."}
+          </p>
+        </div>
       </section>
 
       {/* Pot + payout */}

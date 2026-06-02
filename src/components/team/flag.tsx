@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 type Size = "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
@@ -11,11 +14,20 @@ const sizeMap: Record<Size, { w: number; h: number; cdn: "16x12" | "20x15" | "24
   "2xl": { w: 80, h: 60, cdn: "80x60" },
 };
 
+/** ISO 3166-1 alpha-2 (e.g. "MX") → regional-indicator emoji flag (🇲🇽). */
+function isoToEmoji(iso: string): string | null {
+  const cc = iso.trim().toUpperCase();
+  if (!/^[A-Z]{2}$/.test(cc)) return null;
+  return String.fromCodePoint(
+    ...[...cc].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65),
+  );
+}
+
 /**
- * Country flag rendered from flagcdn.com (PNG, retina). Falls back to a
- * neutral broadcast tile when iso_code is missing.
- *
- * iso_code must be a 2-letter ISO 3166-1 alpha-2 code (lowercase).
+ * Country flag. Primary source is flagcdn.com (crisp PNG, retina). If that fails
+ * to load (CDN blocked, offline, content blocker) we fall back to the emoji flag
+ * derived from the ISO code — no network, always renders. Last resort: a neutral
+ * broadcast tile when the ISO code is missing/invalid.
  */
 export function Flag({
   isoCode,
@@ -29,8 +41,26 @@ export function Flag({
   rounded?: boolean;
 }) {
   const { w, h, cdn } = sizeMap[size];
+  const [imgFailed, setImgFailed] = useState(false);
+  const emoji = isoCode ? isoToEmoji(isoCode) : null;
 
-  if (!isoCode) {
+  // No ISO, or the CDN image failed → emoji flag if we can derive one, else tile.
+  if (!isoCode || imgFailed) {
+    if (emoji) {
+      return (
+        <span
+          aria-hidden
+          className={cn(
+            "inline-flex shrink-0 select-none items-center justify-center overflow-hidden leading-none",
+            rounded ? "rounded-[3px]" : "",
+            className,
+          )}
+          style={{ width: w, height: h, fontSize: Math.round(h * 1.05) }}
+        >
+          {emoji}
+        </span>
+      );
+    }
     return (
       <span
         aria-hidden
@@ -45,7 +75,6 @@ export function Flag({
   }
 
   const code = isoCode.toLowerCase();
-  // 2x retina via flagcdn pattern: cdn /{wxh}/{code}.png  retina /{w*2 x h*2}
   const src = `https://flagcdn.com/${cdn}/${code}.png`;
   const srcSet = `https://flagcdn.com/${w * 2}x${h * 2}/${code}.png 2x, https://flagcdn.com/${w * 3}x${h * 3}/${code}.png 3x`;
 
@@ -59,6 +88,7 @@ export function Flag({
       alt=""
       loading="lazy"
       decoding="async"
+      onError={() => setImgFailed(true)}
       className={cn(
         "inline-block shrink-0 select-none object-cover shadow-[0_1px_0_rgba(0,0,0,0.4)]",
         rounded ? "rounded-[3px] ring-1 ring-black/20" : "",
