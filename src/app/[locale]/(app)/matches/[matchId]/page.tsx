@@ -8,6 +8,7 @@ import {
   type MatchEvent,
 } from "@/lib/matches/queries";
 import { getMyPicksByMatch } from "@/lib/bets/my-picks";
+import { OthersPredictions } from "@/components/match/others-predictions";
 import { listPlayersForTeams, type PlayerRow } from "@/lib/players/queries";
 import {
   getGroupStandings,
@@ -191,6 +192,11 @@ export default async function MatchDetailPage({
           shareable={kickedOff}
           locale={L}
         />
+      </Reveal>
+
+      {/* ── Group predictions (revealed at kickoff) ─────────────────────── */}
+      <Reveal className="mt-6" delayMs={40}>
+        <OthersPredictions matchId={matchId} kickedOff={kickedOff} locale={L} />
       </Reveal>
 
       {/* ── Goal timeline ──────────────────────────────────────────────── */}
