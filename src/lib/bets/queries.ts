@@ -27,6 +27,8 @@ export type BetListItem = {
     stage: string;
     kickoff_at: string;
     status: string;
+    home_score: number | null;
+    away_score: number | null;
     home_team: {
       fifa_code: string;
       iso_code: string | null;
@@ -101,6 +103,8 @@ export async function listMyBets(): Promise<BetListItem[]> {
     stage: string;
     kickoff_at: string;
     status: string;
+    home_score: number | null;
+    away_score: number | null;
     home_team: TeamSummary | TeamSummary[] | null;
     away_team: TeamSummary | TeamSummary[] | null;
   };
@@ -112,7 +116,7 @@ export async function listMyBets(): Promise<BetListItem[]> {
       .from("matches")
       .select(
         `
-        id, stage, kickoff_at, status,
+        id, stage, kickoff_at, status, home_score, away_score,
         home_team:teams!matches_home_team_id_fkey(id, fifa_code, iso_code, name_fr, name_en, flag_emoji),
         away_team:teams!matches_away_team_id_fkey(id, fifa_code, iso_code, name_fr, name_en, flag_emoji)
         `,
@@ -151,6 +155,8 @@ export async function listMyBets(): Promise<BetListItem[]> {
             stage: m.stage,
             kickoff_at: m.kickoff_at,
             status: m.status,
+            home_score: m.home_score,
+            away_score: m.away_score,
             home_team: home,
             away_team: away,
           }
