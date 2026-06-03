@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useToast } from "@/components/ui/toast-provider";
 import {
@@ -240,6 +240,17 @@ function MatchEditor({
     [homeRoster, awayRoster],
   );
 
+  // When both scores are entered on a still-"scheduled" match, flip it to
+  // "finished" automatically — entering a final score on the Results page means
+  // the match is over, and scoring only runs for finished matches. Prevents the
+  // common mistake of saving a non-scoring result (points never awarded).
+  useEffect(() => {
+    if (home !== "" && away !== "" && status === "scheduled") {
+      setStatus("finished");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [home, away]);
+
   const teams = [
     { id: match.home_team?.id ?? null, label: teamName(match.home_team, match.home_placeholder, fr) },
     { id: match.away_team?.id ?? null, label: teamName(match.away_team, match.away_placeholder, fr) },
@@ -347,6 +358,14 @@ function MatchEditor({
           </select>
         </label>
       </div>
+
+      {home !== "" && away !== "" && status !== "finished" && (
+        <p className="rounded-sm border border-gold-500/30 bg-gold-500/[0.08] px-3 py-2 text-xs leading-5 text-gold-200">
+          {fr
+            ? "⚠️ Score saisi mais le match n'est pas « Terminé » → les points ne seront PAS attribués tant que le statut n'est pas « Terminé »."
+            : "⚠️ Score entered but the match isn't Finished → points will NOT be awarded until the status is Finished."}
+        </p>
+      )}
 
       {/* Scorers */}
       <div className="space-y-2">
