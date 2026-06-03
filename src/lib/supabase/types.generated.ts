@@ -1432,6 +1432,21 @@ export type Database = {
         }[]
       }
       lock_all_tournament_predictions: { Args: never; Returns: number }
+      match_predictions: {
+        Args: { p_match_id: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          points: number
+          pred_away: number
+          pred_home: number
+          result: string
+          role: string
+          status: string
+          user_id: string
+          username: string
+        }[]
+      }
       notify_standings_overtakes: { Args: never; Returns: undefined }
       place_bet: {
         Args: {
