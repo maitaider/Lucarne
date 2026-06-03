@@ -77,6 +77,18 @@ export function BetCard({
               locale={locale}
             />
           </div>
+
+          {bet.status === "settled" &&
+            bet.bet_type === "exact_score" &&
+            bet.match?.home_score != null &&
+            bet.match?.away_score != null && (
+              <PointsBreakdown
+                payload={bet.payload}
+                homeScore={bet.match.home_score}
+                awayScore={bet.match.away_score}
+                locale={locale}
+              />
+            )}
         </div>
 
         <div className="flex flex-col items-end gap-1">
@@ -107,6 +119,73 @@ export function BetCard({
         </div>
       </div>
     </article>
+  );
+}
+
+/** Per-component breakdown of a settled score prediction (winner + total + exact). */
+function PointsBreakdown({
+  payload,
+  homeScore,
+  awayScore,
+  locale,
+}: {
+  payload: unknown;
+  homeScore: number;
+  awayScore: number;
+  locale: Locale;
+}) {
+  const fr = locale === "fr";
+  const p = payload as Record<string, unknown>;
+  if (typeof p?.home !== "number" || typeof p?.away !== "number") return null;
+  const ph = p.home as number;
+  const pa = p.away as number;
+
+  const actualWin =
+    homeScore > awayScore ? "home" : homeScore < awayScore ? "away" : "draw";
+  const predWin = ph > pa ? "home" : ph < pa ? "away" : "draw";
+  const predTotal = ph + pa;
+  const actualTotal = homeScore + awayScore;
+  const totalEarned =
+    predTotal === actualTotal
+      ? 5
+      : Math.abs(predTotal - actualTotal) === 1
+        ? 2
+        : 0;
+
+  const lines: { label: string; earned: number }[] = [
+    { label: fr ? "Bon vainqueur" : "Correct winner", earned: predWin === actualWin ? 3 : 0 },
+    { label: fr ? "Total de buts" : "Total goals", earned: totalEarned },
+    { label: fr ? "Score exact" : "Exact score", earned: ph === homeScore && pa === awayScore ? 5 : 0 },
+  ];
+
+  return (
+    <ul className="mt-2 space-y-1 rounded-sm border border-white/[0.07] bg-white/[0.02] px-3 py-2">
+      <li className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
+        {fr
+          ? `Détail · score final ${homeScore}–${awayScore}`
+          : `Breakdown · final ${homeScore}–${awayScore}`}
+      </li>
+      {lines.map((l) => (
+        <li key={l.label} className="flex items-center justify-between gap-2 text-xs">
+          <span className="flex items-center gap-1.5 text-text-secondary">
+            {l.earned > 0 ? (
+              <CheckCircle2 className="size-3 text-primary-400" strokeWidth={2.4} />
+            ) : (
+              <X className="size-3 text-text-tertiary" strokeWidth={2.4} />
+            )}
+            {l.label}
+          </span>
+          <span
+            className={cn(
+              "font-mono tabular-nums",
+              l.earned > 0 ? "text-primary-300" : "text-text-tertiary",
+            )}
+          >
+            {l.earned > 0 ? `+${l.earned}` : "—"}
+          </span>
+        </li>
+      ))}
+    </ul>
   );
 }
 
