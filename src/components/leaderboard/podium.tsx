@@ -14,6 +14,10 @@ type PayoutInfo = {
   locale: string;
 };
 
+// Legibility helper — usernames sit over a translucent gradient, so every name
+// gets a soft dark shadow + a bright, rank-tinted colour (gold / white / bronze).
+const NAME_SHADOW = "[text-shadow:0_1px_3px_rgba(0,0,0,0.75)]";
+
 export function LeaderboardPodium({
   top3,
   payouts,
@@ -37,6 +41,8 @@ export function LeaderboardPodium({
   );
 }
 
+const RANK_LABEL = { 1: "1ᵉʳ", 2: "2ᵉ", 3: "3ᵉ" } as const;
+
 function Step({
   entry,
   rank,
@@ -48,11 +54,27 @@ function Step({
   payout?: number;
   payoutMeta?: PayoutInfo;
 }) {
+  const podiumH =
+    rank === 1 ? "h-32 sm:h-36" : rank === 2 ? "h-24 sm:h-28" : "h-20 sm:h-24";
+
   if (!entry) {
+    // Keep the podium silhouette intact: a muted plinth instead of a lone dot.
     return (
-      <div className="flex flex-col items-center text-text-tertiary">
-        <div className="size-16 rounded-full bg-surface-3 ring-1 ring-border-subtle" />
-        <span className="mt-2 text-xs">—</span>
+      <div className="flex flex-col items-center">
+        <div className="mb-3 size-14 rounded-full border border-dashed border-white/15 bg-white/[0.02] sm:size-16" />
+        <div className="mb-3 text-sm font-medium text-text-tertiary">—</div>
+        <div
+          className={cn(
+            "w-full rounded-t-[8px] border border-white/[0.06] bg-gradient-to-t from-white/[0.035] to-transparent",
+            podiumH,
+          )}
+        >
+          <div className="flex h-full items-center justify-center">
+            <span className="font-display text-3xl font-extrabold text-text-tertiary/40 sm:text-4xl">
+              {RANK_LABEL[rank]}
+            </span>
+          </div>
+        </div>
       </div>
     );
   }
@@ -60,51 +82,50 @@ function Step({
   const config = {
     1: {
       avatarSize: "size-20 sm:size-24",
-      avatarRing: "ring-4 ring-gold-500/40 shadow-glow-gold",
+      avatarRing: "ring-4 ring-gold-500/50 shadow-glow-gold",
       avatarBg: "from-gold-500/40 to-gold-500/10",
       icon: (
         <Crown className="absolute -top-3 left-1/2 size-7 -translate-x-1/2 fill-gold-400 text-gold-400 drop-shadow-[0_0_8px_rgba(245,196,71,0.8)]" />
       ),
-      podiumH: "h-32 sm:h-36",
       podiumGrad:
         "from-gold-500/30 via-gold-500/15 to-transparent border-gold-500/40",
-      podiumText: "text-gold-400",
-      rankLabel: "1ᵉʳ",
-      name: "text-text-primary font-bold",
+      podiumText: "text-gold-300",
+      nameColor: "text-gold-200",
+      nameWeight: "font-bold",
+      payoutChip: "bg-gold-500/15 text-gold-200 ring-gold-500/35",
     },
     2: {
       avatarSize: "size-16 sm:size-20",
-      avatarRing: "ring-2 ring-text-secondary/40",
-      avatarBg: "from-text-secondary/30 to-text-tertiary/10",
+      avatarRing: "ring-2 ring-white/35",
+      avatarBg: "from-white/20 to-white/5",
       icon: (
         <Trophy
-          className="absolute -top-2 left-1/2 size-5 -translate-x-1/2 text-text-secondary"
+          className="absolute -top-2 left-1/2 size-5 -translate-x-1/2 text-text-primary/85"
           strokeWidth={1.5}
         />
       ),
-      podiumH: "h-24 sm:h-28",
-      podiumGrad:
-        "from-text-secondary/25 via-text-secondary/10 to-transparent border-text-secondary/30",
-      podiumText: "text-text-secondary",
-      rankLabel: "2ᵉ",
-      name: "text-text-primary font-semibold",
+      podiumGrad: "from-white/15 via-white/[0.06] to-transparent border-white/20",
+      podiumText: "text-text-primary",
+      nameColor: "text-text-primary",
+      nameWeight: "font-semibold",
+      payoutChip: "bg-white/10 text-text-primary ring-white/25",
     },
     3: {
       avatarSize: "size-14 sm:size-16",
-      avatarRing: "ring-2 ring-amber-700/40",
-      avatarBg: "from-amber-700/30 to-amber-700/5",
+      avatarRing: "ring-2 ring-amber-600/50",
+      avatarBg: "from-amber-700/35 to-amber-700/5",
       icon: (
         <Medal
-          className="absolute -top-2 left-1/2 size-5 -translate-x-1/2 text-amber-600"
+          className="absolute -top-2 left-1/2 size-5 -translate-x-1/2 text-amber-500"
           strokeWidth={1.5}
         />
       ),
-      podiumH: "h-20 sm:h-24",
       podiumGrad:
         "from-amber-700/25 via-amber-700/10 to-transparent border-amber-700/30",
-      podiumText: "text-amber-500",
-      rankLabel: "3ᵉ",
-      name: "text-text-secondary font-medium",
+      podiumText: "text-amber-300",
+      nameColor: "text-amber-300",
+      nameWeight: "font-semibold",
+      payoutChip: "bg-amber-700/15 text-amber-300 ring-amber-700/35",
     },
   }[rank];
 
@@ -124,18 +145,21 @@ function Step({
         />
       </div>
 
-      <div className="mb-3 max-w-full text-center">
-        <div className={cn("truncate text-sm sm:text-base", config.name)}>
-          <Link
-            href={`/u/${entry.username}`}
-            className="transition hover:text-primary-400 hover:underline"
-          >
-            @{entry.username}
-          </Link>
-        </div>
+      <div className="mb-3 max-w-full px-1 text-center">
+        <Link
+          href={`/u/${entry.username}`}
+          className={cn(
+            "block truncate text-sm transition hover:text-primary-400 hover:underline sm:text-base",
+            config.nameColor,
+            config.nameWeight,
+            NAME_SHADOW,
+          )}
+        >
+          @{entry.username}
+        </Link>
         <div
           className={cn(
-            "font-display tabular-nums",
+            "mt-1 font-display tabular-nums",
             rank === 1 ? "text-2xl font-bold sm:text-3xl" : "text-lg font-semibold",
             config.podiumText,
           )}
@@ -149,11 +173,7 @@ function Step({
           <div
             className={cn(
               "mt-1.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-mono text-[10px] font-bold tabular-nums ring-1",
-              rank === 1
-                ? "bg-gold-500/15 text-gold-300 ring-gold-500/35"
-                : rank === 2
-                  ? "bg-text-secondary/15 text-text-primary ring-text-secondary/30"
-                  : "bg-amber-700/15 text-amber-300 ring-amber-700/30",
+              config.payoutChip,
             )}
           >
             <span aria-hidden>≈</span>
@@ -164,11 +184,16 @@ function Step({
 
       <div
         className={cn(
-          "w-full rounded-t-[8px] border bg-gradient-to-t",
-          config.podiumH,
+          "relative w-full overflow-hidden rounded-t-[8px] border bg-gradient-to-t",
+          podiumH,
           config.podiumGrad,
         )}
       >
+        {/* top highlight line for a crisper plinth edge */}
+        <div
+          aria-hidden
+          className="absolute inset-x-0 top-0 h-px bg-white/15"
+        />
         <div className="flex h-full items-center justify-center">
           <span
             className={cn(
@@ -177,7 +202,7 @@ function Step({
               config.podiumText,
             )}
           >
-            {config.rankLabel}
+            {RANK_LABEL[rank]}
           </span>
         </div>
       </div>
