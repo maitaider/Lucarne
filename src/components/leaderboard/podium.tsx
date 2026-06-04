@@ -89,10 +89,10 @@ function Step({
       ),
       podiumGrad:
         "from-gold-500/30 via-gold-500/15 to-transparent border-gold-500/40",
-      podiumText: "text-gold-300",
-      nameColor: "text-gold-200",
-      nameWeight: "font-bold",
-      payoutChip: "bg-gold-500/15 text-gold-200 ring-gold-500/35",
+      podiumText: "text-gold-400",
+      nameHex: "#ffd66b", // gold — only gold-400/500/600 exist in the theme, so
+      nameWeight: "font-bold", // username colour is set inline (class shades like
+      payoutChip: "bg-gold-500/15 text-gold-400 ring-gold-500/35", // gold-200 don't exist)
     },
     2: {
       avatarSize: "size-16 sm:size-20",
@@ -106,26 +106,26 @@ function Step({
       ),
       podiumGrad: "from-white/15 via-white/[0.06] to-transparent border-white/20",
       podiumText: "text-text-primary",
-      nameColor: "text-text-primary",
+      nameHex: "#f2f4f8", // silver/white
       nameWeight: "font-semibold",
       payoutChip: "bg-white/10 text-text-primary ring-white/25",
     },
     3: {
       avatarSize: "size-14 sm:size-16",
-      avatarRing: "ring-2 ring-amber-600/50",
-      avatarBg: "from-amber-700/35 to-amber-700/5",
+      avatarRing: "ring-2 ring-gold-600/50",
+      avatarBg: "from-gold-600/35 to-gold-600/5",
       icon: (
         <Medal
-          className="absolute -top-2 left-1/2 size-5 -translate-x-1/2 text-amber-500"
+          className="absolute -top-2 left-1/2 size-5 -translate-x-1/2 text-gold-600"
           strokeWidth={1.5}
         />
       ),
       podiumGrad:
-        "from-amber-700/25 via-amber-700/10 to-transparent border-amber-700/30",
-      podiumText: "text-amber-300",
-      nameColor: "text-amber-300",
+        "from-gold-600/25 via-gold-600/10 to-transparent border-gold-600/30",
+      podiumText: "text-gold-600",
+      nameHex: "#e3a857", // bronze
       nameWeight: "font-semibold",
-      payoutChip: "bg-amber-700/15 text-amber-300 ring-amber-700/35",
+      payoutChip: "bg-gold-600/15 text-gold-600 ring-gold-600/35",
     },
   }[rank];
 
@@ -146,23 +146,17 @@ function Step({
       </div>
 
       <div className="mb-3 max-w-full px-1 text-center">
-        {/* Colour goes on this wrapper, not the <Link>: Tailwind's preflight
-            `a { color: inherit }` overrides a colour utility placed directly on
-            the anchor, so the link must INHERIT a bright colour from its parent
-            (same pattern as the standings table, where usernames render fine). */}
-        <div
-          className={cn(
-            "truncate text-sm sm:text-base",
-            config.nameColor,
-            config.nameWeight,
-            NAME_SHADOW,
-          )}
-        >
+        {/* Username colour is applied INLINE on the text span — bullet-proof.
+            Class-based colours failed twice: the theme defines gold only in
+            400/500/600 (so `text-gold-200/300` generate NO css), and a colour
+            utility on an <a> is overridden by preflight `a{color:inherit}`. An
+            inline style on the span wins over both. */}
+        <div className={cn("truncate text-sm sm:text-base", config.nameWeight, NAME_SHADOW)}>
           <Link
             href={`/u/${entry.username}`}
-            className="transition hover:text-primary-400 hover:underline"
+            className="transition hover:underline"
           >
-            @{entry.username}
+            <span style={{ color: config.nameHex }}>@{entry.username}</span>
           </Link>
         </div>
         <div
