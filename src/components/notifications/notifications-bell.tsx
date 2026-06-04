@@ -8,6 +8,7 @@ import {
   markNotificationRead,
 } from "@/lib/notifications/actions";
 import {
+  AtSign,
   Bell,
   CheckCheck,
   Megaphone,
@@ -34,6 +35,7 @@ const ICONS: Record<string, LucideIcon> = {
   league_position: TrendingDown,
   comment_reply: Megaphone,
   comment_received: MessageCircle,
+  chat_mention: AtSign,
   reaction_received: Flame,
   daily_challenge: Megaphone,
   friend_request: Bell,
@@ -54,6 +56,7 @@ const ACCENT: Record<string, string> = {
   bet_rejected: "text-error bg-error/15 ring-error/30",
   comment_reply: "text-violet-300 bg-violet-500/15 ring-violet-500/30",
   comment_received: "text-violet-300 bg-violet-500/15 ring-violet-500/30",
+  chat_mention: "text-primary-300 bg-primary-500/15 ring-primary-500/30",
   reaction_received: "text-gold-300 bg-gold-500/15 ring-gold-500/30",
   league_position: "text-gold-300 bg-gold-500/15 ring-gold-500/30",
   daily_challenge: "text-violet-300 bg-violet-500/15 ring-violet-500/30",
@@ -345,6 +348,10 @@ function summarize(n: NotificationRow, locale: Locale): string {
       return locale === "fr"
         ? `@${p.actor ?? "Quelqu'un"} a répondu : « ${String(p.preview ?? "").slice(0, 60)} »`
         : `@${p.actor ?? "Someone"} replied: "${String(p.preview ?? "").slice(0, 60)}"`;
+    case "chat_mention":
+      return locale === "fr"
+        ? `@${p.actor ?? "Quelqu'un"} t'a mentionné dans le Salon : « ${String(p.preview ?? "").slice(0, 60)} »`
+        : `@${p.actor ?? "Someone"} mentioned you in the Lounge: "${String(p.preview ?? "").slice(0, 60)}"`;
     default:
       return n.type;
   }
@@ -367,6 +374,8 @@ function linkFor(n: NotificationRow): string | null {
       return p.match_id ? `/matches/${p.match_id}` : null;
     case "comment_received":
       return p.match_id ? `/matches/${p.match_id}` : "/leagues";
+    case "chat_mention":
+      return "/chat";
     case "league_position":
       return "/leaderboard/global";
     default:
