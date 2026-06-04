@@ -79,12 +79,12 @@ export function InviteGenerator({
             {locale === "fr" ? "Nouveau code" : "New code"}
           </div>
           <div className="flex items-center justify-between gap-3">
-            <code className="font-mono text-2xl font-bold tracking-widest text-primary-400">
+            <code className="min-w-0 break-all font-mono text-2xl font-bold tracking-widest text-primary-400">
               {code}
             </code>
             <button
               onClick={onCopy}
-              className="inline-flex items-center gap-1.5 rounded-sm bg-primary-500/20 px-3 py-1.5 text-xs font-semibold text-primary-400 hover:bg-primary-500/30"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-sm bg-primary-500/20 px-3 py-1.5 text-xs font-semibold text-primary-400 hover:bg-primary-500/30"
             >
               {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
               {copied ? (locale === "fr" ? "Copié" : "Copied") : (locale === "fr" ? "Copier" : "Copy")}

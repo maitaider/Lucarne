@@ -93,7 +93,7 @@ export function MatchCard({
             {locale === "fr" ? "Terminé" : "Final"}
           </span>
         ) : (
-          <span className="font-mono tabular-nums text-text-secondary">
+          <span className="shrink-0 whitespace-nowrap font-mono tabular-nums text-text-secondary">
             {dateStr} · {timeStr}
           </span>
         )}

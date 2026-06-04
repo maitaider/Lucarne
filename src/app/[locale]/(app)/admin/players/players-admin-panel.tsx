@@ -243,7 +243,7 @@ export function PlayersAdminPanel({
             {roster.map((p) => (
               <li
                 key={p.id}
-                className="grid grid-cols-[3rem_minmax(0,1fr)_4rem_8rem_auto] items-center gap-3 px-3 py-2 text-sm"
+                className="grid grid-cols-[2.5rem_minmax(0,1fr)_auto] items-center gap-2 px-3 py-2 text-sm sm:grid-cols-[3rem_minmax(0,1fr)_4rem_8rem_auto] sm:gap-3"
               >
                 <span className="text-center font-mono text-xs tabular-nums text-text-tertiary">
                   {p.shirt_number ?? "—"}
@@ -256,10 +256,10 @@ export function PlayersAdminPanel({
                     {p.full_name}
                   </div>
                 </div>
-                <span className="text-center text-[10px] font-bold uppercase tracking-wider text-text-secondary">
+                <span className="hidden text-center text-[10px] font-bold uppercase tracking-wider text-text-secondary sm:block">
                   {p.position ?? "—"}
                 </span>
-                <span className="truncate text-xs text-text-secondary">
+                <span className="hidden truncate text-xs text-text-secondary sm:block">
                   {p.club ?? ""}
                 </span>
                 <div className="flex shrink-0 items-center gap-1">

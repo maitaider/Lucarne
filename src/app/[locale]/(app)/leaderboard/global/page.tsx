@@ -386,13 +386,13 @@ function ProjectedPotCard({
             return (
               <div
                 key={seat.rank}
-                className={`min-w-[110px] rounded-[10px] border p-3 ring-1 ring-inset ring-white/[0.04] ${tone}`}
+                className={`min-w-0 rounded-[10px] border p-3 ring-1 ring-inset ring-white/[0.04] ${tone}`}
               >
                 <div className="mb-2 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider">
                   <span>#{seat.rank}</span>
                   <Icon className="size-3.5" strokeWidth={1.7} />
                 </div>
-                <div className="font-display text-lg font-bold tabular-nums">
+                <div className="truncate font-display text-lg font-bold tabular-nums">
                   {formatMoney(seat.payout, currency, moneyLocale)}
                 </div>
                 <div className="mt-0.5 truncate text-[10px] text-text-tertiary">

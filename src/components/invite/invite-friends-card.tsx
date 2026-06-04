@@ -123,7 +123,7 @@ export function InviteFriendsCard({ locale }: { locale: "fr" | "en" }) {
               {fr ? "Code d'invitation" : "Invite code"}
             </div>
             <div className="flex items-center justify-between gap-3">
-              <code className="font-mono text-2xl font-bold tracking-widest text-primary-200">
+              <code className="min-w-0 break-all font-mono text-2xl font-bold tracking-widest text-primary-200">
                 {code}
               </code>
               <button

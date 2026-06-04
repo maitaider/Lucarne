@@ -171,7 +171,7 @@ export default async function DashboardPage({
           className="pointer-events-none absolute -right-24 -top-24 -z-10 size-[420px] rounded-full bg-primary-500/10 blur-3xl"
         />
 
-        <div className="relative grid gap-6 p-6 sm:p-8 lg:grid-cols-[1.3fr_0.7fr] lg:items-center lg:gap-10">
+        <div className="relative grid gap-6 p-4 sm:p-8 lg:grid-cols-[1.3fr_0.7fr] lg:items-center lg:gap-10">
           {/* Left — greeting + KPIs */}
           <div className="min-w-0">
             <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -196,7 +196,7 @@ export default async function DashboardPage({
                 : "Your World Cup HQ: follow matches, predict, climb the leaderboard."}
             </p>
 
-            <div className="mt-6 grid grid-cols-3 gap-2.5">
+            <div className="mt-6 grid grid-cols-3 gap-2">
               <Stat
                 icon={Receipt}
                 label={L === "fr" ? "Pronos actifs" : "Active picks"}

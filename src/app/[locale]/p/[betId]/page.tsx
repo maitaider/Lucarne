@@ -113,7 +113,7 @@ function PredictionCard({
 
       {/* Match + predicted scoreline */}
       <div className="px-5 py-6">
-        <div className="flex items-center justify-center gap-3 sm:gap-4">
+        <div className="flex items-center justify-center gap-2 sm:gap-4">
           <div className="flex min-w-0 flex-1 flex-col items-center gap-2">
             <Flag isoCode={pred.home.iso} size="xl" className="ring-1 ring-white/15" />
             <span className="truncate text-center text-sm font-semibold text-text-primary">
@@ -124,7 +124,7 @@ function PredictionCard({
             <span className="rounded-full bg-primary-500/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary-300 ring-1 ring-primary-500/30">
               {fr ? "Prono" : "Pick"}
             </span>
-            <div className="mt-1 flex items-center gap-2 font-display text-4xl font-bold tabular-nums text-text-primary">
+            <div className="mt-1 flex items-center gap-2 font-display text-3xl font-bold tabular-nums text-text-primary sm:text-4xl">
               <span>{predicted ? predicted.home : "?"}</span>
               <span className="text-text-tertiary">–</span>
               <span>{predicted ? predicted.away : "?"}</span>
