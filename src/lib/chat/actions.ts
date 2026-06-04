@@ -227,3 +227,64 @@ export async function resolveChatReport(
   }
   return { ok: true };
 }
+
+/**
+ * Creates a poll in the salon (a global message + a chat_polls row, atomic via
+ * the `create_chat_poll` SECURITY DEFINER RPC). Throttle/mute apply.
+ */
+export async function createChatPoll(
+  question: string,
+  options: string[],
+  locale: Locale = "fr",
+): Promise<ActionResult<string>> {
+  const fr = locale !== "en";
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    return { ok: false, message: fr ? "Supabase non configuré" : "Supabase not configured" };
+  }
+  const clean = options.map((o) => o.trim()).filter(Boolean);
+  if (question.trim().length < 1) {
+    return { ok: false, message: fr ? "Question vide." : "Empty question." };
+  }
+  if (clean.length < 2) {
+    return { ok: false, message: fr ? "Ajoute au moins 2 options." : "Add at least 2 options." };
+  }
+  const supabase = await getSupabaseServer();
+  const { data, error } = await supabase.rpc("create_chat_poll", {
+    p_question: question,
+    p_options: clean,
+  });
+  if (error) {
+    if (error.message?.includes("chat_muted")) {
+      return { ok: false, message: fr ? "Tu es muet dans le Salon." : "You're muted in the Lounge." };
+    }
+    if (error.message?.includes("chat_rate_limited")) {
+      return { ok: false, message: fr ? "Doucement (3 s)." : "Easy (3s)." };
+    }
+    return { ok: false, message: error.message };
+  }
+  return { ok: true, message: data as string };
+}
+
+/** Casts / changes the caller's vote on a poll. */
+export async function voteChatPoll(
+  pollId: string,
+  optionIdx: number,
+  locale: Locale = "fr",
+): Promise<ActionResult> {
+  const fr = locale !== "en";
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    return { ok: false, message: fr ? "Supabase non configuré" : "Supabase not configured" };
+  }
+  const supabase = await getSupabaseServer();
+  const { error } = await supabase.rpc("vote_chat_poll", {
+    p_poll_id: pollId,
+    p_option_idx: optionIdx,
+  });
+  if (error) {
+    if (error.message?.includes("poll_closed")) {
+      return { ok: false, message: fr ? "Sondage clos." : "Poll closed." };
+    }
+    return { ok: false, message: error.message };
+  }
+  return { ok: true };
+}

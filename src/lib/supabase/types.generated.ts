@@ -260,6 +260,115 @@ export type Database = {
           },
         ]
       }
+      chat_poll_votes: {
+        Row: {
+          created_at: string
+          option_idx: number
+          poll_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          option_idx: number
+          poll_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          option_idx?: number
+          poll_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_poll_votes_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "chat_polls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_poll_votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "mv_global_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "chat_poll_votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "mv_league_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "chat_poll_votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_polls: {
+        Row: {
+          closes_at: string | null
+          comment_id: string
+          created_at: string
+          created_by: string
+          id: string
+          options: string[]
+          question: string
+        }
+        Insert: {
+          closes_at?: string | null
+          comment_id: string
+          created_at?: string
+          created_by: string
+          id?: string
+          options: string[]
+          question: string
+        }
+        Update: {
+          closes_at?: string | null
+          comment_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          options?: string[]
+          question?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_polls_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: true
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_polls_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "mv_global_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "chat_polls_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "mv_league_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "chat_polls_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_reports: {
         Row: {
           comment_id: string
@@ -1592,6 +1701,10 @@ export type Database = {
         Returns: string
       }
       compute_bet_points: { Args: { p_bet_id: string }; Returns: undefined }
+      create_chat_poll: {
+        Args: { p_closes_at?: string; p_options: string[]; p_question: string }
+        Returns: string
+      }
       create_league: {
         Args: {
           p_allows_real_money?: boolean
@@ -1837,6 +1950,10 @@ export type Database = {
           p_knockout_winners: Json
           p_top_scorer_player_id?: string
         }
+        Returns: undefined
+      }
+      vote_chat_poll: {
+        Args: { p_option_idx: number; p_poll_id: string }
         Returns: undefined
       }
     }

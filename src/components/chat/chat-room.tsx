@@ -10,17 +10,20 @@ import {
   setChatPin,
   setChatMute,
   reportChatMessage,
+  voteChatPoll,
 } from "@/lib/chat/actions";
 import {
   CHAT_MAX_LEN,
   CHAT_MEDIA_BUCKET,
   CHAT_IMAGE_MAX_BYTES,
+  CHAT_BOT_USER_ID,
 } from "@/lib/chat/constants";
 import { markChatRead } from "./chat-unread";
 import type {
   ChatMember,
   ChatMessage,
   ChatMute,
+  ChatPoll,
   ChatReplyPreview,
 } from "@/lib/chat/queries";
 import type { ReactionSummary } from "@/lib/social/queries";
@@ -28,9 +31,13 @@ import { ReactionBar } from "@/components/social/reaction-bar";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { useToast } from "@/components/ui/toast-provider";
 import { MessageBody } from "./message-body";
+import { PollCard } from "./poll-card";
+import { PollComposer } from "./poll-composer";
+import { BetCard } from "./bet-card";
 import { cn } from "@/lib/utils";
 import {
   ArrowDown,
+  BarChart3,
   Flag,
   ImagePlus,
   Loader2,
@@ -86,6 +93,26 @@ function isAdminRole(role: string): boolean {
 
 function escapeRegex(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\-]/g, "\\$&");
+}
+
+/** Apply one vote to a poll's counts (prev = the voter's previous choice). */
+function bumpPoll(
+  poll: ChatPoll,
+  idx: number,
+  prev: number | null,
+  isSelf: boolean,
+): ChatPoll {
+  const counts = [...poll.counts];
+  if (prev !== null && prev >= 0 && prev < counts.length) {
+    counts[prev] = Math.max(0, counts[prev] - 1);
+  }
+  if (idx >= 0 && idx < counts.length) counts[idx] += 1;
+  return {
+    ...poll,
+    counts,
+    total: prev === null ? poll.total + 1 : poll.total,
+    my_vote: isSelf ? idx : poll.my_vote,
+  };
 }
 
 /** Active @mention token ending at the caret, or null. */
@@ -162,6 +189,7 @@ export function ChatRoom({
     uploading: boolean;
   } | null>(null);
   const [lightbox, setLightbox] = useState<string | null>(null);
+  const [pollOpen, setPollOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Realtime side-channels
@@ -241,6 +269,8 @@ export function ChatRoom({
         reply_to_id: row.reply_to_id ?? null,
         reply,
         image_url: row.image_url ?? null,
+        poll: null,
+        bet_card: null,
         author: a
           ? {
               username: a.username,
@@ -290,6 +320,35 @@ export function ChatRoom({
       }, 2800);
     }
 
+    // A new message might carry a poll — fetch it and attach (cheap unique lookup).
+    async function enrichPoll(commentId: string) {
+      const { data } = await supabase
+        .from("chat_polls")
+        .select("id, question, options, closes_at")
+        .eq("comment_id", commentId)
+        .maybeSingle();
+      if (!data) return;
+      const opts = (data.options as string[]) ?? [];
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === commentId
+            ? {
+                ...m,
+                poll: {
+                  id: data.id,
+                  question: data.question,
+                  options: opts,
+                  counts: new Array(opts.length).fill(0),
+                  total: 0,
+                  my_vote: null,
+                  closes_at: data.closes_at,
+                },
+              }
+            : m,
+        ),
+      );
+    }
+
     const channel = supabase
       .channel("chat:global", {
         config: { presence: { key: currentUserId } },
@@ -331,6 +390,7 @@ export function ChatRoom({
             setUnseen((u) => u + 1);
           }
           if (!membersByIdRef.current.has(row.user_id)) void resolveAuthor(row.user_id);
+          void enrichPoll(row.id);
         },
       )
       .on(
@@ -357,6 +417,17 @@ export function ChatRoom({
       .on("broadcast", { event: "msg_deleted" }, ({ payload }) => {
         const id = (payload as { id?: string })?.id;
         if (id) setMessages((prev) => prev.filter((m) => m.id !== id));
+      })
+      .on("broadcast", { event: "poll_vote" }, ({ payload }) => {
+        const p = payload as { pollId?: string; idx?: number; prev?: number | null };
+        if (!p?.pollId || typeof p.idx !== "number") return;
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.poll && m.poll.id === p.pollId
+              ? { ...m, poll: bumpPoll(m.poll, p.idx!, p.prev ?? null, false) }
+              : m,
+          ),
+        );
       })
       .on("broadcast", { event: "typing" }, ({ payload }) => {
         const p = payload as { user_id?: string; username?: string };
@@ -574,6 +645,8 @@ export function ChatRoom({
                   ? { author: reply.author.username, body: reply.body }
                   : null,
                 image_url: row.image_url,
+                poll: null,
+                bet_card: null,
                 author: me
                   ? {
                       username: me.username,
@@ -665,6 +738,31 @@ export function ChatRoom({
       if (res.ok)
         toast.success(fr ? "Message signalé aux admins." : "Reported to the admins.");
       else toast.error(res.message ?? "");
+    });
+  }
+
+  function handleVote(pollId: string, idx: number) {
+    const msg = messages.find((m) => m.poll?.id === pollId);
+    const prev = msg?.poll?.my_vote ?? null;
+    if (prev === idx) return; // already this choice
+    setMessages((ms) =>
+      ms.map((m) =>
+        m.poll && m.poll.id === pollId
+          ? { ...m, poll: bumpPoll(m.poll, idx, prev, true) }
+          : m,
+      ),
+    );
+    startTransition(async () => {
+      const res = await voteChatPoll(pollId, idx, locale);
+      if (!res.ok) {
+        toast.error(res.message ?? "");
+        return;
+      }
+      channelRef.current?.send({
+        type: "broadcast",
+        event: "poll_vote",
+        payload: { pollId, idx, prev },
+      });
     });
   }
 
@@ -889,6 +987,7 @@ export function ChatRoom({
                     onMute={handleMute}
                     onReport={handleReport}
                     onImageClick={setLightbox}
+                    onVote={handleVote}
                   />
                 </div>
               );
@@ -1089,6 +1188,14 @@ export function ChatRoom({
               >
                 <Smile className="size-5" strokeWidth={1.7} />
               </button>
+              <button
+                type="button"
+                onClick={() => setPollOpen(true)}
+                aria-label={fr ? "Créer un sondage" : "Create a poll"}
+                className="flex size-9 shrink-0 items-center justify-center rounded-[10px] text-text-tertiary transition hover:bg-white/[0.06] hover:text-violet-300"
+              >
+                <BarChart3 className="size-5" strokeWidth={1.7} />
+              </button>
               <textarea
                 ref={textareaRef}
                 value={input}
@@ -1175,6 +1282,8 @@ export function ChatRoom({
           />
         </div>
       )}
+
+      {pollOpen && <PollComposer locale={locale} onClose={() => setPollOpen(false)} />}
     </section>
   );
 }
@@ -1207,6 +1316,7 @@ function MessageRow({
   onMute,
   onReport,
   onImageClick,
+  onVote,
 }: {
   message: ChatMessage;
   grouped: boolean;
@@ -1225,11 +1335,13 @@ function MessageRow({
   onMute: (userId: string, mute: boolean, username: string) => void;
   onReport: (id: string) => void;
   onImageClick: (url: string) => void;
+  onVote: (pollId: string, idx: number) => void;
 }) {
   const fr = locale === "fr";
-  const name = m.author.display_name ?? `@${m.author.username}`;
+  const isBot = m.user_id === CHAT_BOT_USER_ID;
+  const name = isBot ? "Salon" : m.author.display_name ?? `@${m.author.username}`;
   const authorIsAdmin = isAdminRole(m.author.role);
-  const canMute = isAdmin && !isMine;
+  const canMute = isAdmin && !isMine && !isBot;
   return (
     <li
       className={cn(
@@ -1242,34 +1354,48 @@ function MessageRow({
       )}
     >
       <div className="w-8 shrink-0">
-        {!grouped && (
-          <Link href={`/u/${m.author.username}`} className="relative block">
-            <UserAvatar
-              src={m.author.avatar_url}
-              name={name}
-              className="size-8 ring-1 ring-white/[0.1]"
-              fallbackClassName="bg-gradient-to-br from-primary-500/30 to-violet-500/30 font-mono text-[11px] font-bold text-text-primary"
-            />
-            {isOnline && (
-              <span className="absolute -bottom-0.5 -right-0.5 flex size-2.5">
-                <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary-400/70" />
-                <span className="relative inline-flex size-2.5 rounded-full bg-primary-400 ring-2 ring-surface-1" />
-              </span>
-            )}
-          </Link>
-        )}
+        {!grouped &&
+          (isBot ? (
+            <span className="flex size-8 items-center justify-center rounded-full bg-gradient-to-br from-primary-500/30 to-violet-500/30 text-base ring-1 ring-white/[0.1]">
+              🤖
+            </span>
+          ) : (
+            <Link href={`/u/${m.author.username}`} className="relative block">
+              <UserAvatar
+                src={m.author.avatar_url}
+                name={name}
+                className="size-8 ring-1 ring-white/[0.1]"
+                fallbackClassName="bg-gradient-to-br from-primary-500/30 to-violet-500/30 font-mono text-[11px] font-bold text-text-primary"
+              />
+              {isOnline && (
+                <span className="absolute -bottom-0.5 -right-0.5 flex size-2.5">
+                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary-400/70" />
+                  <span className="relative inline-flex size-2.5 rounded-full bg-primary-400 ring-2 ring-surface-1" />
+                </span>
+              )}
+            </Link>
+          ))}
       </div>
 
       <div className="min-w-0 flex-1">
         {!grouped && (
           <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-            <Link
-              href={`/u/${m.author.username}`}
-              className="text-xs font-semibold text-text-primary transition hover:text-primary-300 hover:underline"
-            >
-              {name}
-            </Link>
-            {authorIsAdmin && (
+            {isBot ? (
+              <span className="inline-flex items-center gap-1 text-xs font-semibold text-text-primary">
+                {name}
+                <span className="rounded-full bg-violet-500/15 px-1.5 text-[9px] font-bold uppercase tracking-wide text-violet-300">
+                  bot
+                </span>
+              </span>
+            ) : (
+              <Link
+                href={`/u/${m.author.username}`}
+                className="text-xs font-semibold text-text-primary transition hover:text-primary-300 hover:underline"
+              >
+                {name}
+              </Link>
+            )}
+            {!isBot && authorIsAdmin && (
               <span className="inline-flex items-center gap-0.5 rounded-full bg-violet-500/15 px-1.5 text-[9px] font-bold uppercase tracking-wide text-violet-300">
                 <Shield className="size-2.5" strokeWidth={2.5} />
                 admin
@@ -1332,6 +1458,10 @@ function MessageRow({
             />
           </button>
         )}
+
+        {m.poll && <PollCard poll={m.poll} locale={locale} onVote={onVote} />}
+
+        {m.bet_card && <BetCard pred={m.bet_card} locale={locale} />}
 
         <div className="mt-0.5">
           <MessageReactions messageId={m.id} initial={m.reactions} />
