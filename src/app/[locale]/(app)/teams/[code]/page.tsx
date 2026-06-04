@@ -144,29 +144,31 @@ export default async function TeamPage({
               {roster.map((p) => {
                 const age = computeAge(p.birth_date);
                 return (
-                  <li
-                    key={p.id}
-                    className="flex items-center gap-3 rounded-sm border border-white/[0.06] bg-white/[0.035] px-3 py-2"
-                  >
-                    <span className="flex size-7 shrink-0 items-center justify-center rounded-[7px] bg-primary-500/10 font-mono text-xs font-bold text-primary-300 ring-1 ring-primary-500/25">
-                      {p.shirt_number ?? "–"}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-semibold text-text-primary">
-                        {p.display_name ?? p.name}
-                      </div>
-                      <div className="truncate text-xs text-text-tertiary">
-                        {[p.position, p.club].filter(Boolean).join(" · ") || "—"}
-                      </div>
-                    </div>
-                    {age != null && (
-                      <span className="shrink-0 font-mono text-xs tabular-nums text-text-tertiary">
-                        {age}
-                        <span className="ml-0.5 text-[10px]">
-                          {fr ? "ans" : "yrs"}
-                        </span>
+                  <li key={p.id}>
+                    <Link
+                      href={`/players/${p.id}`}
+                      className="flex items-center gap-3 rounded-sm border border-white/[0.06] bg-white/[0.035] px-3 py-2 transition hover:border-primary-500/40 hover:bg-white/[0.06]"
+                    >
+                      <span className="flex size-7 shrink-0 items-center justify-center rounded-[7px] bg-primary-500/10 font-mono text-xs font-bold text-primary-300 ring-1 ring-primary-500/25">
+                        {p.shirt_number ?? "–"}
                       </span>
-                    )}
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-sm font-semibold text-text-primary">
+                          {p.display_name ?? p.name}
+                        </div>
+                        <div className="truncate text-xs text-text-tertiary">
+                          {[p.position, p.club].filter(Boolean).join(" · ") || "—"}
+                        </div>
+                      </div>
+                      {age != null && (
+                        <span className="shrink-0 font-mono text-xs tabular-nums text-text-tertiary">
+                          {age}
+                          <span className="ml-0.5 text-[10px]">
+                            {fr ? "ans" : "yrs"}
+                          </span>
+                        </span>
+                      )}
+                    </Link>
                   </li>
                 );
               })}

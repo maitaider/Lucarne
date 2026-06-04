@@ -170,6 +170,48 @@ export async function listSquadsForBrowse(): Promise<SquadPlayer[]> {
   return out;
 }
 
+/** A single active player by id, with team + age — for the `/players/[id]` page. */
+export async function getPlayerById(id: string): Promise<SquadPlayer | null> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !id) return null;
+
+  const supabase = await getSupabaseServer();
+  const { data, error } = await supabase
+    .schema("ref")
+    .from("players")
+    .select(
+      `
+      id, team_id, name, display_name, position, shirt_number, club, birth_date,
+      team:teams!players_team_id_fkey(fifa_code, iso_code, name_fr, name_en, confederation)
+    `,
+    )
+    .eq("id", id)
+    .eq("active", true)
+    .maybeSingle();
+
+  if (error || !data) {
+    if (error) console.error("[players:getPlayerById]", error);
+    return null;
+  }
+
+  const team = pickOne(data.team as TeamEmbed | TeamEmbed[] | null);
+  return {
+    id: data.id,
+    team_id: data.team_id,
+    team_fifa_code: team?.fifa_code ?? "",
+    team_iso_code: team?.iso_code ?? null,
+    team_name_fr: team?.name_fr ?? "",
+    team_name_en: team?.name_en ?? "",
+    team_confederation: team?.confederation ?? "",
+    name: data.name,
+    display_name: data.display_name ?? data.name,
+    position: (data.position as SquadPlayer["position"]) ?? null,
+    shirt_number: data.shirt_number,
+    club: data.club ?? null,
+    birth_date: data.birth_date ?? null,
+    age: computeAge(data.birth_date ?? null),
+  };
+}
+
 function pickOne<T>(v: T | T[] | null | undefined): T | null {
   if (!v) return null;
   return Array.isArray(v) ? (v[0] ?? null) : v;
