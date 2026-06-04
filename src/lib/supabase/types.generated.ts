@@ -201,6 +201,8 @@ export type Database = {
           id: string
           parent_id: string
           parent_type: string
+          pinned_at: string | null
+          pinned_by: string | null
           user_id: string
         }
         Insert: {
@@ -210,6 +212,8 @@ export type Database = {
           id?: string
           parent_id: string
           parent_type: string
+          pinned_at?: string | null
+          pinned_by?: string | null
           user_id: string
         }
         Update: {
@@ -219,9 +223,32 @@ export type Database = {
           id?: string
           parent_id?: string
           parent_type?: string
+          pinned_at?: string | null
+          pinned_by?: string | null
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "comments_pinned_by_fkey"
+            columns: ["pinned_by"]
+            isOneToOne: false
+            referencedRelation: "mv_global_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "comments_pinned_by_fkey"
+            columns: ["pinned_by"]
+            isOneToOne: false
+            referencedRelation: "mv_league_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "comments_pinned_by_fkey"
+            columns: ["pinned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "comments_user_id_fkey"
             columns: ["user_id"]
@@ -1345,6 +1372,10 @@ export type Database = {
         Returns: undefined
       }
       admin_restore_user: { Args: { p_user_id: string }; Returns: undefined }
+      admin_set_comment_pin: {
+        Args: { p_comment_id: string; p_pinned: boolean }
+        Returns: undefined
+      }
       admin_set_match_result: {
         Args: {
           p_away_score?: number
@@ -1675,6 +1706,7 @@ export type Database = {
         | "support_ticket"
         | "reaction_received"
         | "comment_received"
+        | "chat_mention"
       payment_method:
         | "cash"
         | "transfer"
@@ -2199,6 +2231,7 @@ export const Constants = {
         "support_ticket",
         "reaction_received",
         "comment_received",
+        "chat_mention",
       ],
       payment_method: [
         "cash",

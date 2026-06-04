@@ -8,6 +8,7 @@ import {
   Crown,
   LayoutDashboard,
   Menu,
+  MessagesSquare,
   Newspaper,
   Radio,
   Receipt,
@@ -56,6 +57,7 @@ const GROUPS: Array<{
     en: "Community",
     items: [
       { href: "/leaderboard/global", icon: Crown, fr: "Classement", en: "Leaderboard" },
+      { href: "/chat", icon: MessagesSquare, fr: "Salon", en: "Lounge" },
       { href: "/leagues", icon: Users, fr: "Mes ligues", en: "My leagues" },
       { href: "/bets", icon: Receipt, fr: "Mes paris", en: "My bets" },
     ],

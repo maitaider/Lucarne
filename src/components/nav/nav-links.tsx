@@ -7,6 +7,7 @@ import {
   ChevronDown,
   Crown,
   LayoutDashboard,
+  MessagesSquare,
   Newspaper,
   Radio,
   Receipt,
@@ -102,6 +103,16 @@ const NAV: Top[] = [
         body: {
           fr: "Podium global + cagnotte projetée",
           en: "Global podium + projected pot",
+        },
+      },
+      {
+        href: "/chat",
+        icon: MessagesSquare,
+        fr: "Salon",
+        en: "Lounge",
+        body: {
+          fr: "Tchat du groupe en temps réel",
+          en: "Realtime group chat",
         },
       },
       {
