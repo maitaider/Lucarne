@@ -346,6 +346,7 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           id: string
+          image_url: string | null
           parent_id: string
           parent_type: string
           pinned_at: string | null
@@ -358,6 +359,7 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           id?: string
+          image_url?: string | null
           parent_id: string
           parent_type: string
           pinned_at?: string | null
@@ -370,6 +372,7 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           id?: string
+          image_url?: string | null
           parent_id?: string
           parent_type?: string
           pinned_at?: string | null
@@ -1533,6 +1536,7 @@ export type Database = {
           comment_id: string
           created_at: string
           first_reported_at: string
+          image_url: string
           message_deleted: boolean
           reasons: string[]
           report_count: number

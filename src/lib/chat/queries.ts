@@ -20,6 +20,7 @@ export type ChatMessage = {
   pinned_at: string | null;
   reply_to_id: string | null;
   reply: ChatReplyPreview | null;
+  image_url: string | null;
   author: ChatAuthor;
   reactions: ReactionSummary;
 };
@@ -58,7 +59,7 @@ export async function listChatMessages(limit = 80): Promise<ChatMessage[]> {
   const { data, error } = await supabase
     .from("comments")
     .select(
-      "id, user_id, body, created_at, pinned_at, reply_to_id, author:profiles!comments_user_id_fkey(username, display_name, avatar_url, role)",
+      "id, user_id, body, created_at, pinned_at, reply_to_id, image_url, author:profiles!comments_user_id_fkey(username, display_name, avatar_url, role)",
     )
     .eq("parent_type", "global")
     .eq("parent_id", GLOBAL_CHAT_ID)
@@ -103,6 +104,7 @@ export async function listChatMessages(limit = 80): Promise<ChatMessage[]> {
       pinned_at: row.pinned_at,
       reply_to_id: row.reply_to_id,
       reply: row.reply_to_id ? (replyMap.get(row.reply_to_id) ?? null) : null,
+      image_url: row.image_url,
       author: normalizeAuthor(row.author),
       reactions: reactions.get(row.id) ?? empty,
     }))
