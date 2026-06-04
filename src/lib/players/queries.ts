@@ -1,5 +1,6 @@
 import "server-only";
 import { getSupabaseServer } from "@/lib/supabase/server";
+import { computeAge } from "@/lib/players/age";
 
 export type PlayerRow = {
   id: string;
@@ -84,6 +85,89 @@ export async function listPlayersForTeams(
 /** Single team's full roster (for /admin/players). */
 export async function listPlayersByTeam(teamId: string): Promise<PlayerRow[]> {
   return listPlayersForTeams([teamId]);
+}
+
+export type SquadPlayer = {
+  id: string;
+  team_id: string;
+  team_fifa_code: string;
+  team_iso_code: string | null;
+  team_name_fr: string;
+  team_name_en: string;
+  team_confederation: string;
+  name: string;
+  display_name: string;
+  position: "GK" | "DEF" | "MID" | "FWD" | null;
+  shirt_number: number | null;
+  club: string | null;
+  birth_date: string | null;
+  age: number | null;
+};
+
+type TeamEmbed = {
+  fifa_code: string;
+  iso_code: string | null;
+  name_fr: string;
+  name_en: string;
+  confederation: string;
+};
+
+/**
+ * Every active player across all 48 teams, with their team + age, for the
+ * `/teams` browse + search page. Paginated past the PostgREST `max_rows`
+ * cap (~1250 rows > 1000). Returns [] when Supabase isn't configured.
+ */
+export async function listSquadsForBrowse(): Promise<SquadPlayer[]> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return [];
+
+  const supabase = await getSupabaseServer();
+  const PAGE = 1000;
+  const out: SquadPlayer[] = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await supabase
+      .schema("ref")
+      .from("players")
+      .select(
+        `
+        id, team_id, name, display_name, position, shirt_number, club, birth_date,
+        team:teams!players_team_id_fkey(fifa_code, iso_code, name_fr, name_en, confederation)
+      `,
+      )
+      .eq("active", true)
+      .order("team_id")
+      .order("shirt_number", { ascending: true, nullsFirst: false })
+      .order("id")
+      .range(from, from + PAGE - 1);
+
+    if (error || !data) {
+      console.error("[players:listSquadsForBrowse]", error);
+      break;
+    }
+
+    for (const r of data) {
+      const team = pickOne(r.team as TeamEmbed | TeamEmbed[] | null);
+      out.push({
+        id: r.id,
+        team_id: r.team_id,
+        team_fifa_code: team?.fifa_code ?? "",
+        team_iso_code: team?.iso_code ?? null,
+        team_name_fr: team?.name_fr ?? "",
+        team_name_en: team?.name_en ?? "",
+        team_confederation: team?.confederation ?? "",
+        name: r.name,
+        display_name: r.display_name ?? r.name,
+        position: (r.position as SquadPlayer["position"]) ?? null,
+        shirt_number: r.shirt_number,
+        club: r.club ?? null,
+        birth_date: r.birth_date ?? null,
+        age: computeAge(r.birth_date ?? null),
+      });
+    }
+
+    if (data.length < PAGE) break;
+  }
+
+  return out;
 }
 
 function pickOne<T>(v: T | T[] | null | undefined): T | null {

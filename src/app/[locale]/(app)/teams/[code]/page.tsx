@@ -5,6 +5,7 @@ import { getTeamByCode } from "@/data/world-cup-2026";
 import { listMatches } from "@/lib/matches/queries";
 import { getMyPicksByMatch } from "@/lib/bets/my-picks";
 import { getSupabaseServer } from "@/lib/supabase/server";
+import { computeAge } from "@/lib/players/age";
 import { Flag } from "@/components/team/flag";
 import { Reveal } from "@/components/ui/reveal";
 import {
@@ -25,6 +26,7 @@ type RosterPlayer = {
   position: string | null;
   shirt_number: number | null;
   club: string | null;
+  birth_date: string | null;
 };
 
 export default async function TeamPage({
@@ -67,7 +69,7 @@ export default async function TeamPage({
     const { data } = await supabase
       .schema("ref")
       .from("players")
-      .select("id, display_name, name, position, shirt_number, club")
+      .select("id, display_name, name, position, shirt_number, club, birth_date")
       .eq("team_id", teamId)
       .eq("active", true)
       .order("shirt_number", { ascending: true, nullsFirst: false });
@@ -139,24 +141,35 @@ export default async function TeamPage({
 
           {roster.length > 0 ? (
             <ul className="grid gap-2 sm:grid-cols-2">
-              {roster.map((p) => (
-                <li
-                  key={p.id}
-                  className="flex items-center gap-3 rounded-sm border border-white/[0.06] bg-white/[0.035] px-3 py-2"
-                >
-                  <span className="flex size-7 shrink-0 items-center justify-center rounded-[7px] bg-primary-500/10 font-mono text-xs font-bold text-primary-300 ring-1 ring-primary-500/25">
-                    {p.shirt_number ?? "–"}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-semibold text-text-primary">
-                      {p.display_name ?? p.name}
+              {roster.map((p) => {
+                const age = computeAge(p.birth_date);
+                return (
+                  <li
+                    key={p.id}
+                    className="flex items-center gap-3 rounded-sm border border-white/[0.06] bg-white/[0.035] px-3 py-2"
+                  >
+                    <span className="flex size-7 shrink-0 items-center justify-center rounded-[7px] bg-primary-500/10 font-mono text-xs font-bold text-primary-300 ring-1 ring-primary-500/25">
+                      {p.shirt_number ?? "–"}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-semibold text-text-primary">
+                        {p.display_name ?? p.name}
+                      </div>
+                      <div className="truncate text-xs text-text-tertiary">
+                        {[p.position, p.club].filter(Boolean).join(" · ") || "—"}
+                      </div>
                     </div>
-                    <div className="truncate text-xs text-text-tertiary">
-                      {[p.position, p.club].filter(Boolean).join(" · ") || "—"}
-                    </div>
-                  </div>
-                </li>
-              ))}
+                    {age != null && (
+                      <span className="shrink-0 font-mono text-xs tabular-nums text-text-tertiary">
+                        {age}
+                        <span className="ml-0.5 text-[10px]">
+                          {fr ? "ans" : "yrs"}
+                        </span>
+                      </span>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           ) : (
             <ul className="grid gap-2 sm:grid-cols-2">
