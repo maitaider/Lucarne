@@ -146,17 +146,25 @@ function Step({
       </div>
 
       <div className="mb-3 max-w-full px-1 text-center">
-        <Link
-          href={`/u/${entry.username}`}
+        {/* Colour goes on this wrapper, not the <Link>: Tailwind's preflight
+            `a { color: inherit }` overrides a colour utility placed directly on
+            the anchor, so the link must INHERIT a bright colour from its parent
+            (same pattern as the standings table, where usernames render fine). */}
+        <div
           className={cn(
-            "block truncate text-sm transition hover:text-primary-400 hover:underline sm:text-base",
+            "truncate text-sm sm:text-base",
             config.nameColor,
             config.nameWeight,
             NAME_SHADOW,
           )}
         >
-          @{entry.username}
-        </Link>
+          <Link
+            href={`/u/${entry.username}`}
+            className="transition hover:text-primary-400 hover:underline"
+          >
+            @{entry.username}
+          </Link>
+        </div>
         <div
           className={cn(
             "mt-1 font-display tabular-nums",
