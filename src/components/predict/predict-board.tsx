@@ -22,6 +22,7 @@ import {
   type KnockoutWinners,
 } from "@/lib/predictions/resolve-bracket";
 import {
+  clearMyMatchPredictions,
   resetTournamentPrediction,
   upsertTournamentPrediction,
 } from "@/lib/predictions/actions";
@@ -493,9 +494,22 @@ export function PredictBoard({
         return;
       }
       if (scope === "all" || scope === "groups") {
+        // Score-only: the per-match scores ARE the prediction (and drive the
+        // group standings), so wipe those bets too — clearing only the bracket
+        // let the standings recompute from the still-saved scores, so the
+        // button read as a no-op ("toutes les pronos sont encore là").
+        const cleared = await clearMyMatchPredictions();
+        if (!cleared.ok) {
+          toast.error(cleared.message);
+          router.refresh(); // resync — the bracket was already cleared server-side
+          return;
+        }
         setGroups(hydrateGroups({}, groupTeams));
         setKnockouts({});
         setThirdAssign({});
+        setMatchPicks(new Map());
+        setDraftPicks(new Map());
+        setPendingMatchIds(new Set());
       } else {
         const order = ["r32", "r16", "qf", "sf", "third_place", "final"];
         const idx = order.indexOf(scope);
@@ -724,8 +738,8 @@ export function PredictBoard({
                 </div>
                 <p className="mt-0.5 text-xs leading-5 text-text-tertiary">
                   {locale === "fr"
-                    ? "Efface les groupes + phase finale + champion. Les pronos de score par match restent — utilise les boutons par section pour les retoucher."
-                    : "Clears groups + knockouts + champion. Per-match score picks stay — use per-section buttons to tweak them."}
+                    ? "Efface tout : les scores de chaque match (encore modifiables), le classement des groupes, la phase finale et ton champion. Les matchs déjà commencés ou terminés sont conservés. Irréversible."
+                    : "Wipes everything: every match score (still editable), the group standings, the knockouts and your champion. Matches already started or finished are kept. This can't be undone."}
                 </p>
               </div>
               <Button
