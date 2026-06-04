@@ -9,6 +9,7 @@ import {
   deleteChatMessage,
   setChatPin,
   setChatMute,
+  reportChatMessage,
 } from "@/lib/chat/actions";
 import { CHAT_MAX_LEN } from "@/lib/chat/constants";
 import { markChatRead } from "./chat-unread";
@@ -26,6 +27,7 @@ import { MessageBody } from "./message-body";
 import { cn } from "@/lib/utils";
 import {
   ArrowDown,
+  Flag,
   Loader2,
   MicOff,
   Pin,
@@ -74,6 +76,10 @@ const EMOJIS = [
 
 function isAdminRole(role: string): boolean {
   return role === "admin" || role === "super_admin";
+}
+
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\-]/g, "\\$&");
 }
 
 /** Active @mention token ending at the caret, or null. */
@@ -150,6 +156,7 @@ export function ChatRoom({
   const [online, setOnline] = useState<OnlineUser[]>([]);
   const [typers, setTypers] = useState<Record<string, string>>({});
   const [connected, setConnected] = useState(false);
+  const [flashIds, setFlashIds] = useState<Set<string>>(() => new Set());
 
   // Scroll state
   const [atBottom, setAtBottom] = useState(true);
@@ -163,6 +170,10 @@ export function ChatRoom({
   const typingTimeouts = useRef<Map<string, ReturnType<typeof setTimeout>>>(
     new Map(),
   );
+  // Messages present at first render don't animate in; later arrivals do.
+  const [initialIds] = useState<Set<string>>(
+    () => new Set(initialMessages.map((m) => m.id)),
+  );
 
   const amIMuted = mutedIds.has(currentUserId);
   const me = useMemo(
@@ -175,6 +186,14 @@ export function ChatRoom({
   const memberUsernames = useMemo(
     () => new Set(members.map((m) => m.username.toLowerCase())),
     [members],
+  );
+  const membersById = useMemo(
+    () => new Map(members.map((m) => [m.id, m])),
+    [members],
+  );
+  const onlineIds = useMemo(
+    () => new Set(online.map((u) => u.user_id)),
+    [online],
   );
 
   // --- @mention autocomplete ------------------------------------------------
@@ -247,6 +266,17 @@ export function ChatRoom({
       );
     }
 
+    function flash(id: string) {
+      setFlashIds((prev) => new Set(prev).add(id));
+      setTimeout(() => {
+        setFlashIds((prev) => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+      }, 2800);
+    }
+
     const channel = supabase
       .channel("chat:global", {
         config: { presence: { key: currentUserId } },
@@ -271,6 +301,17 @@ export function ChatRoom({
             const reply = parent
               ? { author: parent.author.username, body: parent.body }
               : null;
+            // Flash if this new message mentions or replies to me.
+            if (row.user_id !== currentUserId) {
+              const myName = membersByIdRef.current.get(currentUserId)?.username;
+              const mentionsMe =
+                myName &&
+                new RegExp(`@${escapeRegex(myName)}(?![A-Za-z0-9_-])`, "i").test(
+                  row.body,
+                );
+              const repliesToMe = parent?.user_id === currentUserId;
+              if (mentionsMe || repliesToMe) flash(row.id);
+            }
             return [...prev, rowToMessage(row, reply)];
           });
           if (row.user_id !== currentUserId && !stickRef.current) {
@@ -535,6 +576,15 @@ export function ChatRoom({
     });
   }
 
+  function handleReport(id: string) {
+    startTransition(async () => {
+      const res = await reportChatMessage(id, locale);
+      if (res.ok)
+        toast.success(fr ? "Message signalé aux admins." : "Reported to the admins.");
+      else toast.error(res.message ?? "");
+    });
+  }
+
   function selectMention(member: ChatMember) {
     if (!mention) return;
     const el = textareaRef.current;
@@ -602,23 +652,38 @@ export function ChatRoom({
     [messages],
   );
 
-  const typingNames = Object.entries(typers)
-    .filter(([uid]) => uid !== currentUserId)
-    .map(([, name]) => name);
+  const typingList = Object.keys(typers)
+    .filter((uid) => uid !== currentUserId)
+    .map((uid) => {
+      const mem = membersById.get(uid);
+      return {
+        id: uid,
+        username: typers[uid] ?? mem?.username ?? "?",
+        avatar_url: mem?.avatar_url ?? null,
+      };
+    });
   const remaining = CHAT_MAX_LEN - input.length;
   const onlineCount = online.length;
 
   return (
     <section className="relative flex h-[70vh] min-h-[480px] max-h-[880px] flex-col overflow-hidden rounded-[16px] border border-white/[0.08] bg-surface-1/[0.5] shadow-card backdrop-blur-xl">
+      {/* Animated accent line */}
+      <div className="lk-gradient-pan h-[2px] w-full shrink-0 bg-[linear-gradient(90deg,transparent,rgba(34,217,130,0.55),rgba(124,92,255,0.55),transparent)]" />
+
       {/* Header strip: live status + online presence */}
       <div className="flex shrink-0 items-center justify-between gap-2 border-b border-white/[0.08] bg-abyss/30 px-3 py-2 sm:px-4">
         <span className="flex items-center gap-1.5 text-[11px] font-medium text-text-tertiary">
-          <span
-            className={cn(
-              "size-1.5 rounded-full",
-              connected ? "bg-primary-400 animate-pulse" : "bg-text-tertiary/50",
+          <span className="relative flex size-2">
+            {connected && (
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary-400/70" />
             )}
-          />
+            <span
+              className={cn(
+                "relative inline-flex size-2 rounded-full",
+                connected ? "bg-primary-400" : "bg-text-tertiary/50",
+              )}
+            />
+          </span>
           {connected
             ? fr
               ? "En direct"
@@ -687,17 +752,17 @@ export function ChatRoom({
         className="flex-1 space-y-0.5 overflow-y-auto px-2 py-4 sm:px-3"
       >
         {messages.length === 0 ? (
-          <div className="flex h-full flex-col items-center justify-center gap-2 px-6 text-center">
-            <span className="flex size-12 items-center justify-center rounded-full bg-primary-500/10 text-primary-300 ring-1 ring-primary-500/25">
-              <Send className="size-5" strokeWidth={1.6} />
+          <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
+            <span className="lk-float flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-500/20 to-violet-500/20 text-3xl ring-1 ring-white/[0.1]">
+              ⚽
             </span>
             <p className="text-sm font-medium text-text-secondary">
               {fr ? "Le Salon est tout neuf" : "The Lounge is brand new"}
             </p>
             <p className="max-w-xs text-xs text-text-tertiary">
               {fr
-                ? "Lance la discussion : un pronostic osé, une vanne, un débat d'avant-match ⚽"
-                : "Start it off: a bold prediction, some banter, a pre-match debate ⚽"}
+                ? "Lance la discussion : un pronostic osé, une vanne, un débat d'avant-match."
+                : "Start it off: a bold prediction, some banter, a pre-match debate."}
             </p>
           </div>
         ) : (
@@ -717,12 +782,10 @@ export function ChatRoom({
               return (
                 <div key={m.id}>
                   {newDay && (
-                    <div className="my-3 flex items-center gap-3 px-2">
-                      <span className="h-px flex-1 bg-white/[0.07]" />
-                      <span className="rounded-full bg-white/[0.05] px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-text-tertiary">
+                    <div className="sticky top-0 z-10 my-3 flex items-center justify-center">
+                      <span className="rounded-full border border-white/[0.08] bg-abyss/85 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-text-tertiary shadow-sm backdrop-blur">
                         {formatDay(m.created_at, locale)}
                       </span>
-                      <span className="h-px flex-1 bg-white/[0.07]" />
                     </div>
                   )}
                   <MessageRow
@@ -731,12 +794,17 @@ export function ChatRoom({
                     isMine={m.user_id === currentUserId}
                     isAdmin={isAdmin}
                     isAuthorMuted={mutedIds.has(m.user_id)}
+                    isOnline={onlineIds.has(m.user_id)}
+                    animateIn={!initialIds.has(m.id)}
+                    flashing={flashIds.has(m.id)}
+                    myUsername={me?.username ?? null}
                     memberUsernames={memberUsernames}
                     locale={locale}
                     onReply={startReply}
                     onDelete={handleDelete}
                     onPin={handlePin}
                     onMute={handleMute}
+                    onReport={handleReport}
                   />
                 </div>
               );
@@ -750,7 +818,7 @@ export function ChatRoom({
         <button
           type="button"
           onClick={scrollToBottom}
-          className="absolute bottom-28 right-4 z-10 flex items-center gap-1.5 rounded-full border border-white/[0.12] bg-abyss/90 px-3 py-1.5 text-xs font-semibold text-text-primary shadow-lg backdrop-blur transition hover:border-primary-500/40 hover:text-primary-300"
+          className="lk-pop absolute bottom-28 right-4 z-10 flex items-center gap-1.5 rounded-full border border-white/[0.12] bg-abyss/90 px-3 py-1.5 text-xs font-semibold text-text-primary shadow-lg backdrop-blur transition hover:border-primary-500/40 hover:text-primary-300"
         >
           {unseen > 0 && (
             <span className="flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-primary-500 px-1 font-mono text-[9px] font-bold text-abyss">
@@ -769,21 +837,28 @@ export function ChatRoom({
       )}
 
       {/* Typing indicator */}
-      {typingNames.length > 0 && (
-        <div className="shrink-0 px-4 pb-1 pt-0.5 text-[11px] italic text-text-tertiary">
-          <span className="inline-flex items-center gap-1">
-            <TypingDots />
-            {typingNames.length === 1
+      {typingList.length > 0 && (
+        <div className="flex shrink-0 items-center gap-2 px-4 pb-1 pt-0.5 text-[11px] italic text-text-tertiary">
+          <div className="flex -space-x-1.5">
+            {typingList.slice(0, 3).map((t) => (
+              <UserAvatar
+                key={t.id}
+                src={t.avatar_url}
+                name={t.username}
+                className="size-5 ring-2 ring-surface-1"
+                fallbackClassName="bg-gradient-to-br from-primary-500/40 to-violet-500/40 text-[8px] font-bold text-text-primary"
+              />
+            ))}
+          </div>
+          <TypingDots />
+          <span>
+            {typingList.length === 1
               ? fr
-                ? `${typingNames[0]} écrit…`
-                : `${typingNames[0]} is typing…`
-              : typingNames.length === 2
-                ? fr
-                  ? `${typingNames[0]} et ${typingNames[1]} écrivent…`
-                  : `${typingNames[0]} and ${typingNames[1]} are typing…`
-                : fr
-                  ? "Plusieurs personnes écrivent…"
-                  : "Several people are typing…"}
+                ? `${typingList[0].username} écrit…`
+                : `${typingList[0].username} is typing…`
+              : fr
+                ? "plusieurs personnes écrivent…"
+                : "several people are typing…"}
           </span>
         </div>
       )}
@@ -870,7 +945,7 @@ export function ChatRoom({
                       ev.preventDefault();
                       insertAtCaret(e);
                     }}
-                    className="flex size-7 items-center justify-center rounded-md text-base transition hover:bg-white/[0.08]"
+                    className="flex size-7 items-center justify-center rounded-md text-base transition hover:scale-110 hover:bg-white/[0.08]"
                   >
                     {e}
                   </button>
@@ -884,11 +959,11 @@ export function ChatRoom({
                 onClick={() => setEmojiOpen((v) => !v)}
                 aria-label={fr ? "Emojis" : "Emojis"}
                 className={cn(
-                  "flex size-9 shrink-0 items-center justify-center rounded-[10px] text-text-tertiary transition hover:bg-white/[0.06] hover:text-text-secondary",
+                  "flex size-9 shrink-0 items-center justify-center rounded-[10px] text-text-tertiary transition hover:bg-white/[0.06] hover:text-primary-300",
                   emojiOpen && "bg-white/[0.06] text-primary-300",
                 )}
               >
-                <Smile className="size-4.5 size-5" strokeWidth={1.7} />
+                <Smile className="size-5" strokeWidth={1.7} />
               </button>
               <textarea
                 ref={textareaRef}
@@ -928,7 +1003,7 @@ export function ChatRoom({
                   disabled={isPending || input.trim().length === 0}
                   aria-label={fr ? "Envoyer" : "Send"}
                   className={cn(
-                    "inline-flex size-9 shrink-0 items-center justify-center rounded-[10px] transition",
+                    "inline-flex size-9 shrink-0 items-center justify-center rounded-[10px] transition active:scale-95",
                     input.trim().length > 0 && !isPending
                       ? "bg-primary-500 text-abyss hover:bg-primary-400"
                       : "bg-white/[0.06] text-text-tertiary",
@@ -965,24 +1040,34 @@ function MessageRow({
   isMine,
   isAdmin,
   isAuthorMuted,
+  isOnline,
+  animateIn,
+  flashing,
+  myUsername,
   memberUsernames,
   locale,
   onReply,
   onDelete,
   onPin,
   onMute,
+  onReport,
 }: {
   message: ChatMessage;
   grouped: boolean;
   isMine: boolean;
   isAdmin: boolean;
   isAuthorMuted: boolean;
+  isOnline: boolean;
+  animateIn: boolean;
+  flashing: boolean;
+  myUsername: string | null;
   memberUsernames: Set<string>;
   locale: Locale;
   onReply: (m: ChatMessage) => void;
   onDelete: (id: string) => void;
   onPin: (id: string, pinned: boolean) => void;
   onMute: (userId: string, mute: boolean, username: string) => void;
+  onReport: (id: string) => void;
 }) {
   const fr = locale === "fr";
   const name = m.author.display_name ?? `@${m.author.username}`;
@@ -995,17 +1080,25 @@ function MessageRow({
         grouped ? "py-0.5" : "mt-2 pt-1.5 first:mt-0",
         m.pinned_at && "bg-gold-500/[0.05]",
         isMine && !m.pinned_at && "bg-primary-500/[0.04]",
+        animateIn && "lk-msg-in",
+        flashing && "lk-mention-flash",
       )}
     >
       <div className="w-8 shrink-0">
         {!grouped && (
-          <Link href={`/u/${m.author.username}`}>
+          <Link href={`/u/${m.author.username}`} className="relative block">
             <UserAvatar
               src={m.author.avatar_url}
               name={name}
               className="size-8 ring-1 ring-white/[0.1]"
               fallbackClassName="bg-gradient-to-br from-primary-500/30 to-violet-500/30 font-mono text-[11px] font-bold text-text-primary"
             />
+            {isOnline && (
+              <span className="absolute -bottom-0.5 -right-0.5 flex size-2.5">
+                <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary-400/70" />
+                <span className="relative inline-flex size-2.5 rounded-full bg-primary-400 ring-2 ring-surface-1" />
+              </span>
+            )}
           </Link>
         )}
       </div>
@@ -1058,7 +1151,12 @@ function MessageRow({
           </div>
         )}
 
-        <MessageBody body={m.body} memberUsernames={memberUsernames} locale={locale} />
+        <MessageBody
+          body={m.body}
+          memberUsernames={memberUsernames}
+          locale={locale}
+          highlightUsername={myUsername}
+        />
 
         <div className="mt-0.5">
           <MessageReactions messageId={m.id} initial={m.reactions} />
@@ -1074,6 +1172,16 @@ function MessageRow({
         >
           <Reply className="size-3.5" strokeWidth={1.7} />
         </button>
+        {!isMine && (
+          <button
+            type="button"
+            onClick={() => onReport(m.id)}
+            aria-label={fr ? "Signaler" : "Report"}
+            className="flex size-6 items-center justify-center text-text-tertiary transition hover:text-warning"
+          >
+            <Flag className="size-3.5" strokeWidth={1.7} />
+          </button>
+        )}
         {isAdmin && (
           <button
             type="button"
@@ -1093,13 +1201,7 @@ function MessageRow({
             type="button"
             onClick={() => onMute(m.user_id, !isAuthorMuted, m.author.username)}
             aria-label={
-              isAuthorMuted
-                ? fr
-                  ? "Réactiver"
-                  : "Unmute"
-                : fr
-                  ? "Rendre muet"
-                  : "Mute"
+              isAuthorMuted ? (fr ? "Réactiver" : "Unmute") : fr ? "Rendre muet" : "Mute"
             }
             className={cn(
               "flex size-6 items-center justify-center text-text-tertiary transition",

@@ -3,6 +3,7 @@
 import { Fragment } from "react";
 import { Link } from "@/i18n/navigation";
 import { BarChart3 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
 
 /** Strict UUID, used to pull a betId out of a pasted share link. */
@@ -26,11 +27,14 @@ export function MessageBody({
   body,
   memberUsernames,
   locale,
+  highlightUsername,
 }: {
   body: string;
   /** Lowercased set of known usernames (only these become mention links). */
   memberUsernames: Set<string>;
   locale: Locale;
+  /** When a mention matches this username, render it as a "you" highlight. */
+  highlightUsername?: string | null;
 }) {
   const nodes: React.ReactNode[] = [];
   const re = new RegExp(TOKEN_RE);
@@ -58,11 +62,19 @@ export function MessageBody({
     } else if (token.startsWith("@")) {
       const uname = token.slice(1);
       if (memberUsernames.has(uname.toLowerCase())) {
+        const isMe =
+          !!highlightUsername &&
+          uname.toLowerCase() === highlightUsername.toLowerCase();
         nodes.push(
           <Link
             key={key++}
             href={`/u/${uname}`}
-            className="font-semibold text-primary-300 transition hover:underline"
+            className={cn(
+              "font-semibold transition hover:underline",
+              isMe
+                ? "rounded bg-primary-500/20 px-1 text-primary-100 ring-1 ring-primary-500/30"
+                : "text-primary-300",
+            )}
           >
             {token}
           </Link>,

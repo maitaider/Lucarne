@@ -159,3 +159,55 @@ export async function setChatMute(
   }
   return { ok: true };
 }
+
+/**
+ * Reports a salon message for moderation (any signed-in member). Idempotent —
+ * a second report by the same person on the same message is a no-op.
+ */
+export async function reportChatMessage(
+  commentId: string,
+  locale: Locale = "fr",
+  reason?: string | null,
+): Promise<ActionResult> {
+  const fr = locale !== "en";
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    return { ok: false, message: fr ? "Supabase non configuré" : "Supabase not configured" };
+  }
+  const supabase = await getSupabaseServer();
+  const { error } = await supabase.rpc("report_chat_message", {
+    p_comment_id: commentId,
+    p_reason: reason ?? undefined,
+  });
+  if (error) {
+    if (error.message?.includes("not_authenticated")) {
+      return { ok: false, message: fr ? "Connexion requise" : "Sign in required" };
+    }
+    return { ok: false, message: error.message };
+  }
+  return { ok: true };
+}
+
+/**
+ * Resolves (clears) every open report on a salon message (admin only — enforced
+ * inside the `admin_resolve_chat_report` SECURITY DEFINER RPC).
+ */
+export async function resolveChatReport(
+  commentId: string,
+  locale: Locale = "fr",
+): Promise<ActionResult> {
+  const fr = locale !== "en";
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    return { ok: false, message: fr ? "Supabase non configuré" : "Supabase not configured" };
+  }
+  const supabase = await getSupabaseServer();
+  const { error } = await supabase.rpc("admin_resolve_chat_report", {
+    p_comment_id: commentId,
+  });
+  if (error) {
+    if (error.message?.includes("not_authorized")) {
+      return { ok: false, message: fr ? "Réservé aux admins." : "Admins only." };
+    }
+    return { ok: false, message: error.message };
+  }
+  return { ok: true };
+}
