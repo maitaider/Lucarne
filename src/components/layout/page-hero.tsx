@@ -119,7 +119,7 @@ export function PageHero({
             )}
             {kicker}
           </div>
-          <h1 className="font-display text-3xl font-semibold leading-tight text-text-primary sm:text-4xl">
+          <h1 className="font-display text-3xl font-semibold leading-tight break-words text-text-primary sm:text-4xl">
             {title}
           </h1>
           {description && (

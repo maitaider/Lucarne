@@ -69,8 +69,8 @@ export default async function LeagueDetailPage({
             : locale === "fr" ? "Ligue publique" : "Public league"}
         </div>
         <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="font-display text-3xl font-semibold text-text-primary sm:text-4xl">
+          <div className="min-w-0">
+            <h1 className="font-display text-3xl font-semibold break-words text-text-primary sm:text-4xl">
               {league.name}
             </h1>
             {league.description && (
@@ -78,7 +78,7 @@ export default async function LeagueDetailPage({
             )}
           </div>
           {isOwner && (
-            <div className="flex gap-2">
+            <div className="flex shrink-0 gap-2">
               <Link
                 href={`/leagues/${slug}/invite`}
                 className="inline-flex items-center gap-1.5 rounded-sm bg-primary-500/15 px-3 py-1.5 text-xs font-semibold text-primary-400 ring-1 ring-primary-500/20 transition hover:bg-primary-500/25"

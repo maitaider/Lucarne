@@ -108,7 +108,7 @@ export default async function MatchDetailPage({
   });
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-8 lg:px-8">
+    <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
       <LiveRefresh intervalMs={30000} />
       <Link
         href="/matches"
