@@ -2,7 +2,7 @@ import { setRequestLocale } from "next-intl/server";
 import { redirect } from "@/i18n/navigation";
 import { MessagesSquare } from "lucide-react";
 import { getCurrentUser, isAdminRole } from "@/lib/profile/queries";
-import { listChatMessages, listChatMembers } from "@/lib/chat/queries";
+import { listChatMessages, listChatMembers, listChatMutes } from "@/lib/chat/queries";
 import { ChatRoom } from "@/components/chat/chat-room";
 import { AppPageShell } from "@/components/layout/app-page-shell";
 import { PageHero } from "@/components/layout/page-hero";
@@ -23,9 +23,10 @@ export default async function ChatPage({
     return null;
   }
 
-  const [messages, members] = await Promise.all([
+  const [messages, members, mutes] = await Promise.all([
     listChatMessages(),
     listChatMembers(),
+    listChatMutes(),
   ]);
 
   return (
@@ -45,6 +46,7 @@ export default async function ChatPage({
       <ChatRoom
         initialMessages={messages}
         members={members}
+        initialMutes={mutes}
         currentUserId={user.id}
         isAdmin={isAdminRole(user.role)}
         locale={L}

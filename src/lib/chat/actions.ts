@@ -12,6 +12,7 @@ export type PostedChatMessage = {
   user_id: string;
   body: string;
   created_at: string;
+  reply_to_id: string | null;
 };
 
 type ActionResult<T = undefined> =
@@ -27,6 +28,7 @@ type ActionResult<T = undefined> =
 export async function postChatMessage(
   body: string,
   locale: Locale = "fr",
+  replyToId?: string | null,
 ): Promise<ActionResult<PostedChatMessage>> {
   const fr = locale !== "en";
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
@@ -53,11 +55,20 @@ export async function postChatMessage(
       parent_type: "global",
       parent_id: GLOBAL_CHAT_ID,
       body: parsed.data,
+      reply_to_id: replyToId ?? null,
     })
-    .select("id, user_id, body, created_at")
+    .select("id, user_id, body, created_at, reply_to_id")
     .single();
 
   if (error || !data) {
+    if (error?.message?.includes("chat_muted")) {
+      return {
+        ok: false,
+        message: fr
+          ? "Un admin t'a rendu muet dans le Salon."
+          : "An admin has muted you in the Lounge.",
+      };
+    }
     if (error?.message?.includes("chat_rate_limited")) {
       return {
         ok: false,
@@ -111,6 +122,34 @@ export async function setChatPin(
   const { error } = await supabase.rpc("admin_set_comment_pin", {
     p_comment_id: commentId,
     p_pinned: pinned,
+  });
+  if (error) {
+    if (error.message?.includes("not_authorized")) {
+      return { ok: false, message: fr ? "Réservé aux admins." : "Admins only." };
+    }
+    return { ok: false, message: error.message };
+  }
+  return { ok: true };
+}
+
+/**
+ * Mutes / unmutes a member in the salon (admin only — enforced inside the
+ * `admin_set_chat_mute` SECURITY DEFINER RPC). A muted member can't post until
+ * an admin reactivates them.
+ */
+export async function setChatMute(
+  userId: string,
+  muted: boolean,
+  locale: Locale = "fr",
+): Promise<ActionResult> {
+  const fr = locale !== "en";
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    return { ok: false, message: fr ? "Supabase non configuré" : "Supabase not configured" };
+  }
+  const supabase = await getSupabaseServer();
+  const { error } = await supabase.rpc("admin_set_chat_mute", {
+    p_user_id: userId,
+    p_muted: muted,
   });
   if (error) {
     if (error.message?.includes("not_authorized")) {

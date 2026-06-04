@@ -193,6 +193,73 @@ export type Database = {
           },
         ]
       }
+      chat_mutes: {
+        Row: {
+          created_at: string
+          muted_by: string | null
+          reason: string | null
+          until: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          muted_by?: string | null
+          reason?: string | null
+          until?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          muted_by?: string | null
+          reason?: string | null
+          until?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_mutes_muted_by_fkey"
+            columns: ["muted_by"]
+            isOneToOne: false
+            referencedRelation: "mv_global_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "chat_mutes_muted_by_fkey"
+            columns: ["muted_by"]
+            isOneToOne: false
+            referencedRelation: "mv_league_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "chat_mutes_muted_by_fkey"
+            columns: ["muted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_mutes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "mv_global_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "chat_mutes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "mv_league_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "chat_mutes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comments: {
         Row: {
           body: string
@@ -203,6 +270,7 @@ export type Database = {
           parent_type: string
           pinned_at: string | null
           pinned_by: string | null
+          reply_to_id: string | null
           user_id: string
         }
         Insert: {
@@ -214,6 +282,7 @@ export type Database = {
           parent_type: string
           pinned_at?: string | null
           pinned_by?: string | null
+          reply_to_id?: string | null
           user_id: string
         }
         Update: {
@@ -225,6 +294,7 @@ export type Database = {
           parent_type?: string
           pinned_at?: string | null
           pinned_by?: string | null
+          reply_to_id?: string | null
           user_id?: string
         }
         Relationships: [
@@ -247,6 +317,13 @@ export type Database = {
             columns: ["pinned_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
             referencedColumns: ["id"]
           },
           {
@@ -1372,6 +1449,15 @@ export type Database = {
         Returns: undefined
       }
       admin_restore_user: { Args: { p_user_id: string }; Returns: undefined }
+      admin_set_chat_mute: {
+        Args: {
+          p_muted: boolean
+          p_reason?: string
+          p_until?: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       admin_set_comment_pin: {
         Args: { p_comment_id: string; p_pinned: boolean }
         Returns: undefined
