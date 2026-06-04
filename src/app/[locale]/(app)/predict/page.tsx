@@ -144,8 +144,8 @@ export default async function PredictPage({
         }
         description={
           L === "fr"
-            ? "Phase de groupes : classe les équipes et parie sur chaque match. Phase finale : bâtis ton arbre jusqu'au champion. Tout sur une page, sauvegardé tout seul."
-            : "Group phase: rank the teams and pick every match. Knockouts: build your bracket all the way to the champion. One page, auto-saved."
+            ? "Phase de groupes : pronostique chaque match puis confirme ton pronostic. Phase finale : bâtis ton arbre jusqu'au champion. Tout sur une page."
+            : "Group phase: predict every match, then confirm your prediction. Knockouts: build your bracket all the way to the champion. One page."
         }
         stats={
           <>

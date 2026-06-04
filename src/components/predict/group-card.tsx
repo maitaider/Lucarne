@@ -7,14 +7,22 @@ import { computeGroupOrder } from "@/lib/predictions/group-order";
 import { ListChecks } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
-import type { MatchPick, TeamLite } from "./predict-board";
+import {
+  matchDraftStatus,
+  type ConfirmMatchFn,
+  type EditDraftFn,
+  type MatchPick,
+  type TeamLite,
+} from "./predict-board";
 
 /**
  * One group's card. "Predict the matches" model:
- *   1. A live standings strip (computed from the predicted results) — the
+ *   1. A standings strip computed from the CONFIRMED results only — the
  *      top 2 qualify, the 3rd goes to the repechage pool.
- *   2. The 6 group fixtures, each with a [1][N][2] result toggle (+ goals
- *      and scorers). Tapping results re-ranks the table above in real time.
+ *   2. The 6 group fixtures, each with a scoreline stepper. Edits stay a
+ *      local draft; clicking "Confirmer" on a row persists it and re-ranks
+ *      the table above. Unconfirmed drafts never move the standings (so the
+ *      table always mirrors what is saved).
  */
 export function GroupCard({
   label,
@@ -22,10 +30,13 @@ export function GroupCard({
   allTeams,
   matches,
   matchPicks,
+  draftPicks,
+  pendingMatchIds,
   teamById,
   canEdit,
   canBet,
-  onSavePerMatch,
+  onEditDraft,
+  onConfirmMatch,
   locale,
 }: {
   label: string;
@@ -33,15 +44,16 @@ export function GroupCard({
   teams: string[];
   allTeams: TeamLite[];
   matches: MatchListItem[];
+  /** Confirmed picks — feed the standings strip below. */
   matchPicks: Map<string, MatchPick>;
+  /** Local unsaved drafts — shown in each row, but NOT in the standings. */
+  draftPicks: Map<string, MatchPick>;
+  pendingMatchIds: Set<string>;
   teamById: Map<string, TeamLite>;
   canEdit: boolean;
   canBet: boolean;
-  onSavePerMatch: (
-    matchId: string,
-    update: (prev: MatchPick) => MatchPick,
-    bet: { kind: "score"; home: number; away: number },
-  ) => void;
+  onEditDraft: EditDraftFn;
+  onConfirmMatch: ConfirmMatchFn;
   locale: Locale;
 }) {
   const fr = locale === "fr";
@@ -155,27 +167,29 @@ export function GroupCard({
           {fr ? "Tape le résultat de chaque match" : "Tap each match result"}
         </div>
         <ul className="divide-y divide-white/[0.05] border-t border-white/[0.06]">
-          {matches.map((m) => (
-            <PerMatchPicker
-              key={m.id}
-              match={m}
-              pick={
-                matchPicks.get(m.id) ?? {
-                  home_goals: null,
-                  away_goals: null,
+          {matches.map((m) => {
+            const status = matchDraftStatus(m.id, matchPicks, draftPicks);
+            return (
+              <PerMatchPicker
+                key={m.id}
+                match={m}
+                pick={status.effective}
+                dirty={status.dirty}
+                confirmed={status.confirmed}
+                pending={pendingMatchIds.has(m.id)}
+                canEdit={canBet && canEdit}
+                onScore={(home, away) =>
+                  onEditDraft(m.id, (prev) => ({
+                    ...prev,
+                    home_goals: home,
+                    away_goals: away,
+                  }))
                 }
-              }
-              canEdit={canBet && canEdit}
-              onScore={(home, away) =>
-                onSavePerMatch(
-                  m.id,
-                  (prev) => ({ ...prev, home_goals: home, away_goals: away }),
-                  { kind: "score", home, away },
-                )
-              }
-              locale={locale}
-            />
-          ))}
+                onConfirm={() => onConfirmMatch(m.id)}
+                locale={locale}
+              />
+            );
+          })}
         </ul>
       </div>
     </div>
