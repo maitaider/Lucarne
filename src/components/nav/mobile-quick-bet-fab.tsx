@@ -1,6 +1,6 @@
 "use client";
 
-import { Link } from "@/i18n/navigation";
+import { Link, usePathname } from "@/i18n/navigation";
 import { type QuickBetMatch } from "@/components/bet/quick-bet-provider";
 import { Zap } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
@@ -16,7 +16,11 @@ export function MobileQuickBetFab({
   locale: Locale;
   nextMatch: QuickBetMatch | null;
 }) {
+  const pathname = usePathname();
   if (!nextMatch) return null;
+  // Hide on the chat route: the FAB sits bottom-right, over the chat composer's
+  // send button. (And on /predict it's redundant — that's where it links.)
+  if (pathname === "/chat" || pathname === "/predict") return null;
 
   return (
     <Link
