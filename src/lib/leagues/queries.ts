@@ -1,6 +1,27 @@
 import "server-only";
 import { getSupabaseServer } from "@/lib/supabase/server";
 
+/**
+ * A `league_members` row's embedded `profiles` join is non-null only for an
+ * active member: `profiles_select_all` RLS is `using (deleted_at is null)`, so
+ * an archived (soft-deleted) user's profile is hidden → the embed comes back
+ * null. We also defend against an env that exposes `deleted_at`. This mirrors
+ * the standings (`mv_league_standings` INNER JOINs `profiles … deleted_at is
+ * null`) so member counts and the leaderboard agree.
+ */
+function isActiveMemberEmbed(m: { profile: unknown }): boolean {
+  const raw = m.profile;
+  const p = (Array.isArray(raw) ? raw[0] : raw) as
+    | { deleted_at?: string | null }
+    | null
+    | undefined;
+  return !!p && (p.deleted_at ?? null) === null;
+}
+
+function countActiveMembers(members: { profile: unknown }[]): number {
+  return members.filter(isActiveMemberEmbed).length;
+}
+
 type StandingRow = {
   user_id: string | null;
   username: string | null;
@@ -76,7 +97,7 @@ export async function listMyLeagues(): Promise<LeagueListItem[]> {
     .select(
       `
       id, name, slug, description, visibility, owner_id, member_limit, allows_real_money,
-      members:league_members(count)
+      members:league_members(user_id, profile:profiles(id, deleted_at))
     `,
     )
     .order("created_at", { ascending: false });
@@ -95,7 +116,10 @@ export async function listMyLeagues(): Promise<LeagueListItem[]> {
     owner_id: l.owner_id,
     member_limit: l.member_limit,
     allows_real_money: l.allows_real_money,
-    member_count: l.members[0]?.count ?? 0,
+    // Count only members with an active (non-archived) profile — matches the
+    // standings, which INNER JOIN `profiles … deleted_at is null`. A soft-deleted
+    // (archived) user keeps their league_members row but must not be counted.
+    member_count: countActiveMembers(l.members),
   }));
 }
 
@@ -116,7 +140,9 @@ export async function getLeagueBySlug(slug: string): Promise<LeagueWithMembers |
   const supabase = await getSupabaseServer();
   const { data } = await supabase
     .from("leagues")
-    .select("*, members:league_members(user_id, role, joined_at, status)")
+    .select(
+      "*, members:league_members(user_id, role, joined_at, status, profile:profiles(id, deleted_at))",
+    )
     .eq("slug", slug)
     .maybeSingle();
   if (!data) return null;
@@ -129,7 +155,9 @@ export async function getLeagueBySlug(slug: string): Promise<LeagueWithMembers |
     owner_id: data.owner_id,
     member_limit: data.member_limit,
     allows_real_money: data.allows_real_money,
-    members: data.members.map((m) => ({
+    // Drop archived (soft-deleted) members so the count + roster match the
+    // standings — an archived user keeps their row but is no longer a member.
+    members: data.members.filter(isActiveMemberEmbed).map((m) => ({
       user_id: m.user_id,
       role: m.role,
       joined_at: m.joined_at,
