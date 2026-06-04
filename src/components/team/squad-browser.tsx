@@ -190,7 +190,7 @@ function PlayerRow({ player: p, fr }: { player: BrowsePlayer; fr: boolean }) {
   return (
     <li>
       <Link
-        href={`/teams/${p.team_fifa_code}`}
+        href={`/players/${p.id}`}
         className="flex items-center gap-3 rounded-sm border border-white/[0.06] bg-white/[0.035] px-3 py-2 transition hover:border-primary-500/40 hover:bg-white/[0.06]"
       >
         <span className="flex size-7 shrink-0 items-center justify-center rounded-[7px] bg-primary-500/10 font-mono text-xs font-bold text-primary-300 ring-1 ring-primary-500/25">
