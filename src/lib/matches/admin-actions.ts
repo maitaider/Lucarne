@@ -19,6 +19,10 @@ const resultSchema = z.object({
   awayScore: z.number().int().min(0).max(99).nullable(),
   status: z.enum(["scheduled", "live", "finished", "postponed", "cancelled"]),
   scorers: z.array(scorerSchema).max(40).default([]),
+  // Penalty shootout result — only meaningful for a level knockout tie. The
+  // RPC uses it to set winner_team_id when regulation/extra-time is even.
+  homePen: z.number().int().min(0).max(50).nullable().optional(),
+  awayPen: z.number().int().min(0).max(50).nullable().optional(),
 });
 
 export type SetMatchResultInput = z.input<typeof resultSchema>;
@@ -36,7 +40,8 @@ export async function setMatchResultAction(
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalide" };
   }
-  const { matchId, homeScore, awayScore, status, scorers } = parsed.data;
+  const { matchId, homeScore, awayScore, status, scorers, homePen, awayPen } =
+    parsed.data;
 
   const supabase = await getSupabaseServer();
   const { error } = await supabase.rpc("admin_set_match_result", {
@@ -45,6 +50,8 @@ export async function setMatchResultAction(
     p_away_score: awayScore ?? undefined,
     p_status: status,
     p_scorers: scorers,
+    p_home_pen: homePen ?? undefined,
+    p_away_pen: awayPen ?? undefined,
   });
   if (error) return { ok: false, error: error.message };
 

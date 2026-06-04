@@ -139,7 +139,8 @@ export const POINTS_SCHEME = {
   first_scorer: 8,
 } as const;
 
-/** Returns the maximum points a bet type can yield (for the "+N points" hint). */
+/** Returns the maximum points a bet type can yield (for the "+N points" hint).
+ *  Score-only scoring: only winner / total goals / exact score award points. */
 export function maxPointsFor(betType: string): number {
   switch (betType) {
     case "match_winner":
@@ -148,10 +149,6 @@ export function maxPointsFor(betType: string): number {
       return POINTS_SCHEME.total_goals_exact;
     case "exact_score":
       return POINTS_SCHEME.exact_score;
-    case "anytime_scorer":
-      return POINTS_SCHEME.anytime_scorer_each * 4;
-    case "first_scorer":
-      return POINTS_SCHEME.first_scorer;
     default:
       return 0;
   }
@@ -162,15 +159,4 @@ export const betMultipliers: Record<string, number> = {
   match_winner: POINTS_SCHEME.match_winner,
   exact_score: POINTS_SCHEME.exact_score,
   total_goals: POINTS_SCHEME.total_goals_exact,
-  first_scorer: POINTS_SCHEME.first_scorer,
-  anytime_scorer: POINTS_SCHEME.anytime_scorer_each,
-  both_teams_score: 2,
-  over_under: 2,
-  tournament_winner: 20,
-  top_scorer: 15,
 };
-
-/** @deprecated — paris en points only. Use maxPointsFor() to display "+N pts". */
-export function estimatePayout(betType: string, _stake: number): number {
-  return maxPointsFor(betType);
-}

@@ -1,12 +1,7 @@
 import { setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Link } from "@/i18n/navigation";
-import {
-  getMatchById,
-  getMatchEvents,
-  type MatchListItem,
-  type MatchEvent,
-} from "@/lib/matches/queries";
+import { getMatchById, type MatchListItem } from "@/lib/matches/queries";
 import { getMyPicksByMatch } from "@/lib/bets/my-picks";
 import { OthersPredictions } from "@/components/match/others-predictions";
 import { listPlayersForTeams, type PlayerRow } from "@/lib/players/queries";
@@ -26,8 +21,6 @@ import {
   MessageCircle,
   Pencil,
   Target,
-  Users,
-  Goal,
 } from "lucide-react";
 import { CommentThread } from "@/components/social/comment-thread";
 import { listComments } from "@/lib/social/queries";
@@ -55,7 +48,7 @@ export default async function MatchDetailPage({
   const teamIds = [match.home_team?.id, match.away_team?.id].filter(
     (id): id is string => Boolean(id),
   );
-  const [comments, myPicks, currentUserId, events, roster, groupTables] =
+  const [comments, myPicks, currentUserId, roster, groupTables] =
     await Promise.all([
       listComments("match", matchId, 50),
       getMyPicksByMatch(),
@@ -67,16 +60,12 @@ export default async function MatchDetailPage({
         } = await supabase.auth.getUser();
         return user?.id ?? null;
       })(),
-      getMatchEvents(matchId),
       listPlayersForTeams(teamIds),
       match.stage === "group"
         ? getGroupStandings()
         : Promise.resolve([] as GroupTable[]),
     ]);
 
-  const goals = events.filter((e) =>
-    ["goal", "own_goal", "penalty_goal"].includes(e.event_type),
-  );
   const groupTable =
     match.stage === "group" && match.group_label
       ? (groupTables.find((g) => g.group_label === match.group_label) ?? null)
@@ -88,9 +77,6 @@ export default async function MatchDetailPage({
   const picks = myPicks.get(matchId) ?? [];
   const scorePick = picks.find((p) => p.bet_type === "exact_score");
   const score = parseScore(scorePick?.payload);
-  const scorers = parseScorers(
-    picks.find((p) => p.bet_type === "anytime_scorer")?.payload,
-  );
   const hasPrediction = score !== null;
 
   const kickoff = new Date(match.kickoff_at);
@@ -185,7 +171,6 @@ export default async function MatchDetailPage({
           homeTeam={match.home_team}
           awayTeam={match.away_team}
           score={score}
-          scorers={scorers}
           locked={locked}
           editHref={editHref}
           shareBetId={scorePick?.bet_id ?? null}
@@ -198,19 +183,6 @@ export default async function MatchDetailPage({
       <Reveal className="mt-6" delayMs={40}>
         <OthersPredictions matchId={matchId} kickedOff={kickedOff} locale={L} />
       </Reveal>
-
-      {/* ── Goal timeline ──────────────────────────────────────────────── */}
-      {goals.length > 0 && (
-        <Reveal className="mt-6" delayMs={60}>
-          <GoalTimeline
-            goals={goals}
-            homeId={match.home_team?.id ?? null}
-            homeIso={match.home_team?.iso_code ?? null}
-            awayIso={match.away_team?.iso_code ?? null}
-            locale={L}
-          />
-        </Reveal>
-      )}
 
       {/* ── Group standings (live) ─────────────────────────────────────── */}
       {groupTable && (
@@ -415,7 +387,6 @@ function MyPredictionPanel({
   homeTeam,
   awayTeam,
   score,
-  scorers,
   locked,
   editHref,
   shareBetId,
@@ -427,7 +398,6 @@ function MyPredictionPanel({
   homeTeam: MatchListItem["home_team"];
   awayTeam: MatchListItem["away_team"];
   score: { home: number; away: number } | null;
-  scorers: string[];
   locked: boolean;
   editHref: string;
   shareBetId: string | null;
@@ -475,24 +445,6 @@ function MyPredictionPanel({
                 <Flag isoCode={awayTeam?.iso_code ?? null} size="md" />
               </div>
             </div>
-
-            {/* Scorers */}
-            {scorers.length > 0 && (
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-text-tertiary">
-                  <Users className="size-3 text-violet-300" strokeWidth={2} />
-                  {fr ? "Buteurs" : "Scorers"}
-                </span>
-                {scorers.map((name) => (
-                  <span
-                    key={name}
-                    className="rounded-full bg-violet-500/12 px-2.5 py-1 text-xs font-semibold text-violet-200 ring-1 ring-violet-500/25"
-                  >
-                    {name}
-                  </span>
-                ))}
-              </div>
-            )}
 
             {!locked ? (
               <Link
@@ -643,83 +595,6 @@ function parseScore(payload: unknown): { home: number; away: number } | null {
     }
   }
   return null;
-}
-
-function parseScorers(payload: unknown): string[] {
-  if (payload && typeof payload === "object") {
-    const players = (payload as Record<string, unknown>).players;
-    if (Array.isArray(players)) {
-      return players
-        .map((p) =>
-          p && typeof p === "object"
-            ? String((p as Record<string, unknown>).player_name ?? "")
-            : "",
-        )
-        .map((s) => s.trim())
-        .filter(Boolean)
-        .slice(0, 4);
-    }
-  }
-  return [];
-}
-
-/* ───────────────────────── Rich match data (C) ───────────────────────── */
-
-function GoalTimeline({
-  goals,
-  homeId,
-  homeIso,
-  awayIso,
-  locale,
-}: {
-  goals: MatchEvent[];
-  homeId: string | null;
-  homeIso: string | null;
-  awayIso: string | null;
-  locale: Locale;
-}) {
-  const fr = locale === "fr";
-  return (
-    <section className="overflow-hidden rounded-[14px] border border-white/[0.1] bg-surface-1/[0.62] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-xl">
-      <div className="flex items-center gap-2 border-b border-white/[0.08] px-5 py-3">
-        <h2 className="flex items-center gap-2 font-display text-base font-semibold text-text-primary">
-          <Goal className="size-4 text-primary-400" strokeWidth={1.8} />
-          {fr ? "Buts" : "Goals"}
-        </h2>
-      </div>
-      <ol className="divide-y divide-white/[0.05]">
-        {goals.map((g) => {
-          const iso = g.team_id === homeId ? homeIso : awayIso;
-          const marker =
-            g.event_type === "penalty_goal"
-              ? fr
-                ? "pén."
-                : "pen."
-              : g.event_type === "own_goal"
-                ? fr
-                  ? "csc"
-                  : "og"
-                : null;
-          return (
-            <li key={g.id} className="flex items-center gap-3 px-5 py-2.5">
-              <span className="w-9 shrink-0 text-right font-mono text-sm tabular-nums text-text-tertiary">
-                {g.minute}&#39;
-              </span>
-              <Flag isoCode={iso} size="sm" />
-              <span className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary">
-                {g.player_name ?? "—"}
-                {marker && (
-                  <span className="ml-1.5 text-xs font-semibold uppercase text-text-tertiary">
-                    ({marker})
-                  </span>
-                )}
-              </span>
-            </li>
-          );
-        })}
-      </ol>
-    </section>
-  );
 }
 
 const POSITION_ORDER = ["GK", "DEF", "MID", "FWD"] as const;

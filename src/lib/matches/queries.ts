@@ -28,6 +28,8 @@ type MatchRow = {
   status: string;
   home_score: number | null;
   away_score: number | null;
+  home_pen: number | null;
+  away_pen: number | null;
   home_placeholder: string | null;
   away_placeholder: string | null;
   home_team: TeamSnippet | TeamSnippet[] | null;
@@ -45,6 +47,8 @@ function toMatchListItem(row: MatchRow): MatchListItem {
     status: row.status as MatchStatus,
     home_score: row.home_score,
     away_score: row.away_score,
+    home_pen: row.home_pen,
+    away_pen: row.away_pen,
     home_placeholder: row.home_placeholder,
     away_placeholder: row.away_placeholder,
     home_team: pickOne(row.home_team),
@@ -90,7 +94,7 @@ async function _listMatches(opts?: {
     .select(
       `
       id, match_number, stage, group_label, kickoff_at, status,
-      home_score, away_score, home_placeholder, away_placeholder,
+      home_score, away_score, home_pen, away_pen, home_placeholder, away_placeholder,
       home_team:teams!matches_home_team_id_fkey(id, fifa_code, iso_code, name_fr, name_en, flag_emoji, logo_url),
       away_team:teams!matches_away_team_id_fkey(id, fifa_code, iso_code, name_fr, name_en, flag_emoji, logo_url),
       venue:venue_id(id, name, city_fr, city_en, country, capacity)
@@ -121,7 +125,7 @@ export async function getMatchById(id: string): Promise<MatchListItem | null> {
     .select(
       `
       id, match_number, stage, group_label, kickoff_at, status,
-      home_score, away_score, home_placeholder, away_placeholder,
+      home_score, away_score, home_pen, away_pen, home_placeholder, away_placeholder,
       home_team:teams!matches_home_team_id_fkey(id, fifa_code, iso_code, name_fr, name_en, flag_emoji, logo_url),
       away_team:teams!matches_away_team_id_fkey(id, fifa_code, iso_code, name_fr, name_en, flag_emoji, logo_url),
       venue:venue_id(id, name, city_fr, city_en, country, capacity)

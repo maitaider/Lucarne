@@ -1378,7 +1378,9 @@ export type Database = {
       }
       admin_set_match_result: {
         Args: {
+          p_away_pen?: number
           p_away_score?: number
+          p_home_pen?: number
           p_home_score?: number
           p_match_id: string
           p_scorers?: Json

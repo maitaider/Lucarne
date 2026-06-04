@@ -1,86 +1,49 @@
 "use client";
 
-import { useState } from "react";
 import { Flag } from "@/components/team/flag";
 import { Tooltip } from "@/components/ui/tooltip";
-import { PerMatchPicker } from "./per-match-picker";
 import {
   resolveMatch,
   type GroupStandings,
   type KnockoutWinners,
 } from "@/lib/predictions/resolve-bracket";
-import type { PlayerOption } from "@/components/picks/player-combobox";
-import { CheckCircle2, ChevronDown, XCircle } from "lucide-react";
+import { CheckCircle2, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
-import type {
-  KnockoutScheduleItem,
-  MatchPick,
-  ScorerPick,
-  TeamLite,
-} from "./predict-board";
+import type { KnockoutScheduleItem, TeamLite } from "./predict-board";
 
 /**
  * One knockout tie row.
  *  - Two team slots resolved from groups + upstream knockout picks.
  *  - Click a team to crown it as the tie winner (advances downstream).
- *  - "+ Plus" toggle reveals per-match picker (winner / goals / scorers)
- *    using PerMatchPicker — same UX as the group matches list.
- *
- * The tie itself doesn't have a MatchListItem (we only have the schedule
- * skeleton), so we synthesise one by combining the schedule + the
- * resolved teams. That's enough for PerMatchPicker.
  */
 export function KnockoutTie({
   match,
   groups,
   knockouts,
   thirdAssign,
-  matchPicks,
-  playersByTeam,
   teamById,
   canEdit,
-  canBet,
   onPickWinner,
   onPickThirdPlace,
-  onSavePerMatch,
   locale,
 }: {
   match: KnockoutScheduleItem;
   groups: GroupStandings;
   knockouts: KnockoutWinners;
   thirdAssign: Record<string, string>;
-  matchPicks: Map<string, MatchPick>;
-  playersByTeam: Map<string, PlayerOption[]>;
   teamById: Map<string, TeamLite>;
   canEdit: boolean;
-  canBet: boolean;
   onPickWinner: (matchNumber: number, teamId: string) => void;
   onPickThirdPlace: (
     matchNumber: number,
     side: "home" | "away",
     teamId: string,
   ) => void;
-  onSavePerMatch: (
-    matchId: string,
-    update: (prev: MatchPick) => MatchPick,
-    bet:
-      | { kind: "score"; home: number; away: number }
-      | { kind: "scorers"; picks: ScorerPick[] },
-  ) => void;
   locale: Locale;
 }) {
-  const [extrasOpen, setExtrasOpen] = useState(false);
   const { home, away } = resolveMatch(match, groups, knockouts, thirdAssign);
   const winnerId = knockouts[String(match.match_number)] ?? null;
-
-  // We don't have a real match_id for the ref.matches row from this client
-  // payload — fall back to the match_number as a stable key. The actual
-  // server-side picks are keyed by match_id, which we don't carry here in
-  // the knockout schedule. Per-match picks for knockouts will not persist
-  // until we plumb match_id into the schedule. For now, the "+Plus" panel
-  // is hidden on knockouts to avoid silently dropping data.
-  const matchIdMissing = true;
 
   return (
     <li className="overflow-hidden rounded-md border border-white/[0.08] bg-surface-2/70 shadow-card transition hover:border-white/[0.16]">
@@ -117,105 +80,6 @@ export function KnockoutTie({
           locale={locale}
         />
       </div>
-
-      {/* +Plus toggle for extras — hidden when match_id isn't carried */}
-      {!matchIdMissing && (
-        <>
-          <button
-            type="button"
-            onClick={() => setExtrasOpen((o) => !o)}
-            disabled={!canBet}
-            className={cn(
-              "flex w-full items-center justify-between border-t border-white/[0.05] px-2 py-1 text-[9px] font-bold uppercase tracking-wider transition",
-              extrasOpen
-                ? "bg-primary-500/[0.08] text-primary-300"
-                : "text-text-tertiary hover:bg-white/[0.04]",
-            )}
-          >
-            <span>
-              {locale === "fr" ? "Buts + buteurs" : "Goals + scorers"}
-            </span>
-            <ChevronDown
-              className={cn(
-                "size-3 transition-transform",
-                extrasOpen && "rotate-180",
-              )}
-              strokeWidth={2.5}
-            />
-          </button>
-          {extrasOpen && (
-            <ul className="border-t border-white/[0.05]">
-              <PerMatchPicker
-                match={
-                  {
-                    id: String(match.match_number),
-                    match_number: match.match_number,
-                    stage: match.stage,
-                    group_label: null,
-                    kickoff_at: match.kickoff_at,
-                    status: "scheduled",
-                    home_score: null,
-                    away_score: null,
-                    home_placeholder: match.home_placeholder,
-                    away_placeholder: match.away_placeholder,
-                    home_team:
-                      home.team_id && teamById.has(home.team_id)
-                        ? {
-                            ...teamById.get(home.team_id)!,
-                            flag_emoji: null,
-                            logo_url: null,
-                          }
-                        : null,
-                    away_team:
-                      away.team_id && teamById.has(away.team_id)
-                        ? {
-                            ...teamById.get(away.team_id)!,
-                            flag_emoji: null,
-                            logo_url: null,
-                          }
-                        : null,
-                    venue: null,
-                  } as never
-                }
-                pick={
-                  matchPicks.get(String(match.match_number)) ?? {
-                    home_goals: null,
-                    away_goals: null,
-                    scorers: [],
-                  }
-                }
-                homePlayers={
-                  home.team_id ? (playersByTeam.get(home.team_id) ?? []) : []
-                }
-                awayPlayers={
-                  away.team_id ? (playersByTeam.get(away.team_id) ?? []) : []
-                }
-                canEdit={canBet}
-                onScore={(homeGoals, awayGoals) =>
-                  onSavePerMatch(
-                    String(match.match_number),
-                    (prev) => ({
-                      ...prev,
-                      home_goals: homeGoals,
-                      away_goals: awayGoals,
-                    }),
-                    { kind: "score", home: homeGoals, away: awayGoals },
-                  )
-                }
-                onScorers={(picks) =>
-                  onSavePerMatch(
-                    String(match.match_number),
-                    (prev) => ({ ...prev, scorers: picks }),
-                    { kind: "scorers", picks },
-                  )
-                }
-                locale={locale}
-                compact
-              />
-            </ul>
-          )}
-        </>
-      )}
     </li>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useToast } from "@/components/ui/toast-provider";
 import {
@@ -10,18 +10,7 @@ import {
 import type { MatchListItem, TeamSnippet } from "@/lib/matches/shared";
 import type { Locale } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
-import { Goal, Loader2, Plus, RefreshCw, Search, Trash2 } from "lucide-react";
-
-type EventType = "goal" | "penalty_goal" | "own_goal";
-type Scorer = {
-  player_name: string;
-  team_id: string | null;
-  minute: string;
-  event_type: EventType;
-};
-
-/** Pre-fill shape passed from the server (existing match_events). */
-export type ExistingScorer = Scorer;
+import { Loader2, RefreshCw, Search } from "lucide-react";
 
 const STATUSES = [
   "scheduled",
@@ -48,15 +37,16 @@ function teamName(
   return placeholder ?? "?";
 }
 
+/**
+ * Admin match results — score-only scoring. The admin enters just the final
+ * score + status (and, for a level knockout tie, the penalty shootout). No
+ * scorers: nothing to type by hand → nothing to mistype.
+ */
 export function MatchResultsAdmin({
   matches,
-  scorersByMatch = {},
-  rosterByTeam = {},
   locale,
 }: {
   matches: MatchListItem[];
-  scorersByMatch?: Record<string, ExistingScorer[]>;
-  rosterByTeam?: Record<string, string[]>;
   locale: Locale;
 }) {
   const fr = locale === "fr";
@@ -103,9 +93,6 @@ export function MatchResultsAdmin({
             fr={fr}
             open={openId === m.id}
             onToggle={() => setOpenId((id) => (id === m.id ? null : m.id))}
-            existingScorers={scorersByMatch[m.id] ?? []}
-            homeRoster={m.home_team?.id ? rosterByTeam[m.home_team.id] ?? [] : []}
-            awayRoster={m.away_team?.id ? rosterByTeam[m.away_team.id] ?? [] : []}
           />
         ))}
         {filtered.length === 0 && (
@@ -123,17 +110,11 @@ function MatchRow({
   fr,
   open,
   onToggle,
-  existingScorers,
-  homeRoster,
-  awayRoster,
 }: {
   match: MatchListItem;
   fr: boolean;
   open: boolean;
   onToggle: () => void;
-  existingScorers: Scorer[];
-  homeRoster: string[];
-  awayRoster: string[];
 }) {
   const home = teamName(match.home_team, match.home_placeholder, fr);
   const away = teamName(match.away_team, match.away_placeholder, fr);
@@ -169,16 +150,7 @@ function MatchRow({
         </span>
         <StatusBadge status={match.status} fr={fr} />
       </button>
-      {open && (
-        <MatchEditor
-          match={match}
-          fr={fr}
-          onDone={onToggle}
-          initialScorers={existingScorers}
-          homeRoster={homeRoster}
-          awayRoster={awayRoster}
-        />
-      )}
+      {open && <MatchEditor match={match} fr={fr} onDone={onToggle} />}
     </li>
   );
 }
@@ -207,66 +179,43 @@ function MatchEditor({
   match,
   fr,
   onDone,
-  initialScorers,
-  homeRoster,
-  awayRoster,
 }: {
   match: MatchListItem;
   fr: boolean;
   onDone: () => void;
-  initialScorers: Scorer[];
-  homeRoster: string[];
-  awayRoster: string[];
 }) {
+  const isKO = match.stage !== "group";
   const [home, setHome] = useState(
     match.home_score != null ? String(match.home_score) : "",
   );
   const [away, setAway] = useState(
     match.away_score != null ? String(match.away_score) : "",
   );
-  const [status, setStatus] = useState<string>(match.status);
-  // Pre-fill from existing match_events so re-saving never wipes scorers.
-  const [scorers, setScorers] = useState<Scorer[]>(() =>
-    initialScorers.map((s) => ({ ...s })),
+  // Penalty shootout result — prefilled so re-saving a KO match never wipes the
+  // winner that the shootout decided.
+  const [homePen, setHomePen] = useState(
+    match.home_pen != null ? String(match.home_pen) : "",
   );
+  const [awayPen, setAwayPen] = useState(
+    match.away_pen != null ? String(match.away_pen) : "",
+  );
+  const [status, setStatus] = useState<string>(match.status);
   const [isPending, start] = useTransition();
   const [isRecomputing, startRecompute] = useTransition();
   const router = useRouter();
   const toast = useToast();
 
-  const rosterListId = `roster-${match.id}`;
-  const rosterNames = useMemo(
-    () => Array.from(new Set([...homeRoster, ...awayRoster])).sort(),
-    [homeRoster, awayRoster],
-  );
-
-  // When both scores are entered on a still-"scheduled" match, flip it to
-  // "finished" automatically — entering a final score on the Results page means
-  // the match is over, and scoring only runs for finished matches. Prevents the
-  // common mistake of saving a non-scoring result (points never awarded).
-  useEffect(() => {
-    if (home !== "" && away !== "" && status === "scheduled") {
-      setStatus("finished");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [home, away]);
-
-  const teams = [
-    { id: match.home_team?.id ?? null, label: teamName(match.home_team, match.home_placeholder, fr) },
-    { id: match.away_team?.id ?? null, label: teamName(match.away_team, match.away_placeholder, fr) },
-  ];
-
-  function addScorer() {
-    setScorers((s) => [
-      ...s,
-      { player_name: "", team_id: teams[0]?.id ?? null, minute: "", event_type: "goal" },
-    ]);
+  // Entering both scores on a still-"scheduled" match flips it to "finished" —
+  // entering a final score means the match is over, and scoring only runs for
+  // finished matches. Done in the change handlers (not an effect) to avoid
+  // cascading renders.
+  function changeHome(v: string) {
+    setHome(v);
+    if (v !== "" && away !== "" && status === "scheduled") setStatus("finished");
   }
-  function updateScorer(i: number, patch: Partial<Scorer>) {
-    setScorers((s) => s.map((sc, idx) => (idx === i ? { ...sc, ...patch } : sc)));
-  }
-  function removeScorer(i: number) {
-    setScorers((s) => s.filter((_, idx) => idx !== i));
+  function changeAway(v: string) {
+    setAway(v);
+    if (home !== "" && v !== "" && status === "scheduled") setStatus("finished");
   }
 
   function save() {
@@ -286,14 +235,9 @@ function MatchEditor({
         homeScore: home === "" ? null : Number(home),
         awayScore: away === "" ? null : Number(away),
         status: status as (typeof STATUSES)[number],
-        scorers: scorers
-          .filter((s) => s.player_name.trim())
-          .map((s) => ({
-            player_name: s.player_name.trim(),
-            team_id: s.team_id,
-            minute: s.minute === "" ? null : Number(s.minute),
-            event_type: s.event_type,
-          })),
+        // Penalties only apply to knockout ties; group matches always send null.
+        homePen: isKO && homePen !== "" ? Number(homePen) : null,
+        awayPen: isKO && awayPen !== "" ? Number(awayPen) : null,
       });
       if (res.ok) {
         toast.success(fr ? "Résultat enregistré." : "Result saved.");
@@ -308,8 +252,8 @@ function MatchEditor({
   function recompute() {
     const ok = window.confirm(
       fr
-        ? "Recalculer les points de tous les pronostics de ce match avec le score et les buteurs actuels ?"
-        : "Recompute every prediction's points for this match using the current score and scorers?",
+        ? "Recalculer les points de tous les pronostics de ce match avec le score actuel ?"
+        : "Recompute every prediction's points for this match using the current score?",
     );
     if (!ok) return;
     startRecompute(async () => {
@@ -333,13 +277,13 @@ function MatchEditor({
         <ScoreInput
           label={teamName(match.home_team, match.home_placeholder, fr)}
           value={home}
-          onChange={setHome}
+          onChange={changeHome}
         />
         <span className="pb-2 text-lg font-bold text-text-tertiary">–</span>
         <ScoreInput
           label={teamName(match.away_team, match.away_placeholder, fr)}
           value={away}
-          onChange={setAway}
+          onChange={changeAway}
         />
         <label className="flex flex-col gap-1">
           <span className="text-[11px] font-medium text-text-tertiary">
@@ -359,6 +303,27 @@ function MatchEditor({
         </label>
       </div>
 
+      {isKO && (
+        <div className="flex flex-wrap items-end gap-3 rounded-[10px] border border-white/[0.06] bg-white/[0.02] p-3">
+          <ScoreInput
+            label={`${fr ? "Tab." : "Pens"} ${teamName(match.home_team, match.home_placeholder, fr)}`}
+            value={homePen}
+            onChange={setHomePen}
+          />
+          <span className="pb-2 text-lg font-bold text-text-tertiary">–</span>
+          <ScoreInput
+            label={`${fr ? "Tab." : "Pens"} ${teamName(match.away_team, match.away_placeholder, fr)}`}
+            value={awayPen}
+            onChange={setAwayPen}
+          />
+          <p className="max-w-[18rem] pb-1 text-[11px] leading-4 text-text-tertiary">
+            {fr
+              ? "Tirs au but — départage le vainqueur quand le score reste à égalité (phase finale)."
+              : "Penalty shootout — decides the winner when the score stays level (knockouts)."}
+          </p>
+        </div>
+      )}
+
       {home !== "" && away !== "" && status !== "finished" && (
         <p className="rounded-sm border border-gold-500/30 bg-gold-500/[0.08] px-3 py-2 text-xs leading-5 text-gold-200">
           {fr
@@ -366,79 +331,6 @@ function MatchEditor({
             : "⚠️ Score entered but the match isn't Finished → points will NOT be awarded until the status is Finished."}
         </p>
       )}
-
-      {/* Scorers */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <span className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
-            <Goal className="size-3.5" /> {fr ? "Buteurs" : "Scorers"}
-          </span>
-          <button
-            type="button"
-            onClick={addScorer}
-            className="flex items-center gap-1 rounded-[7px] border border-white/[0.12] px-2 py-1 text-[11px] font-medium text-text-secondary transition hover:border-primary-500/40 hover:text-text-primary"
-          >
-            <Plus className="size-3" /> {fr ? "Ajouter" : "Add"}
-          </button>
-        </div>
-        {rosterNames.length > 0 && (
-          <datalist id={rosterListId}>
-            {rosterNames.map((n) => (
-              <option key={n} value={n} />
-            ))}
-          </datalist>
-        )}
-        {scorers.map((s, i) => (
-          <div key={i} className="flex flex-wrap items-center gap-2">
-            <input
-              value={s.player_name}
-              onChange={(e) => updateScorer(i, { player_name: e.target.value })}
-              placeholder={fr ? "Nom du buteur" : "Scorer name"}
-              list={rosterNames.length > 0 ? rosterListId : undefined}
-              className="min-w-[8rem] flex-1 rounded-[7px] border border-white/[0.1] bg-surface-2 px-2.5 py-1.5 text-sm text-text-primary outline-none focus:border-primary-500"
-            />
-            <select
-              value={s.team_id ?? ""}
-              onChange={(e) => updateScorer(i, { team_id: e.target.value || null })}
-              className="rounded-[7px] border border-white/[0.1] bg-surface-2 px-2 py-1.5 text-sm text-text-primary outline-none focus:border-primary-500"
-            >
-              {teams.map((t) => (
-                <option key={t.id ?? "none"} value={t.id ?? ""}>
-                  {t.label}
-                </option>
-              ))}
-            </select>
-            <input
-              value={s.minute}
-              onChange={(e) =>
-                updateScorer(i, { minute: e.target.value.replace(/\D/g, "") })
-              }
-              placeholder="'"
-              inputMode="numeric"
-              className="w-14 rounded-[7px] border border-white/[0.1] bg-surface-2 px-2 py-1.5 text-center text-sm text-text-primary outline-none focus:border-primary-500"
-            />
-            <select
-              value={s.event_type}
-              onChange={(e) =>
-                updateScorer(i, { event_type: e.target.value as EventType })
-              }
-              className="rounded-[7px] border border-white/[0.1] bg-surface-2 px-2 py-1.5 text-sm text-text-primary outline-none focus:border-primary-500"
-            >
-              <option value="goal">{fr ? "But" : "Goal"}</option>
-              <option value="penalty_goal">{fr ? "Pénalty" : "Penalty"}</option>
-              <option value="own_goal">{fr ? "C.S.C." : "Own goal"}</option>
-            </select>
-            <button
-              type="button"
-              onClick={() => removeScorer(i)}
-              className="rounded-[7px] p-1.5 text-text-tertiary transition hover:bg-error/10 hover:text-error"
-              aria-label={fr ? "Retirer" : "Remove"}
-            >
-              <Trash2 className="size-4" />
-            </button>
-          </div>
-        ))}
-      </div>
 
       <div className="flex flex-wrap items-center gap-2">
         <button

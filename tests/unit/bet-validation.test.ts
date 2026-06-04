@@ -102,14 +102,13 @@ describe("Points scheme (maxPointsFor)", () => {
     expect(maxPointsFor("total_goals")).toBe(POINTS_SCHEME.total_goals_exact);
   });
 
-  it("returns 8 pts for first_scorer", () => {
-    expect(maxPointsFor("first_scorer")).toBe(POINTS_SCHEME.first_scorer);
+  it("returns 5 pts for exact_score", () => {
+    expect(maxPointsFor("exact_score")).toBe(POINTS_SCHEME.exact_score);
   });
 
-  it("returns scaled max for anytime_scorer (4 players × 4 pts)", () => {
-    expect(maxPointsFor("anytime_scorer")).toBe(
-      POINTS_SCHEME.anytime_scorer_each * 4,
-    );
+  it("awards 0 pts for scorer bets (score-only scoring)", () => {
+    expect(maxPointsFor("first_scorer")).toBe(0);
+    expect(maxPointsFor("anytime_scorer")).toBe(0);
   });
 
   it("returns 0 pts for unknown bet types", () => {

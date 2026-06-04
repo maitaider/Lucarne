@@ -2,13 +2,12 @@
 
 import { Flag } from "@/components/team/flag";
 import type { MatchListItem } from "@/lib/matches/shared";
-import type { PlayerOption } from "@/components/picks/player-combobox";
 import { PerMatchPicker } from "./per-match-picker";
 import { computeGroupOrder } from "@/lib/predictions/group-order";
 import { ListChecks } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
-import type { MatchPick, ScorerPick, TeamLite } from "./predict-board";
+import type { MatchPick, TeamLite } from "./predict-board";
 
 /**
  * One group's card. "Predict the matches" model:
@@ -23,7 +22,6 @@ export function GroupCard({
   allTeams,
   matches,
   matchPicks,
-  playersByTeam,
   teamById,
   canEdit,
   canBet,
@@ -36,16 +34,13 @@ export function GroupCard({
   allTeams: TeamLite[];
   matches: MatchListItem[];
   matchPicks: Map<string, MatchPick>;
-  playersByTeam: Map<string, PlayerOption[]>;
   teamById: Map<string, TeamLite>;
   canEdit: boolean;
   canBet: boolean;
   onSavePerMatch: (
     matchId: string,
     update: (prev: MatchPick) => MatchPick,
-    bet:
-      | { kind: "score"; home: number; away: number }
-      | { kind: "scorers"; picks: ScorerPick[] },
+    bet: { kind: "score"; home: number; away: number },
   ) => void;
   locale: Locale;
 }) {
@@ -168,14 +163,7 @@ export function GroupCard({
                 matchPicks.get(m.id) ?? {
                   home_goals: null,
                   away_goals: null,
-                  scorers: [],
                 }
-              }
-              homePlayers={
-                m.home_team ? (playersByTeam.get(m.home_team.id) ?? []) : []
-              }
-              awayPlayers={
-                m.away_team ? (playersByTeam.get(m.away_team.id) ?? []) : []
               }
               canEdit={canBet && canEdit}
               onScore={(home, away) =>
@@ -184,12 +172,6 @@ export function GroupCard({
                   (prev) => ({ ...prev, home_goals: home, away_goals: away }),
                   { kind: "score", home, away },
                 )
-              }
-              onScorers={(picks) =>
-                onSavePerMatch(m.id, (prev) => ({ ...prev, scorers: picks }), {
-                  kind: "scorers",
-                  picks,
-                })
               }
               locale={locale}
             />
