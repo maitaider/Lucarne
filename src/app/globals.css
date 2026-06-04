@@ -272,3 +272,52 @@ main {
 .lk-flash-points {
   animation: lk-flash-points 1.7s ease-out;
 }
+
+/* ============================================================
+   Salon (chat) — entrance, mention flash, animated gradient
+   ============================================================ */
+
+/* A new message slides + fades in (apply only to messages that arrive
+   after the initial render, not the whole backlog). */
+@keyframes lk-msg-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.lk-msg-in {
+  animation: lk-msg-in 0.34s var(--ease-out-expo) both;
+}
+
+/* Flash a message violet when it just mentioned (or replied to) you. */
+@keyframes lk-mention-flash {
+  0% {
+    background-color: rgba(124, 92, 255, 0.2);
+    box-shadow: inset 2px 0 0 rgba(124, 92, 255, 0.85);
+  }
+  100% {
+    background-color: transparent;
+    box-shadow: inset 2px 0 0 transparent;
+  }
+}
+.lk-mention-flash {
+  animation: lk-mention-flash 2.6s ease-out;
+}
+
+/* Slowly panning gradient for the salon header accent line. */
+@keyframes lk-gradient-pan {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+.lk-gradient-pan {
+  background-size: 200% 100%;
+  animation: lk-gradient-pan 9s linear infinite;
+}

@@ -260,6 +260,86 @@ export type Database = {
           },
         ]
       }
+      chat_reports: {
+        Row: {
+          comment_id: string
+          created_at: string
+          id: string
+          reason: string | null
+          reporter_id: string
+          resolved_at: string | null
+          resolved_by: string | null
+        }
+        Insert: {
+          comment_id: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+          reporter_id: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+        }
+        Update: {
+          comment_id?: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+          reporter_id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_reports_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "mv_global_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "chat_reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "mv_league_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "chat_reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_reports_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "mv_global_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "chat_reports_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "mv_league_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "chat_reports_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comments: {
         Row: {
           body: string
@@ -1442,10 +1522,30 @@ export type Database = {
           target_table: string
         }[]
       }
+      admin_list_chat_reports: {
+        Args: never
+        Returns: {
+          author_avatar_url: string
+          author_id: string
+          author_muted: boolean
+          author_username: string
+          body: string
+          comment_id: string
+          created_at: string
+          first_reported_at: string
+          message_deleted: boolean
+          reasons: string[]
+          report_count: number
+        }[]
+      }
       admin_purge_user: { Args: { p_user_id: string }; Returns: undefined }
       admin_recompute_match: { Args: { p_match_id: string }; Returns: number }
       admin_reply_ticket: {
         Args: { p_note: string; p_resolve?: boolean; p_ticket_id: string }
+        Returns: undefined
+      }
+      admin_resolve_chat_report: {
+        Args: { p_comment_id: string }
         Returns: undefined
       }
       admin_restore_user: { Args: { p_user_id: string }; Returns: undefined }
@@ -1652,6 +1752,10 @@ export type Database = {
       redeem_invitation: { Args: { p_code: string }; Returns: Json }
       refund_payment: {
         Args: { p_payment_id: string; p_reason?: string }
+        Returns: undefined
+      }
+      report_chat_message: {
+        Args: { p_comment_id: string; p_reason?: string }
         Returns: undefined
       }
       resolve_viewable_profile: {
