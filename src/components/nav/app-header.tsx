@@ -35,7 +35,7 @@ export async function AppHeader({
           <LucarneLogo markClassName="size-7" textClassName="text-base" />
         </Link>
 
-        <NavLinks locale={locale} />
+        <NavLinks locale={locale} userId={user?.id ?? null} />
 
         <div className="flex items-center gap-2">
           <LanguageSwitcher className="hidden sm:inline-flex" />
@@ -48,7 +48,7 @@ export async function AppHeader({
                 locale={locale}
               />
               <UserMenu user={user} locale={locale} />
-              <MobileMenu locale={locale} />
+              <MobileMenu locale={locale} userId={user.id} />
             </>
           ) : (
             <Link

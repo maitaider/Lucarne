@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { LanguageSwitcher } from "./language-switcher";
 import { cn } from "@/lib/utils";
+import { useChatUnread } from "@/components/chat/chat-unread";
 import type { Locale } from "@/i18n/routing";
 
 type Item = { href: string; icon: LucideIcon; fr: string; en: string };
@@ -57,16 +58,23 @@ const GROUPS: Array<{
     en: "Community",
     items: [
       { href: "/leaderboard/global", icon: Crown, fr: "Classement", en: "Leaderboard" },
-      { href: "/chat", icon: MessagesSquare, fr: "Salon", en: "Lounge" },
       { href: "/leagues", icon: Users, fr: "Mes ligues", en: "My leagues" },
       { href: "/bets", icon: Receipt, fr: "Mes paris", en: "My bets" },
     ],
   },
 ];
 
-export function MobileMenu({ locale }: { locale: Locale }) {
+export function MobileMenu({
+  locale,
+  userId,
+}: {
+  locale: Locale;
+  userId?: string | null;
+}) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const chatUnread = useChatUnread(userId ?? null);
+  const chatActive = pathname === "/chat" || pathname.startsWith("/chat/");
 
   useEffect(() => {
     if (!open) return;
@@ -125,6 +133,37 @@ export function MobileMenu({ locale }: { locale: Locale }) {
               className="flex-1 space-y-5 overflow-y-auto p-3"
               aria-label="Mobile primary"
             >
+              {/* Salon — bouton autonome, mis en avant en haut du menu. */}
+              <Link
+                href="/chat"
+                onClick={() => setOpen(false)}
+                className={cn(
+                  "flex items-center gap-3 rounded-[12px] border px-3 py-3 transition",
+                  chatActive
+                    ? "border-primary-500/45 bg-primary-500/[0.14] text-primary-100"
+                    : "border-white/[0.1] bg-gradient-to-br from-primary-500/[0.12] to-violet-500/[0.1] text-text-primary hover:border-primary-500/40",
+                )}
+              >
+                <span className="flex size-9 items-center justify-center rounded-full bg-primary-500/15 text-primary-300 ring-1 ring-primary-500/30">
+                  <MessagesSquare className="size-5" strokeWidth={1.7} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center gap-2 font-semibold leading-5">
+                    {locale === "fr" ? "Salon" : "Lounge"}
+                    {chatUnread > 0 && (
+                      <span className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary-500 px-1 font-mono text-[10px] font-bold text-abyss">
+                        {chatUnread > 99 ? "99+" : chatUnread}
+                      </span>
+                    )}
+                  </span>
+                  <span className="mt-0.5 block text-xs text-text-tertiary">
+                    {locale === "fr"
+                      ? "Tchat du groupe en temps réel"
+                      : "Realtime group chat"}
+                  </span>
+                </span>
+              </Link>
+
               {GROUPS.map((g) => (
                 <section key={g.fr}>
                   <h3 className="mb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-text-tertiary">

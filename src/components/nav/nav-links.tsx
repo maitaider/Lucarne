@@ -16,6 +16,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useChatUnread } from "@/components/chat/chat-unread";
 import type { Locale } from "@/i18n/routing";
 
 type Child = {
@@ -48,6 +49,12 @@ const NAV: Top[] = [
     fr: "Accueil",
     en: "Home",
     icon: LayoutDashboard,
+  },
+  {
+    href: "/chat",
+    fr: "Salon",
+    en: "Lounge",
+    icon: MessagesSquare,
   },
   {
     href: "/predict",
@@ -106,16 +113,6 @@ const NAV: Top[] = [
         },
       },
       {
-        href: "/chat",
-        icon: MessagesSquare,
-        fr: "Salon",
-        en: "Lounge",
-        body: {
-          fr: "Tchat du groupe en temps réel",
-          en: "Realtime group chat",
-        },
-      },
-      {
         href: "/leagues",
         icon: Users,
         fr: "Mes ligues",
@@ -148,8 +145,15 @@ function shellClasses(isActive: boolean): string {
   );
 }
 
-export function NavLinks({ locale }: { locale: Locale }) {
+export function NavLinks({
+  locale,
+  userId,
+}: {
+  locale: Locale;
+  userId?: string | null;
+}) {
   const pathname = usePathname();
+  const chatUnread = useChatUnread(userId ?? null);
 
   return (
     <nav className="hidden items-center gap-1 md:flex" aria-label="Primary">
@@ -160,6 +164,7 @@ export function NavLinks({ locale }: { locale: Locale }) {
           isActive={matchesParent(pathname, item)}
           currentPath={pathname}
           locale={locale}
+          badge={item.href === "/chat" ? chatUnread : 0}
         />
       ))}
     </nav>
@@ -180,11 +185,13 @@ function NavItem({
   isActive,
   currentPath,
   locale,
+  badge = 0,
 }: {
   item: Top;
   isActive: boolean;
   currentPath: string;
   locale: Locale;
+  badge?: number;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -220,6 +227,11 @@ function NavItem({
       >
         <Icon className="size-4" strokeWidth={1.5} />
         <span>{label}</span>
+        {badge > 0 && (
+          <span className="ml-0.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-primary-500 px-1 font-mono text-[9px] font-bold text-abyss">
+            {badge > 99 ? "99+" : badge}
+          </span>
+        )}
       </Link>
     );
   }
