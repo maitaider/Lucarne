@@ -5,6 +5,7 @@ import { GLOBAL_CHAT_ID } from "./constants";
 export type ChatReport = {
   comment_id: string;
   body: string;
+  image_url: string | null;
   created_at: string;
   author_id: string;
   author_username: string;
@@ -31,6 +32,7 @@ export type ChatRecentMessage = {
   id: string;
   user_id: string;
   body: string;
+  image_url: string | null;
   created_at: string;
   pinned_at: string | null;
   author: { username: string; display_name: string | null; avatar_url: string | null };
@@ -95,7 +97,7 @@ export async function listRecentChatMessages(limit = 30): Promise<ChatRecentMess
   const { data } = await supabase
     .from("comments")
     .select(
-      "id, user_id, body, created_at, pinned_at, author:profiles!comments_user_id_fkey(username, display_name, avatar_url)",
+      "id, user_id, body, image_url, created_at, pinned_at, author:profiles!comments_user_id_fkey(username, display_name, avatar_url)",
     )
     .eq("parent_type", "global")
     .eq("parent_id", GLOBAL_CHAT_ID)
@@ -108,6 +110,7 @@ export async function listRecentChatMessages(limit = 30): Promise<ChatRecentMess
       id: row.id,
       user_id: row.user_id,
       body: row.body,
+      image_url: row.image_url,
       created_at: row.created_at,
       pinned_at: row.pinned_at,
       author: {

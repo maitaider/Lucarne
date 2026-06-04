@@ -10,13 +10,20 @@ import {
   setChatPin,
   setChatMute,
   reportChatMessage,
+  voteChatPoll,
 } from "@/lib/chat/actions";
-import { CHAT_MAX_LEN } from "@/lib/chat/constants";
+import {
+  CHAT_MAX_LEN,
+  CHAT_MEDIA_BUCKET,
+  CHAT_IMAGE_MAX_BYTES,
+  CHAT_BOT_USER_ID,
+} from "@/lib/chat/constants";
 import { markChatRead } from "./chat-unread";
 import type {
   ChatMember,
   ChatMessage,
   ChatMute,
+  ChatPoll,
   ChatReplyPreview,
 } from "@/lib/chat/queries";
 import type { ReactionSummary } from "@/lib/social/queries";
@@ -24,10 +31,15 @@ import { ReactionBar } from "@/components/social/reaction-bar";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { useToast } from "@/components/ui/toast-provider";
 import { MessageBody } from "./message-body";
+import { PollCard } from "./poll-card";
+import { PollComposer } from "./poll-composer";
+import { BetCard } from "./bet-card";
 import { cn } from "@/lib/utils";
 import {
   ArrowDown,
+  BarChart3,
   Flag,
+  ImagePlus,
   Loader2,
   MicOff,
   Pin,
@@ -58,6 +70,7 @@ type ChatRow = {
   created_at: string;
   pinned_at: string | null;
   reply_to_id: string | null;
+  image_url: string | null;
   deleted_at: string | null;
 };
 
@@ -80,6 +93,26 @@ function isAdminRole(role: string): boolean {
 
 function escapeRegex(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\-]/g, "\\$&");
+}
+
+/** Apply one vote to a poll's counts (prev = the voter's previous choice). */
+function bumpPoll(
+  poll: ChatPoll,
+  idx: number,
+  prev: number | null,
+  isSelf: boolean,
+): ChatPoll {
+  const counts = [...poll.counts];
+  if (prev !== null && prev >= 0 && prev < counts.length) {
+    counts[prev] = Math.max(0, counts[prev] - 1);
+  }
+  if (idx >= 0 && idx < counts.length) counts[idx] += 1;
+  return {
+    ...poll,
+    counts,
+    total: prev === null ? poll.total + 1 : poll.total,
+    my_vote: isSelf ? idx : poll.my_vote,
+  };
 }
 
 /** Active @mention token ending at the caret, or null. */
@@ -151,6 +184,13 @@ export function ChatRoom({
   );
   const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
   const [emojiOpen, setEmojiOpen] = useState(false);
+  const [pendingImage, setPendingImage] = useState<{
+    url: string;
+    uploading: boolean;
+  } | null>(null);
+  const [lightbox, setLightbox] = useState<string | null>(null);
+  const [pollOpen, setPollOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Realtime side-channels
   const [online, setOnline] = useState<OnlineUser[]>([]);
@@ -228,6 +268,9 @@ export function ChatRoom({
         pinned_at: row.pinned_at ?? null,
         reply_to_id: row.reply_to_id ?? null,
         reply,
+        image_url: row.image_url ?? null,
+        poll: null,
+        bet_card: null,
         author: a
           ? {
               username: a.username,
@@ -277,6 +320,35 @@ export function ChatRoom({
       }, 2800);
     }
 
+    // A new message might carry a poll — fetch it and attach (cheap unique lookup).
+    async function enrichPoll(commentId: string) {
+      const { data } = await supabase
+        .from("chat_polls")
+        .select("id, question, options, closes_at")
+        .eq("comment_id", commentId)
+        .maybeSingle();
+      if (!data) return;
+      const opts = (data.options as string[]) ?? [];
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === commentId
+            ? {
+                ...m,
+                poll: {
+                  id: data.id,
+                  question: data.question,
+                  options: opts,
+                  counts: new Array(opts.length).fill(0),
+                  total: 0,
+                  my_vote: null,
+                  closes_at: data.closes_at,
+                },
+              }
+            : m,
+        ),
+      );
+    }
+
     const channel = supabase
       .channel("chat:global", {
         config: { presence: { key: currentUserId } },
@@ -318,6 +390,7 @@ export function ChatRoom({
             setUnseen((u) => u + 1);
           }
           if (!membersByIdRef.current.has(row.user_id)) void resolveAuthor(row.user_id);
+          void enrichPoll(row.id);
         },
       )
       .on(
@@ -344,6 +417,17 @@ export function ChatRoom({
       .on("broadcast", { event: "msg_deleted" }, ({ payload }) => {
         const id = (payload as { id?: string })?.id;
         if (id) setMessages((prev) => prev.filter((m) => m.id !== id));
+      })
+      .on("broadcast", { event: "poll_vote" }, ({ payload }) => {
+        const p = payload as { pollId?: string; idx?: number; prev?: number | null };
+        if (!p?.pollId || typeof p.idx !== "number") return;
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.poll && m.poll.id === p.pollId
+              ? { ...m, poll: bumpPoll(m.poll, p.idx!, p.prev ?? null, false) }
+              : m,
+          ),
+        );
       })
       .on("broadcast", { event: "typing" }, ({ payload }) => {
         const p = payload as { user_id?: string; username?: string };
@@ -416,6 +500,16 @@ export function ChatRoom({
     if (el && stickRef.current) el.scrollTop = el.scrollHeight;
   }, [messages]);
 
+  // Close the image lightbox on Escape.
+  useEffect(() => {
+    if (!lightbox) return;
+    function onEsc(e: KeyboardEvent) {
+      if (e.key === "Escape") setLightbox(null);
+    }
+    document.addEventListener("keydown", onEsc);
+    return () => document.removeEventListener("keydown", onEsc);
+  }, [lightbox]);
+
   function onScroll() {
     const el = scrollRef.current;
     if (!el) return;
@@ -457,12 +551,70 @@ export function ChatRoom({
     });
   }
 
+  async function uploadImage(file: File) {
+    if (amIMuted) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error(fr ? "Choisis une image." : "Pick an image.");
+      return;
+    }
+    if (file.size > CHAT_IMAGE_MAX_BYTES) {
+      toast.error(fr ? "Image trop lourde (max 8 Mo)." : "Image too large (max 8 MB).");
+      return;
+    }
+    setPendingImage({ url: "", uploading: true });
+    try {
+      const supabase = getSupabaseBrowser();
+      const ext =
+        (file.name.split(".").pop() || "png").toLowerCase().replace(/[^a-z0-9]/g, "") ||
+        "png";
+      const path = `${currentUserId}/${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage
+        .from(CHAT_MEDIA_BUCKET)
+        .upload(path, file, { cacheControl: "3600", upsert: false });
+      if (error) throw error;
+      const { data } = supabase.storage.from(CHAT_MEDIA_BUCKET).getPublicUrl(path);
+      setPendingImage({ url: data.publicUrl, uploading: false });
+      requestAnimationFrame(() => textareaRef.current?.focus());
+    } catch (e) {
+      setPendingImage(null);
+      toast.error((e as Error).message || (fr ? "Échec de l'envoi de l'image." : "Image upload failed."));
+    }
+  }
+
+  function onPickFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (file) void uploadImage(file);
+  }
+
+  function onPasteCompose(e: React.ClipboardEvent) {
+    const item = Array.from(e.clipboardData.items).find((i) =>
+      i.type.startsWith("image/"),
+    );
+    const file = item?.getAsFile();
+    if (file) {
+      e.preventDefault();
+      void uploadImage(file);
+    }
+  }
+
+  function onDropCompose(e: React.DragEvent) {
+    const file = Array.from(e.dataTransfer.files).find((f) =>
+      f.type.startsWith("image/"),
+    );
+    if (file) {
+      e.preventDefault();
+      void uploadImage(file);
+    }
+  }
+
   function submit() {
     const text = input.trim();
-    if (!text || isPending || amIMuted) return;
+    const image = pendingImage?.uploading ? null : pendingImage?.url ?? null;
+    if ((!text && !image) || isPending || amIMuted || pendingImage?.uploading) return;
     const reply = replyingTo;
     startTransition(async () => {
-      const res = await postChatMessage(text, locale, reply?.id ?? null);
+      const res = await postChatMessage(text, locale, reply?.id ?? null, image);
       if (!res.ok) {
         toast.error(res.message);
         return;
@@ -471,6 +623,7 @@ export function ChatRoom({
       setMention(null);
       setReplyingTo(null);
       setEmojiOpen(false);
+      setPendingImage(null);
       requestAnimationFrame(autosize);
       const row = res.message;
       stickRef.current = true;
@@ -491,6 +644,9 @@ export function ChatRoom({
                 reply: reply
                   ? { author: reply.author.username, body: reply.body }
                   : null,
+                image_url: row.image_url,
+                poll: null,
+                bet_card: null,
                 author: me
                   ? {
                       username: me.username,
@@ -582,6 +738,31 @@ export function ChatRoom({
       if (res.ok)
         toast.success(fr ? "Message signalé aux admins." : "Reported to the admins.");
       else toast.error(res.message ?? "");
+    });
+  }
+
+  function handleVote(pollId: string, idx: number) {
+    const msg = messages.find((m) => m.poll?.id === pollId);
+    const prev = msg?.poll?.my_vote ?? null;
+    if (prev === idx) return; // already this choice
+    setMessages((ms) =>
+      ms.map((m) =>
+        m.poll && m.poll.id === pollId
+          ? { ...m, poll: bumpPoll(m.poll, idx, prev, true) }
+          : m,
+      ),
+    );
+    startTransition(async () => {
+      const res = await voteChatPoll(pollId, idx, locale);
+      if (!res.ok) {
+        toast.error(res.message ?? "");
+        return;
+      }
+      channelRef.current?.send({
+        type: "broadcast",
+        event: "poll_vote",
+        payload: { pollId, idx, prev },
+      });
     });
   }
 
@@ -805,6 +986,8 @@ export function ChatRoom({
                     onPin={handlePin}
                     onMute={handleMute}
                     onReport={handleReport}
+                    onImageClick={setLightbox}
+                    onVote={handleVote}
                   />
                 </div>
               );
@@ -953,7 +1136,47 @@ export function ChatRoom({
               </div>
             )}
 
-            <div className="flex items-end gap-1.5 rounded-[12px] border border-white/[0.08] bg-abyss/40 p-1.5 transition focus-within:border-primary-500/40">
+            {pendingImage && (
+              <div className="mb-1.5 inline-flex items-center gap-2 rounded-[8px] border border-white/[0.08] bg-abyss/40 p-1.5">
+                {pendingImage.uploading ? (
+                  <div className="flex size-16 items-center justify-center rounded-md bg-white/[0.04]">
+                    <Loader2 className="size-5 animate-spin text-text-tertiary" strokeWidth={2} />
+                  </div>
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element -- Supabase Storage URL preview.
+                  <img src={pendingImage.url} alt="" className="size-16 rounded-md object-cover" />
+                )}
+                <button
+                  type="button"
+                  onClick={() => setPendingImage(null)}
+                  aria-label={fr ? "Retirer l'image" : "Remove image"}
+                  className="flex size-6 items-center justify-center rounded-full bg-abyss/80 text-text-secondary transition hover:text-error"
+                >
+                  <X className="size-3.5" strokeWidth={2} />
+                </button>
+              </div>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={onPickFile}
+              className="hidden"
+            />
+
+            <div
+              onDrop={onDropCompose}
+              onDragOver={(e) => e.preventDefault()}
+              className="flex items-end gap-1.5 rounded-[12px] border border-white/[0.08] bg-abyss/40 p-1.5 transition focus-within:border-primary-500/40"
+            >
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                aria-label={fr ? "Joindre une image" : "Attach an image"}
+                className="flex size-9 shrink-0 items-center justify-center rounded-[10px] text-text-tertiary transition hover:bg-white/[0.06] hover:text-primary-300"
+              >
+                <ImagePlus className="size-5" strokeWidth={1.7} />
+              </button>
               <button
                 type="button"
                 onClick={() => setEmojiOpen((v) => !v)}
@@ -964,6 +1187,14 @@ export function ChatRoom({
                 )}
               >
                 <Smile className="size-5" strokeWidth={1.7} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setPollOpen(true)}
+                aria-label={fr ? "Créer un sondage" : "Create a poll"}
+                className="flex size-9 shrink-0 items-center justify-center rounded-[10px] text-text-tertiary transition hover:bg-white/[0.06] hover:text-violet-300"
+              >
+                <BarChart3 className="size-5" strokeWidth={1.7} />
               </button>
               <textarea
                 ref={textareaRef}
@@ -978,6 +1209,7 @@ export function ChatRoom({
                   if (val.trim()) sendTyping();
                 }}
                 onKeyDown={onKeyDown}
+                onPaste={onPasteCompose}
                 maxLength={CHAT_MAX_LEN}
                 rows={1}
                 placeholder={
@@ -1000,11 +1232,16 @@ export function ChatRoom({
                 )}
                 <button
                   type="submit"
-                  disabled={isPending || input.trim().length === 0}
+                  disabled={
+                    isPending ||
+                    pendingImage?.uploading ||
+                    (input.trim().length === 0 && !pendingImage)
+                  }
                   aria-label={fr ? "Envoyer" : "Send"}
                   className={cn(
                     "inline-flex size-9 shrink-0 items-center justify-center rounded-[10px] transition active:scale-95",
-                    input.trim().length > 0 && !isPending
+                    (input.trim().length > 0 || (pendingImage && !pendingImage.uploading)) &&
+                      !isPending
                       ? "bg-primary-500 text-abyss hover:bg-primary-400"
                       : "bg-white/[0.06] text-text-tertiary",
                   )}
@@ -1020,6 +1257,33 @@ export function ChatRoom({
           </form>
         )}
       </div>
+
+      {lightbox && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setLightbox(null)}
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-abyss/90 p-4 backdrop-blur-sm"
+        >
+          <button
+            type="button"
+            onClick={() => setLightbox(null)}
+            aria-label={fr ? "Fermer" : "Close"}
+            className="absolute right-4 top-4 flex size-9 items-center justify-center rounded-full border border-white/[0.12] bg-abyss/80 text-text-secondary transition hover:text-text-primary"
+          >
+            <X className="size-5" strokeWidth={2} />
+          </button>
+          {/* eslint-disable-next-line @next/next/no-img-element -- Supabase Storage URL. */}
+          <img
+            src={lightbox}
+            alt=""
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-[90vh] max-w-[92vw] rounded-[12px] object-contain shadow-2xl"
+          />
+        </div>
+      )}
+
+      {pollOpen && <PollComposer locale={locale} onClose={() => setPollOpen(false)} />}
     </section>
   );
 }
@@ -1051,6 +1315,8 @@ function MessageRow({
   onPin,
   onMute,
   onReport,
+  onImageClick,
+  onVote,
 }: {
   message: ChatMessage;
   grouped: boolean;
@@ -1068,11 +1334,14 @@ function MessageRow({
   onPin: (id: string, pinned: boolean) => void;
   onMute: (userId: string, mute: boolean, username: string) => void;
   onReport: (id: string) => void;
+  onImageClick: (url: string) => void;
+  onVote: (pollId: string, idx: number) => void;
 }) {
   const fr = locale === "fr";
-  const name = m.author.display_name ?? `@${m.author.username}`;
+  const isBot = m.user_id === CHAT_BOT_USER_ID;
+  const name = isBot ? "Salon" : m.author.display_name ?? `@${m.author.username}`;
   const authorIsAdmin = isAdminRole(m.author.role);
-  const canMute = isAdmin && !isMine;
+  const canMute = isAdmin && !isMine && !isBot;
   return (
     <li
       className={cn(
@@ -1085,34 +1354,48 @@ function MessageRow({
       )}
     >
       <div className="w-8 shrink-0">
-        {!grouped && (
-          <Link href={`/u/${m.author.username}`} className="relative block">
-            <UserAvatar
-              src={m.author.avatar_url}
-              name={name}
-              className="size-8 ring-1 ring-white/[0.1]"
-              fallbackClassName="bg-gradient-to-br from-primary-500/30 to-violet-500/30 font-mono text-[11px] font-bold text-text-primary"
-            />
-            {isOnline && (
-              <span className="absolute -bottom-0.5 -right-0.5 flex size-2.5">
-                <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary-400/70" />
-                <span className="relative inline-flex size-2.5 rounded-full bg-primary-400 ring-2 ring-surface-1" />
-              </span>
-            )}
-          </Link>
-        )}
+        {!grouped &&
+          (isBot ? (
+            <span className="flex size-8 items-center justify-center rounded-full bg-gradient-to-br from-primary-500/30 to-violet-500/30 text-base ring-1 ring-white/[0.1]">
+              🤖
+            </span>
+          ) : (
+            <Link href={`/u/${m.author.username}`} className="relative block">
+              <UserAvatar
+                src={m.author.avatar_url}
+                name={name}
+                className="size-8 ring-1 ring-white/[0.1]"
+                fallbackClassName="bg-gradient-to-br from-primary-500/30 to-violet-500/30 font-mono text-[11px] font-bold text-text-primary"
+              />
+              {isOnline && (
+                <span className="absolute -bottom-0.5 -right-0.5 flex size-2.5">
+                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary-400/70" />
+                  <span className="relative inline-flex size-2.5 rounded-full bg-primary-400 ring-2 ring-surface-1" />
+                </span>
+              )}
+            </Link>
+          ))}
       </div>
 
       <div className="min-w-0 flex-1">
         {!grouped && (
           <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-            <Link
-              href={`/u/${m.author.username}`}
-              className="text-xs font-semibold text-text-primary transition hover:text-primary-300 hover:underline"
-            >
-              {name}
-            </Link>
-            {authorIsAdmin && (
+            {isBot ? (
+              <span className="inline-flex items-center gap-1 text-xs font-semibold text-text-primary">
+                {name}
+                <span className="rounded-full bg-violet-500/15 px-1.5 text-[9px] font-bold uppercase tracking-wide text-violet-300">
+                  bot
+                </span>
+              </span>
+            ) : (
+              <Link
+                href={`/u/${m.author.username}`}
+                className="text-xs font-semibold text-text-primary transition hover:text-primary-300 hover:underline"
+              >
+                {name}
+              </Link>
+            )}
+            {!isBot && authorIsAdmin && (
               <span className="inline-flex items-center gap-0.5 rounded-full bg-violet-500/15 px-1.5 text-[9px] font-bold uppercase tracking-wide text-violet-300">
                 <Shield className="size-2.5" strokeWidth={2.5} />
                 admin
@@ -1151,12 +1434,34 @@ function MessageRow({
           </div>
         )}
 
-        <MessageBody
-          body={m.body}
-          memberUsernames={memberUsernames}
-          locale={locale}
-          highlightUsername={myUsername}
-        />
+        {m.body && (
+          <MessageBody
+            body={m.body}
+            memberUsernames={memberUsernames}
+            locale={locale}
+            highlightUsername={myUsername}
+          />
+        )}
+
+        {m.image_url && (
+          <button
+            type="button"
+            onClick={() => onImageClick(m.image_url!)}
+            className="mt-1 block overflow-hidden rounded-[10px] border border-white/[0.08] transition hover:border-primary-500/40"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element -- Supabase Storage URL. */}
+            <img
+              src={m.image_url}
+              alt={fr ? "Image partagée" : "Shared image"}
+              loading="lazy"
+              className="max-h-72 max-w-full object-cover"
+            />
+          </button>
+        )}
+
+        {m.poll && <PollCard poll={m.poll} locale={locale} onVote={onVote} />}
+
+        {m.bet_card && <BetCard pred={m.bet_card} locale={locale} />}
 
         <div className="mt-0.5">
           <MessageReactions messageId={m.id} initial={m.reactions} />

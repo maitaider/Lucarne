@@ -5,7 +5,7 @@ import { getSupabaseServer } from "@/lib/supabase/server";
 import type { Locale } from "@/i18n/routing";
 import { GLOBAL_CHAT_ID, CHAT_MAX_LEN } from "./constants";
 
-const bodySchema = z.string().trim().min(1).max(CHAT_MAX_LEN);
+const bodySchema = z.string().trim().max(CHAT_MAX_LEN);
 
 export type PostedChatMessage = {
   id: string;
@@ -13,6 +13,7 @@ export type PostedChatMessage = {
   body: string;
   created_at: string;
   reply_to_id: string | null;
+  image_url: string | null;
 };
 
 type ActionResult<T = undefined> =
@@ -29,17 +30,31 @@ export async function postChatMessage(
   body: string,
   locale: Locale = "fr",
   replyToId?: string | null,
+  imageUrl?: string | null,
 ): Promise<ActionResult<PostedChatMessage>> {
   const fr = locale !== "en";
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!supabaseUrl) {
     return { ok: false, message: fr ? "Supabase non configuré" : "Supabase not configured" };
   }
   const parsed = bodySchema.safeParse(body);
   if (!parsed.success) {
     return {
       ok: false,
-      message: fr ? "Message vide ou trop long (280 max)." : "Empty or too long (280 max).",
+      message: fr ? "Message trop long (280 max)." : "Too long (280 max).",
     };
+  }
+  // A message must have text or an image.
+  if (!parsed.data && !imageUrl) {
+    return { ok: false, message: fr ? "Message vide." : "Empty message." };
+  }
+  // Anti-abuse: an attached image must be a file we host in the chat bucket
+  // (prevents storing arbitrary external/hotlinked URLs as "images").
+  if (imageUrl) {
+    const allowedPrefix = `${supabaseUrl}/storage/v1/object/public/chat-media/`;
+    if (!imageUrl.startsWith(allowedPrefix)) {
+      return { ok: false, message: fr ? "Image invalide." : "Invalid image." };
+    }
   }
 
   const supabase = await getSupabaseServer();
@@ -56,8 +71,9 @@ export async function postChatMessage(
       parent_id: GLOBAL_CHAT_ID,
       body: parsed.data,
       reply_to_id: replyToId ?? null,
+      image_url: imageUrl ?? null,
     })
-    .select("id, user_id, body, created_at, reply_to_id")
+    .select("id, user_id, body, created_at, reply_to_id, image_url")
     .single();
 
   if (error || !data) {
@@ -206,6 +222,67 @@ export async function resolveChatReport(
   if (error) {
     if (error.message?.includes("not_authorized")) {
       return { ok: false, message: fr ? "Réservé aux admins." : "Admins only." };
+    }
+    return { ok: false, message: error.message };
+  }
+  return { ok: true };
+}
+
+/**
+ * Creates a poll in the salon (a global message + a chat_polls row, atomic via
+ * the `create_chat_poll` SECURITY DEFINER RPC). Throttle/mute apply.
+ */
+export async function createChatPoll(
+  question: string,
+  options: string[],
+  locale: Locale = "fr",
+): Promise<ActionResult<string>> {
+  const fr = locale !== "en";
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    return { ok: false, message: fr ? "Supabase non configuré" : "Supabase not configured" };
+  }
+  const clean = options.map((o) => o.trim()).filter(Boolean);
+  if (question.trim().length < 1) {
+    return { ok: false, message: fr ? "Question vide." : "Empty question." };
+  }
+  if (clean.length < 2) {
+    return { ok: false, message: fr ? "Ajoute au moins 2 options." : "Add at least 2 options." };
+  }
+  const supabase = await getSupabaseServer();
+  const { data, error } = await supabase.rpc("create_chat_poll", {
+    p_question: question,
+    p_options: clean,
+  });
+  if (error) {
+    if (error.message?.includes("chat_muted")) {
+      return { ok: false, message: fr ? "Tu es muet dans le Salon." : "You're muted in the Lounge." };
+    }
+    if (error.message?.includes("chat_rate_limited")) {
+      return { ok: false, message: fr ? "Doucement (3 s)." : "Easy (3s)." };
+    }
+    return { ok: false, message: error.message };
+  }
+  return { ok: true, message: data as string };
+}
+
+/** Casts / changes the caller's vote on a poll. */
+export async function voteChatPoll(
+  pollId: string,
+  optionIdx: number,
+  locale: Locale = "fr",
+): Promise<ActionResult> {
+  const fr = locale !== "en";
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    return { ok: false, message: fr ? "Supabase non configuré" : "Supabase not configured" };
+  }
+  const supabase = await getSupabaseServer();
+  const { error } = await supabase.rpc("vote_chat_poll", {
+    p_poll_id: pollId,
+    p_option_idx: optionIdx,
+  });
+  if (error) {
+    if (error.message?.includes("poll_closed")) {
+      return { ok: false, message: fr ? "Sondage clos." : "Poll closed." };
     }
     return { ok: false, message: error.message };
   }

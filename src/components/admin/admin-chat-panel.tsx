@@ -235,9 +235,19 @@ export function AdminChatPanel({
                         {timeAgo(r.first_reported_at, locale)}
                       </span>
                     </div>
-                    <p className="mt-1 whitespace-pre-wrap break-words text-sm text-text-secondary">
-                      {r.body}
-                    </p>
+                    {r.body && (
+                      <p className="mt-1 whitespace-pre-wrap break-words text-sm text-text-secondary">
+                        {r.body}
+                      </p>
+                    )}
+                    {r.image_url && (
+                      // eslint-disable-next-line @next/next/no-img-element -- Supabase Storage URL.
+                      <img
+                        src={r.image_url}
+                        alt=""
+                        className="mt-1.5 max-h-40 rounded-md border border-white/[0.08] object-contain"
+                      />
+                    )}
                     {r.reasons.length > 0 && (
                       <p className="mt-1 text-[11px] italic text-text-tertiary">
                         {fr ? "Motifs : " : "Reasons: "}
@@ -373,7 +383,9 @@ export function AdminChatPanel({
                       </span>
                     )}
                   </div>
-                  <p className="truncate text-sm text-text-secondary">{m.body}</p>
+                  <p className="truncate text-sm text-text-secondary">
+                    {m.image_url ? (m.body ? `📷 ${m.body}` : "📷 Image") : m.body}
+                  </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-1 opacity-0 transition group-hover:opacity-100">
                   <button
