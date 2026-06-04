@@ -33,6 +33,7 @@ import { KnockoutTie } from "./knockout-tie";
 import { ChampionBanner } from "./champion-banner";
 import type { MatchListItem } from "@/lib/matches/shared";
 import {
+  CircleDashed,
   Crown,
   ListChecks,
   ListOrdered,
@@ -76,6 +77,64 @@ type Tab = "groupes" | "finale";
 function emptyMatchPick(): MatchPick {
   return { home_goals: null, away_goals: null };
 }
+
+/* ----------------------------------------------------------------------------
+ *  Draft model — explicit "Confirm" per match.
+ *
+ *  `matchPicks` holds only CONFIRMED picks (hydrated from the saved bets).
+ *  `draftPicks` is a local scratchpad of in-progress edits. The user types a
+ *  score into the draft; nothing is persisted until they click "Confirmer le
+ *  pronostic", which fires the existing placeBet flow.
+ *
+ *  DECISION (documented): the live group standings strip AND the persisted
+ *  bracket both derive ONLY from CONFIRMED picks — a draft never re-ranks a
+ *  group. So "what the standings show" === "what is saved" === "what seeds the
+ *  bracket", with no divergence and no jump-back on reload. The confirm click
+ *  is the single moment a score becomes an `exact_score` bet AND re-ranks its
+ *  group → re-seeds the bracket (computeGroupOrder → upsertTournamentPrediction),
+ *  exactly as the old auto-save did — only the timing moves to the explicit click.
+ * -------------------------------------------------------------------------- */
+
+function picksEqual(a: MatchPick, b: MatchPick): boolean {
+  return a.home_goals === b.home_goals && a.away_goals === b.away_goals;
+}
+
+/** A pick has content once it carries a complete scoreline. */
+function pickHasContent(p: MatchPick): boolean {
+  return p.home_goals != null && p.away_goals != null;
+}
+
+export type MatchDraftStatus = {
+  /** The value to display: the draft if any, else the confirmed pick. */
+  effective: MatchPick;
+  /** Draft exists and differs from the confirmed pick → enable "Confirmer". */
+  dirty: boolean;
+  /** A confirmed score exists → show "✓ Confirmé". */
+  confirmed: boolean;
+};
+
+/** Per-match draft status, derived from the confirmed + draft maps. */
+export function matchDraftStatus(
+  matchId: string,
+  matchPicks: Map<string, MatchPick>,
+  draftPicks: Map<string, MatchPick>,
+): MatchDraftStatus {
+  const saved = matchPicks.get(matchId) ?? emptyMatchPick();
+  const draft = draftPicks.get(matchId);
+  return {
+    effective: draft ?? saved,
+    dirty: draft != null && !picksEqual(draft, saved),
+    confirmed: pickHasContent(saved),
+  };
+}
+
+/** Stage a per-match edit into the local draft. */
+export type EditDraftFn = (
+  matchId: string,
+  update: (prev: MatchPick) => MatchPick,
+) => void;
+/** Commit a match's draft (the only thing that persists). */
+export type ConfirmMatchFn = (matchId: string) => void;
 
 function hydrateMatchPicks(initial: InitialPicks): Map<string, MatchPick> {
   const out = new Map<string, MatchPick>();
@@ -161,9 +220,18 @@ export function PredictBoard({
   }));
   const [thirdAssign, setThirdAssign] = useState<Record<string, string>>({});
 
-  // ---- Per-match state (winner / goals / scorers) ----------------------------
+  // ---- Per-match state (score) -----------------------------------------------
+  // `matchPicks` = CONFIRMED picks only (feeds standings + bracket).
   const [matchPicks, setMatchPicks] = useState<Map<string, MatchPick>>(() =>
     hydrateMatchPicks(initialPicks),
+  );
+  // `draftPicks` = local, unsaved edits awaiting an explicit "Confirmer" click.
+  const [draftPicks, setDraftPicks] = useState<Map<string, MatchPick>>(
+    () => new Map(),
+  );
+  // Match ids whose confirm is currently in flight (for the spinner / disable).
+  const [pendingMatchIds, setPendingMatchIds] = useState<Set<string>>(
+    () => new Set(),
   );
 
   const teamById = useMemo(() => {
@@ -303,32 +371,83 @@ export function PredictBoard({
     });
   }
 
-  // ---- Per-match save (winner / goals / scorers) -----------------------------
-  function savePerMatch(
-    matchId: string,
-    update: (prev: MatchPick) => MatchPick,
-    bet: { kind: "score"; home: number; away: number },
-  ) {
+  // ---- Per-match draft + confirm (score) -------------------------------------
+
+  /** Stage a per-match edit into the LOCAL draft. Nothing persists here. */
+  function editDraft(matchId: string, update: (prev: MatchPick) => MatchPick) {
     if (!canBet) {
       router.push("/buy-in");
       return;
     }
-    const before = matchPicks.get(matchId) ?? emptyMatchPick();
-    const after = update(before);
-    const next = new Map(matchPicks);
-    next.set(matchId, after);
-    setMatchPicks(next);
+    const base =
+      draftPicks.get(matchId) ?? matchPicks.get(matchId) ?? emptyMatchPick();
+    const after = update(base);
+    setDraftPicks((prev) => {
+      const next = new Map(prev);
+      next.set(matchId, after);
+      return next;
+    });
+  }
 
-    // "Predict the matches" model: a group result re-ranks that group's
-    // standings (which feed the knockout bracket).
-    if (bet.kind === "score") {
+  /** Commit a match's draft via placeBet — the ONLY thing that persists. On
+   *  success the draft becomes a confirmed pick and, for a group score, the
+   *  group is re-ranked → bracket re-seeded (same logic the auto-save used). */
+  function confirmMatch(matchId: string) {
+    if (!canBet) {
+      router.push("/buy-in");
+      return;
+    }
+    const saved = matchPicks.get(matchId) ?? emptyMatchPick();
+    const draft = draftPicks.get(matchId);
+    if (!draft || picksEqual(draft, saved)) return;
+    if (draft.home_goals == null || draft.away_goals == null) return; // need a full score
+
+    setPendingMatchIds((prev) => new Set(prev).add(matchId));
+    startTransition(async () => {
+      const res = await placeBet({
+        match_id: matchId,
+        league_id: null,
+        bet: {
+          bet_type: "exact_score",
+          match_id: matchId,
+          payload: { home: draft.home_goals, away: draft.away_goals },
+        } as never,
+        stake_cents: 0,
+        client_request_id: crypto.randomUUID(),
+      });
+      if (!res.ok) {
+        toast.error(res.message);
+        setPendingMatchIds((prev) => {
+          const next = new Set(prev);
+          next.delete(matchId);
+          return next;
+        });
+        return; // keep the draft intact so the user can retry
+      }
+
+      // Persisted OK → promote the draft to a confirmed pick, drop the draft.
+      const nextPicks = new Map(matchPicks);
+      nextPicks.set(matchId, draft);
+      setMatchPicks(nextPicks);
+      setDraftPicks((prev) => {
+        const next = new Map(prev);
+        next.delete(matchId);
+        return next;
+      });
+      setPendingMatchIds((prev) => {
+        const next = new Set(prev);
+        next.delete(matchId);
+        return next;
+      });
+
+      // A confirmed group score re-ranks that group → re-seeds the bracket.
       const gm = groupMatches.find((m) => m.id === matchId);
       if (gm?.group_label) {
         const label = gm.group_label;
         const ids = (groupTeams[label] ?? []).map((t) => t.id);
         const { order } = computeGroupOrder(
           (matchesByGroup[label] ?? []).map((m) => {
-            const p = next.get(m.id);
+            const p = nextPicks.get(m.id);
             return {
               home_team_id: m.home_team?.id ?? null,
               away_team_id: m.away_team?.id ?? null,
@@ -341,28 +460,10 @@ export function PredictBoard({
         );
         commitGroupOrder(label, order);
       }
-    }
 
-    const payload = {
-      bet_type: "exact_score" as const,
-      match_id: matchId,
-      payload: { home: bet.home, away: bet.away },
-    };
-
-    startTransition(async () => {
-      const res = await placeBet({
-        match_id: matchId,
-        league_id: null,
-        bet: payload as never,
-        stake_cents: 0,
-        client_request_id: crypto.randomUUID(),
-      });
-      if (!res.ok) {
-        toast.error(res.message);
-        const revert = new Map(matchPicks);
-        revert.set(matchId, before);
-        setMatchPicks(revert);
-      }
+      toast.success(
+        locale === "fr" ? "Pronostic confirmé" : "Prediction confirmed",
+      );
     });
   }
 
@@ -432,6 +533,15 @@ export function PredictBoard({
     return p?.home_goals != null && p?.away_goals != null;
   }).length;
 
+  // Per-match drafts the user has typed but not yet confirmed.
+  const unconfirmedCount = useMemo(() => {
+    let n = 0;
+    for (const id of draftPicks.keys()) {
+      if (matchDraftStatus(id, matchPicks, draftPicks).dirty) n++;
+    }
+    return n;
+  }, [draftPicks, matchPicks]);
+
   // ---- HowTo steps -----------------------------------------------------------
 
   const howToSteps: HowToStep[] =
@@ -440,7 +550,7 @@ export function PredictBoard({
           {
             icon: ListOrdered,
             title: "Phase de groupes",
-            body: "Classe chaque groupe 1ᵉʳ→4ᵉ et pronostique le score de chacun des 6 matchs par groupe.",
+            body: "Pronostique le score de chacun des 6 matchs par groupe, puis clique « Confirmer le pronostic » pour l'enregistrer. Le classement se recalcule depuis tes matchs confirmés.",
           },
           {
             icon: MousePointerClick,
@@ -457,7 +567,7 @@ export function PredictBoard({
           {
             icon: ListOrdered,
             title: "Group phase",
-            body: "Rank each group 1st→4th and predict the score of every group match.",
+            body: "Predict the score of every group match, then click “Confirm prediction” to save it. The standings recompute from your confirmed matches.",
           },
           {
             icon: MousePointerClick,
@@ -488,8 +598,8 @@ export function PredictBoard({
         title={locale === "fr" ? "Comment ça marche" : "How it works"}
         subtitle={
           locale === "fr"
-            ? "Deux segments : classe les groupes + parie sur chaque match (gauche), puis bâtis ta phase finale (droite). Verrouillé une seule fois au coup d'envoi du 1ᵉʳ match."
-            : "Two segments: rank groups + pick group matches (left), then build your bracket (right). Locked once at the very first kickoff."
+            ? "Deux segments : pronostique chaque match puis confirme ton pronostic (gauche), puis bâtis ta phase finale (droite). Rien n'est enregistré tant que tu n'as pas confirmé. Verrouillé une seule fois au coup d'envoi du 1ᵉʳ match."
+            : "Two segments: predict each match then confirm your prediction (left), then build your bracket (right). Nothing is saved until you confirm. Locked once at the very first kickoff."
         }
         steps={howToSteps}
         accent="gold"
@@ -526,6 +636,20 @@ export function PredictBoard({
           />
 
           <div className="flex items-center gap-2">
+            {unconfirmedCount > 0 && (
+              <span
+                title={
+                  locale === "fr"
+                    ? "Des pronos sont en brouillon — clique « Confirmer » sur chaque match."
+                    : "Some picks are drafts — click “Confirm” on each match."
+                }
+              >
+                <Badge tone="gold" icon={CircleDashed}>
+                  {unconfirmedCount}{" "}
+                  {locale === "fr" ? "à confirmer" : "to confirm"}
+                </Badge>
+              </span>
+            )}
             <LockCountdown targetAt={deadlineAt} locale={locale} />
             <ChampionPill
               championId={championId}
@@ -555,10 +679,13 @@ export function PredictBoard({
           matchesByGroup={matchesByGroup}
           groups={groups}
           matchPicks={matchPicks}
+          draftPicks={draftPicks}
+          pendingMatchIds={pendingMatchIds}
           teamById={teamById}
           canEdit={canEdit}
           canBet={canBet}
-          onSavePerMatch={savePerMatch}
+          onEditDraft={editDraft}
+          onConfirmMatch={confirmMatch}
           locale={locale}
         />
       ) : (
@@ -664,24 +791,26 @@ function GroupesSection({
   matchesByGroup,
   groups,
   matchPicks,
+  draftPicks,
+  pendingMatchIds,
   teamById,
   canEdit,
   canBet,
-  onSavePerMatch,
+  onEditDraft,
+  onConfirmMatch,
   locale,
 }: {
   groupTeams: Record<string, TeamLite[]>;
   matchesByGroup: Record<string, MatchListItem[]>;
   groups: GroupStandings;
   matchPicks: Map<string, MatchPick>;
+  draftPicks: Map<string, MatchPick>;
+  pendingMatchIds: Set<string>;
   teamById: Map<string, TeamLite>;
   canEdit: boolean;
   canBet: boolean;
-  onSavePerMatch: (
-    matchId: string,
-    update: (prev: MatchPick) => MatchPick,
-    bet: { kind: "score"; home: number; away: number },
-  ) => void;
+  onEditDraft: EditDraftFn;
+  onConfirmMatch: ConfirmMatchFn;
   locale: Locale;
 }) {
   const labels = Object.keys(groupTeams).sort();
@@ -704,8 +833,8 @@ function GroupesSection({
           />
           <span>
             {locale === "fr"
-              ? "Pronostique le score de chacun des 6 matchs par groupe. Le classement se calcule tout seul : les 2 premiers se qualifient, le 3ᵉ joue le repêchage."
-              : "Predict the score of each of the 6 group matches. The standings compute automatically: top 2 qualify, 3rd goes to the playoff."}
+              ? "Pronostique le score de chacun des 6 matchs, puis clique « Confirmer le pronostic » pour l'enregistrer. Le classement se recalcule depuis tes matchs confirmés : les 2 premiers se qualifient, le 3ᵉ joue le repêchage. Rien n'est enregistré tant que tu n'as pas confirmé."
+              : "Predict the score of each of the 6 group matches, then click “Confirm prediction” to save it. The standings recompute from your confirmed matches: top 2 qualify, 3rd goes to the playoff. Nothing is saved until you confirm."}
           </span>
         </p>
       </Card>
@@ -718,10 +847,13 @@ function GroupesSection({
             allTeams={groupTeams[label] ?? []}
             matches={matchesByGroup[label] ?? []}
             matchPicks={matchPicks}
+            draftPicks={draftPicks}
+            pendingMatchIds={pendingMatchIds}
             teamById={teamById}
             canEdit={canEdit}
             canBet={canBet}
-            onSavePerMatch={onSavePerMatch}
+            onEditDraft={onEditDraft}
+            onConfirmMatch={onConfirmMatch}
             locale={locale}
           />
         ))}

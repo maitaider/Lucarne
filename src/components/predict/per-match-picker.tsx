@@ -1,7 +1,7 @@
 "use client";
 
 import { Flag } from "@/components/team/flag";
-import { Lock, Minus, Plus } from "lucide-react";
+import { CheckCircle2, CircleDashed, Loader2, Lock, Minus, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { MatchListItem } from "@/lib/matches/shared";
 import type { Locale } from "@/i18n/routing";
@@ -17,25 +17,44 @@ function isLockedNow(match: { kickoff_at: string; status: string }): boolean {
  * Compact per-match row. The user enters a SCORELINE for both teams with two
  * steppers; the result (win/draw) and the total goals derive from the score.
  * Scoring is score-only — no scorer picks.
+ *
+ * The score stays a LOCAL DRAFT until the user clicks "Confirmer le pronostic":
+ * `onScore` only edits the draft; `onConfirm` is the only thing that persists.
  */
 export function PerMatchPicker({
   match,
   pick,
   canEdit,
   onScore,
+  onConfirm,
+  dirty,
+  confirmed,
+  pending,
   locale,
   compact = false,
 }: {
   match: MatchListItem;
+  /** The value to DISPLAY: the local draft if any, else the confirmed pick. */
   pick: MatchPick;
   canEdit: boolean;
+  /** Edits the local draft (no persistence). */
   onScore: (home: number, away: number) => void;
+  /** Commits the draft via placeBet (the only thing that persists). */
+  onConfirm: () => void;
+  /** Draft differs from the confirmed pick → there's something to confirm. */
+  dirty: boolean;
+  /** A confirmed score already exists for this match. */
+  confirmed: boolean;
+  /** A confirm is currently in flight for this match. */
+  pending: boolean;
   locale: Locale;
   /** Tighter padding when used inside a knockout tie row. */
   compact?: boolean;
 }) {
   const locked = isLockedNow(match);
-  const disabled = !canEdit || locked;
+  // Freeze inputs while a confirm is in flight: promoting the draft on success
+  // clears it, so a concurrent edit would otherwise be silently dropped.
+  const disabled = !canEdit || locked || pending;
   const fr = locale === "fr";
 
   const homeName = match.home_team
@@ -131,6 +150,54 @@ export function PerMatchPicker({
           </span>
         </div>
       </div>
+
+      {/* Confirm footer — nothing persists until the user clicks here. The
+          score stays a local draft while `dirty`; the click commits it via
+          placeBet (the parent's onConfirm). */}
+      {(dirty || pending || confirmed) && (
+        <div
+          className={cn(
+            "flex items-center justify-between gap-2 border-t border-white/[0.05] bg-white/[0.015]",
+            compact ? "px-2 py-1.5" : "px-2.5 py-1.5 sm:px-3",
+          )}
+        >
+          {pending ? (
+            <span className="inline-flex min-w-0 items-center gap-1.5 text-[10px] font-semibold text-primary-300">
+              <Loader2 className="size-3 shrink-0 animate-spin" strokeWidth={2.5} />
+              <span className="truncate">{fr ? "Enregistrement…" : "Saving…"}</span>
+            </span>
+          ) : dirty ? (
+            <span className="inline-flex min-w-0 items-center gap-1.5 text-[10px] font-semibold text-gold-300">
+              <CircleDashed className="size-3 shrink-0" strokeWidth={2.5} />
+              <span className="truncate">
+                {fr ? "Brouillon non enregistré" : "Unsaved draft"}
+              </span>
+            </span>
+          ) : (
+            <span className="inline-flex min-w-0 items-center gap-1.5 text-[10px] font-semibold text-emerald-300/90">
+              <CheckCircle2 className="size-3 shrink-0" strokeWidth={2.5} />
+              <span className="truncate">{fr ? "Confirmé" : "Confirmed"}</span>
+            </span>
+          )}
+
+          {(dirty || pending) && (
+            <button
+              type="button"
+              onClick={onConfirm}
+              disabled={disabled || pending || !dirty}
+              title={fr ? "Confirmer le pronostic" : "Confirm this prediction"}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-sm bg-primary-500 px-2.5 py-1 text-[11px] font-bold text-abyss shadow-glow-primary transition hover:bg-primary-400 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
+            >
+              {pending ? (
+                <Loader2 className="size-3 animate-spin" strokeWidth={2.5} />
+              ) : (
+                <CheckCircle2 className="size-3" strokeWidth={2.5} />
+              )}
+              {fr ? "Confirmer le pronostic" : "Confirm prediction"}
+            </button>
+          )}
+        </div>
+      )}
     </li>
   );
 }
