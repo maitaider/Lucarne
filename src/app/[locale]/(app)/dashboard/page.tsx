@@ -11,6 +11,7 @@ import {
   type StandingEntry,
 } from "@/lib/leagues/queries";
 import { LiveRefresh } from "@/components/live/live-refresh";
+import { ChatPreviewCard } from "@/components/dashboard/chat-preview-card";
 import { FlashRow } from "@/components/leaderboard/flash-row";
 import { getMyPicksByMatch, type MyPick } from "@/lib/bets/my-picks";
 import { picksToExisting } from "@/lib/bets/picks-to-existing";
@@ -280,6 +281,7 @@ export default async function DashboardPage({
             total={standings.length}
             locale={L}
           />
+          <ChatPreviewCard locale={L} />
           <LeaguesCard leagues={myLeagues} locale={L} />
           <TicketsCard bets={myBets} locale={L} />
         </aside>
