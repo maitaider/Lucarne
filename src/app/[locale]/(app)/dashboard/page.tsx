@@ -144,7 +144,7 @@ export default async function DashboardPage({
   ).length;
 
   return (
-    <main className="lk-stagger mx-auto flex w-full max-w-[1700px] flex-col gap-5 px-4 pb-24 pt-6 sm:px-6 lg:px-8">
+    <main className="lk-stagger mx-auto flex w-full max-w-[1700px] flex-col gap-5 overflow-x-clip px-4 pb-24 pt-6 sm:px-6 lg:px-8">
       <LiveRefresh />
       {!buyIn.can_bet && (
         <BuyInBanner
@@ -246,8 +246,11 @@ export default async function DashboardPage({
       {/* Quick actions */}
       <QuickActions locale={L} />
 
-      {/* Feature row: champion · pot · tournament */}
-      <div className="grid gap-5 md:grid-cols-3">
+      {/* Feature row: champion · pot · tournament.
+          On mobile it drops below the actionable content (featured match,
+          leaderboard, salon) so those surface first; restored to source order
+          on lg where there's room side-by-side. */}
+      <div className="order-last grid gap-5 md:grid-cols-3 lg:order-none">
         <ChampionCard team={championTeam} canBet={buyIn.can_bet} locale={L} />
         <CagnotteCard
           amountCents={buyIn.amount_cents}
@@ -487,7 +490,7 @@ function FeaturedMatch({
         </span>
       </header>
 
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-5">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3 sm:gap-5">
         <FeaturedTeam
           name={home}
           iso={match.home_team?.iso_code ?? null}
@@ -648,7 +651,7 @@ function UpcomingCard({
               <li key={m.id}>
                 <Link
                   href={`/matches/${m.id}`}
-                  className="grid grid-cols-[3.5rem_1fr_auto_1fr] items-center gap-2 px-4 py-2.5 text-sm transition hover:bg-white/[0.03]"
+                  className="grid grid-cols-[3.25rem_minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 px-4 py-2.5 text-sm transition hover:bg-white/[0.03]"
                 >
                   <span
                     className={cn(
