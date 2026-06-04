@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   XCircle,
   Minus,
+  Clock,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { getCurrentUser } from "@/lib/profile/queries";
@@ -162,18 +163,18 @@ export default async function PublicProfilePage({
         </div>
       </section>
 
-      {/* ── Recent settled predictions ───────────────────────────────────── */}
+      {/* ── Recent predictions (validated + settled) ─────────────────────── */}
       <SectionPanel
         icon={History}
         accent="violet"
-        title={fr ? "Derniers pronostics réglés" : "Latest settled predictions"}
+        title={fr ? "Derniers pronostics" : "Latest predictions"}
         badge={recent.length || undefined}
       >
         {recent.length === 0 ? (
           <p className="py-6 text-center text-sm text-text-tertiary">
             {fr
-              ? "Aucun pronostic réglé pour le moment."
-              : "No settled predictions yet."}
+              ? "Aucun pronostic pour le moment."
+              : "No predictions yet."}
           </p>
         ) : (
           <ul className="space-y-2">
@@ -300,7 +301,12 @@ function RecentBetRow({ bet, locale }: { bet: ProfileBet; locale: Locale }) {
             {fr ? "Prono" : "Pick"} {predicted.home}–{predicted.away}
           </span>
         )}
-        <ResultBadge result={bet.result} points={bet.points} fr={fr} />
+        <ResultBadge
+          result={bet.result}
+          points={bet.points}
+          matchStatus={bet.match_status}
+          fr={fr}
+        />
       </div>
     </div>
   );
@@ -320,10 +326,12 @@ function RecentBetRow({ bet, locale }: { bet: ProfileBet; locale: Locale }) {
 function ResultBadge({
   result,
   points,
+  matchStatus,
   fr,
 }: {
   result: string | null;
   points: number;
+  matchStatus: string | null;
   fr: boolean;
 }) {
   if (result === "won") {
@@ -338,6 +346,17 @@ function ResultBadge({
       <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-error/15 px-2 py-0.5 text-[11px] font-bold tabular-nums text-error ring-1 ring-error/25">
         <XCircle className="size-3" strokeWidth={2.5} />
         {points} {fr ? "pt" : "pt"}
+      </span>
+    );
+  }
+  // No result yet: a locked-in pick on a not-finished match is upcoming/live,
+  // not a 0-point draw.
+  if (result === null && matchStatus !== "finished") {
+    const live = matchStatus === "live";
+    return (
+      <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-violet-500/12 px-2 py-0.5 text-[11px] font-bold text-violet-300 ring-1 ring-violet-500/25">
+        <Clock className="size-3" strokeWidth={2.5} />
+        {live ? (fr ? "En cours" : "Live") : fr ? "À venir" : "Upcoming"}
       </span>
     );
   }
