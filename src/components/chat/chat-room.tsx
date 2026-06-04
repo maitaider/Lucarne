@@ -8,22 +8,42 @@ import {
   postChatMessage,
   deleteChatMessage,
   setChatPin,
+  setChatMute,
 } from "@/lib/chat/actions";
 import { CHAT_MAX_LEN } from "@/lib/chat/constants";
 import { markChatRead } from "./chat-unread";
-import type { ChatMember, ChatMessage } from "@/lib/chat/queries";
+import type {
+  ChatMember,
+  ChatMessage,
+  ChatMute,
+  ChatReplyPreview,
+} from "@/lib/chat/queries";
 import type { ReactionSummary } from "@/lib/social/queries";
 import { ReactionBar } from "@/components/social/reaction-bar";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { useToast } from "@/components/ui/toast-provider";
 import { MessageBody } from "./message-body";
 import { cn } from "@/lib/utils";
-import { ArrowDown, Loader2, Pin, PinOff, Send, Smile, Trash2 } from "lucide-react";
+import {
+  ArrowDown,
+  Loader2,
+  MicOff,
+  Pin,
+  PinOff,
+  Reply,
+  Send,
+  Shield,
+  Smile,
+  Trash2,
+  Volume2,
+  X,
+} from "lucide-react";
 import type { Locale } from "@/i18n/routing";
 
 type Props = {
   initialMessages: ChatMessage[];
   members: ChatMember[];
+  initialMutes: ChatMute[];
   currentUserId: string;
   isAdmin: boolean;
   locale: Locale;
@@ -35,6 +55,7 @@ type ChatRow = {
   body: string;
   created_at: string;
   pinned_at: string | null;
+  reply_to_id: string | null;
   deleted_at: string | null;
 };
 
@@ -44,6 +65,16 @@ const EMPTY_REACTIONS: ReactionSummary = {
   counts: { fire: 0, clap: 0, laugh: 0, think: 0, shock: 0, skull: 0 },
   mine: [],
 };
+
+const EMOJIS = [
+  "⚽", "🔥", "😂", "😮", "😢", "👏", "🙌", "💪",
+  "🎉", "😅", "🤝", "👀", "🥅", "🟥", "🟨", "🐐",
+  "💀", "🤔", "❤️", "👍", "👎", "🙏", "😱", "🤣",
+];
+
+function isAdminRole(role: string): boolean {
+  return role === "admin" || role === "super_admin";
+}
 
 /** Active @mention token ending at the caret, or null. */
 function getMentionQuery(
@@ -68,8 +99,7 @@ function getMentionQuery(
 }
 
 function formatTime(iso: string, locale: Locale): string {
-  const d = new Date(iso);
-  return d.toLocaleTimeString(locale === "fr" ? "fr-CA" : "en-CA", {
+  return new Date(iso).toLocaleTimeString(locale === "fr" ? "fr-CA" : "en-CA", {
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -98,6 +128,7 @@ function formatDay(iso: string, locale: Locale): string {
 export function ChatRoom({
   initialMessages,
   members,
+  initialMutes,
   currentUserId,
   isAdmin,
   locale,
@@ -107,6 +138,13 @@ export function ChatRoom({
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState("");
   const [isPending, startTransition] = useTransition();
+
+  // Moderation + composing extras
+  const [mutedIds, setMutedIds] = useState<Set<string>>(
+    () => new Set(initialMutes.map((m) => m.user_id)),
+  );
+  const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
+  const [emojiOpen, setEmojiOpen] = useState(false);
 
   // Realtime side-channels
   const [online, setOnline] = useState<OnlineUser[]>([]);
@@ -126,6 +164,7 @@ export function ChatRoom({
     new Map(),
   );
 
+  const amIMuted = mutedIds.has(currentUserId);
   const me = useMemo(
     () => members.find((m) => m.id === currentUserId) ?? null,
     [members, currentUserId],
@@ -160,7 +199,7 @@ export function ChatRoom({
     markChatRead();
     const supabase = getSupabaseBrowser();
 
-    function rowToMessage(row: ChatRow): ChatMessage {
+    function rowToMessage(row: ChatRow, reply: ChatReplyPreview | null): ChatMessage {
       const a = membersByIdRef.current.get(row.user_id);
       return {
         id: row.id,
@@ -168,13 +207,16 @@ export function ChatRoom({
         body: row.body,
         created_at: row.created_at,
         pinned_at: row.pinned_at ?? null,
+        reply_to_id: row.reply_to_id ?? null,
+        reply,
         author: a
           ? {
               username: a.username,
               display_name: a.display_name,
               avatar_url: a.avatar_url,
+              role: a.role,
             }
-          : { username: "…", display_name: null, avatar_url: null },
+          : { username: "…", display_name: null, avatar_url: null, role: "player" },
         reactions: { counts: { ...EMPTY_REACTIONS.counts }, mine: [] },
       };
     }
@@ -183,7 +225,7 @@ export function ChatRoom({
       if (membersByIdRef.current.has(userId)) return;
       const { data } = await supabase
         .from("profiles")
-        .select("id, username, display_name, avatar_url")
+        .select("id, username, display_name, avatar_url, role")
         .eq("id", userId)
         .maybeSingle();
       if (!data) return;
@@ -197,6 +239,7 @@ export function ChatRoom({
                   username: data.username,
                   display_name: data.display_name,
                   avatar_url: data.avatar_url,
+                  role: data.role,
                 },
               }
             : m,
@@ -220,9 +263,16 @@ export function ChatRoom({
           const row = payload.new as ChatRow;
           if (row.deleted_at) return;
           markChatRead();
-          setMessages((prev) =>
-            prev.some((m) => m.id === row.id) ? prev : [...prev, rowToMessage(row)],
-          );
+          setMessages((prev) => {
+            if (prev.some((m) => m.id === row.id)) return prev;
+            const parent = row.reply_to_id
+              ? prev.find((m) => m.id === row.reply_to_id)
+              : null;
+            const reply = parent
+              ? { author: parent.author.username, body: parent.body }
+              : null;
+            return [...prev, rowToMessage(row, reply)];
+          });
           if (row.user_id !== currentUserId && !stickRef.current) {
             setUnseen((u) => u + 1);
           }
@@ -350,17 +400,36 @@ export function ChatRoom({
     el.style.height = `${Math.min(el.scrollHeight, 128)}px`;
   }
 
+  function insertAtCaret(text: string) {
+    const el = textareaRef.current;
+    const start = el?.selectionStart ?? input.length;
+    const end = el?.selectionEnd ?? start;
+    const next = input.slice(0, start) + text + input.slice(end);
+    setInput(next);
+    const pos = start + text.length;
+    requestAnimationFrame(() => {
+      if (el) {
+        el.focus();
+        el.setSelectionRange(pos, pos);
+        autosize();
+      }
+    });
+  }
+
   function submit() {
     const text = input.trim();
-    if (!text || isPending) return;
+    if (!text || isPending || amIMuted) return;
+    const reply = replyingTo;
     startTransition(async () => {
-      const res = await postChatMessage(text, locale);
+      const res = await postChatMessage(text, locale, reply?.id ?? null);
       if (!res.ok) {
         toast.error(res.message);
         return;
       }
       setInput("");
       setMention(null);
+      setReplyingTo(null);
+      setEmojiOpen(false);
       requestAnimationFrame(autosize);
       const row = res.message;
       stickRef.current = true;
@@ -377,13 +446,18 @@ export function ChatRoom({
                 body: row.body,
                 created_at: row.created_at,
                 pinned_at: null,
+                reply_to_id: row.reply_to_id,
+                reply: reply
+                  ? { author: reply.author.username, body: reply.body }
+                  : null,
                 author: me
                   ? {
                       username: me.username,
                       display_name: me.display_name,
                       avatar_url: me.avatar_url,
+                      role: me.role,
                     }
-                  : { username: "…", display_name: null, avatar_url: null },
+                  : { username: "…", display_name: null, avatar_url: null, role: "player" },
                 reactions: { counts: { ...EMPTY_REACTIONS.counts }, mine: [] },
               },
             ],
@@ -436,6 +510,31 @@ export function ChatRoom({
     });
   }
 
+  function handleMute(userId: string, mute: boolean, username: string) {
+    startTransition(async () => {
+      const res = await setChatMute(userId, mute, locale);
+      if (res.ok) {
+        setMutedIds((prev) => {
+          const next = new Set(prev);
+          if (mute) next.add(userId);
+          else next.delete(userId);
+          return next;
+        });
+        toast.success(
+          mute
+            ? fr
+              ? `@${username} ne peut plus écrire.`
+              : `@${username} can no longer post.`
+            : fr
+              ? `@${username} peut de nouveau écrire.`
+              : `@${username} can post again.`,
+        );
+      } else {
+        toast.error(res.message ?? "");
+      }
+    });
+  }
+
   function selectMention(member: ChatMember) {
     if (!mention) return;
     const el = textareaRef.current;
@@ -479,10 +578,20 @@ export function ChatRoom({
         return;
       }
     }
+    if (e.key === "Escape" && replyingTo) {
+      e.preventDefault();
+      setReplyingTo(null);
+      return;
+    }
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       submit();
     }
+  }
+
+  function startReply(m: ChatMessage) {
+    setReplyingTo(m);
+    requestAnimationFrame(() => textareaRef.current?.focus());
   }
 
   const pinned = useMemo(
@@ -601,6 +710,7 @@ export function ChatRoom({
                 !newDay &&
                 prev.user_id === m.user_id &&
                 !m.pinned_at &&
+                !m.reply_to_id &&
                 new Date(m.created_at).getTime() -
                   new Date(prev.created_at).getTime() <
                   5 * 60_000;
@@ -619,12 +729,14 @@ export function ChatRoom({
                     message={m}
                     grouped={grouped}
                     isMine={m.user_id === currentUserId}
-                    canModerate={isAdmin || m.user_id === currentUserId}
                     isAdmin={isAdmin}
+                    isAuthorMuted={mutedIds.has(m.user_id)}
                     memberUsernames={memberUsernames}
                     locale={locale}
+                    onReply={startReply}
                     onDelete={handleDelete}
                     onPin={handlePin}
+                    onMute={handleMute}
                   />
                 </div>
               );
@@ -638,7 +750,7 @@ export function ChatRoom({
         <button
           type="button"
           onClick={scrollToBottom}
-          className="absolute bottom-24 right-4 z-10 flex items-center gap-1.5 rounded-full border border-white/[0.12] bg-abyss/90 px-3 py-1.5 text-xs font-semibold text-text-primary shadow-lg backdrop-blur transition hover:border-primary-500/40 hover:text-primary-300"
+          className="absolute bottom-28 right-4 z-10 flex items-center gap-1.5 rounded-full border border-white/[0.12] bg-abyss/90 px-3 py-1.5 text-xs font-semibold text-text-primary shadow-lg backdrop-blur transition hover:border-primary-500/40 hover:text-primary-300"
         >
           {unseen > 0 && (
             <span className="flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-primary-500 px-1 font-mono text-[9px] font-bold text-abyss">
@@ -677,103 +789,162 @@ export function ChatRoom({
       )}
 
       {/* Compose */}
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          submit();
-        }}
-        className="relative shrink-0 border-t border-white/[0.08] bg-surface-1/[0.6] p-2.5 sm:p-3"
-      >
-        {mention && suggestions.length > 0 && (
-          <ul className="absolute bottom-full left-2 mb-1 w-64 max-w-[calc(100%-1rem)] overflow-hidden rounded-[10px] border border-white/[0.12] bg-abyss/95 shadow-2xl backdrop-blur-xl">
-            {suggestions.map((s, idx) => (
-              <li key={s.id}>
+      <div className="relative shrink-0 border-t border-white/[0.08] bg-surface-1/[0.6] p-2.5 sm:p-3">
+        {amIMuted ? (
+          <div className="flex items-center gap-2 rounded-[10px] border border-error/30 bg-error/[0.08] px-3 py-2.5 text-xs text-error">
+            <MicOff className="size-4 shrink-0" strokeWidth={1.8} />
+            {fr
+              ? "Un admin t'a rendu muet dans le Salon. Tu peux lire mais pas écrire."
+              : "An admin muted you in the Lounge. You can read but not post."}
+          </div>
+        ) : (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              submit();
+            }}
+          >
+            {replyingTo && (
+              <div className="mb-1.5 flex items-center gap-2 rounded-[8px] border border-white/[0.08] bg-abyss/40 px-2.5 py-1.5 text-xs">
+                <Reply className="size-3.5 shrink-0 text-primary-300" strokeWidth={2} />
+                <span className="shrink-0 font-semibold text-text-secondary">
+                  {fr ? "Réponse à" : "Replying to"} @{replyingTo.author.username}
+                </span>
+                <span className="min-w-0 flex-1 truncate text-text-tertiary">
+                  {replyingTo.body}
+                </span>
                 <button
                   type="button"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    selectMention(s);
-                  }}
-                  onMouseEnter={() => setMentionIndex(idx)}
-                  className={cn(
-                    "flex w-full items-center gap-2 px-2.5 py-1.5 text-left text-sm transition",
-                    idx === mentionIndex
-                      ? "bg-primary-500/[0.14] text-text-primary"
-                      : "text-text-secondary hover:bg-white/[0.05]",
-                  )}
+                  onClick={() => setReplyingTo(null)}
+                  aria-label={fr ? "Annuler" : "Cancel"}
+                  className="shrink-0 text-text-tertiary transition hover:text-text-primary"
                 >
-                  <UserAvatar
-                    src={s.avatar_url}
-                    name={s.display_name ?? s.username}
-                    className="size-5 ring-1 ring-white/[0.1]"
-                    fallbackClassName="bg-gradient-to-br from-primary-500/30 to-violet-500/30 text-[8px] font-bold text-text-primary"
-                  />
-                  <span className="truncate">@{s.username}</span>
-                  {s.display_name && (
-                    <span className="truncate text-xs text-text-tertiary">
-                      {s.display_name}
-                    </span>
-                  )}
+                  <X className="size-3.5" strokeWidth={2} />
                 </button>
-              </li>
-            ))}
-          </ul>
-        )}
+              </div>
+            )}
 
-        <div className="flex items-end gap-2 rounded-[12px] border border-white/[0.08] bg-abyss/40 p-1.5 transition focus-within:border-primary-500/40">
-          <textarea
-            ref={textareaRef}
-            value={input}
-            onChange={(e) => {
-              const val = e.target.value;
-              setInput(val);
-              const caret = e.target.selectionStart ?? val.length;
-              setMention(getMentionQuery(val, caret));
-              setMentionIndex(0);
-              autosize();
-              if (val.trim()) sendTyping();
-            }}
-            onKeyDown={onKeyDown}
-            maxLength={CHAT_MAX_LEN}
-            rows={1}
-            placeholder={
-              fr
-                ? "Écris dans le Salon…  (@ pour mentionner)"
-                : "Write in the Lounge…  (@ to mention)"
-            }
-            className="max-h-32 min-h-[2.25rem] flex-1 resize-none bg-transparent px-2 py-1.5 text-sm text-text-primary outline-none placeholder:text-text-tertiary"
-          />
-          <div className="flex items-center gap-2 pr-1">
-            {input.length > CHAT_MAX_LEN - 40 && (
-              <span
+            {mention && suggestions.length > 0 && (
+              <ul className="absolute bottom-full left-2 mb-1 w-64 max-w-[calc(100%-1rem)] overflow-hidden rounded-[10px] border border-white/[0.12] bg-abyss/95 shadow-2xl backdrop-blur-xl">
+                {suggestions.map((s, idx) => (
+                  <li key={s.id}>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        selectMention(s);
+                      }}
+                      onMouseEnter={() => setMentionIndex(idx)}
+                      className={cn(
+                        "flex w-full items-center gap-2 px-2.5 py-1.5 text-left text-sm transition",
+                        idx === mentionIndex
+                          ? "bg-primary-500/[0.14] text-text-primary"
+                          : "text-text-secondary hover:bg-white/[0.05]",
+                      )}
+                    >
+                      <UserAvatar
+                        src={s.avatar_url}
+                        name={s.display_name ?? s.username}
+                        className="size-5 ring-1 ring-white/[0.1]"
+                        fallbackClassName="bg-gradient-to-br from-primary-500/30 to-violet-500/30 text-[8px] font-bold text-text-primary"
+                      />
+                      <span className="truncate">@{s.username}</span>
+                      {s.display_name && (
+                        <span className="truncate text-xs text-text-tertiary">
+                          {s.display_name}
+                        </span>
+                      )}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {emojiOpen && (
+              <div className="absolute bottom-full right-2 mb-1 grid grid-cols-8 gap-0.5 rounded-[10px] border border-white/[0.12] bg-abyss/95 p-1.5 shadow-2xl backdrop-blur-xl">
+                {EMOJIS.map((e) => (
+                  <button
+                    key={e}
+                    type="button"
+                    onMouseDown={(ev) => {
+                      ev.preventDefault();
+                      insertAtCaret(e);
+                    }}
+                    className="flex size-7 items-center justify-center rounded-md text-base transition hover:bg-white/[0.08]"
+                  >
+                    {e}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <div className="flex items-end gap-1.5 rounded-[12px] border border-white/[0.08] bg-abyss/40 p-1.5 transition focus-within:border-primary-500/40">
+              <button
+                type="button"
+                onClick={() => setEmojiOpen((v) => !v)}
+                aria-label={fr ? "Emojis" : "Emojis"}
                 className={cn(
-                  "font-mono text-[10px] tabular-nums",
-                  remaining < 0 ? "text-error" : "text-gold-400",
+                  "flex size-9 shrink-0 items-center justify-center rounded-[10px] text-text-tertiary transition hover:bg-white/[0.06] hover:text-text-secondary",
+                  emojiOpen && "bg-white/[0.06] text-primary-300",
                 )}
               >
-                {remaining}
-              </span>
-            )}
-            <button
-              type="submit"
-              disabled={isPending || input.trim().length === 0}
-              aria-label={fr ? "Envoyer" : "Send"}
-              className={cn(
-                "inline-flex size-9 shrink-0 items-center justify-center rounded-[10px] transition",
-                input.trim().length > 0 && !isPending
-                  ? "bg-primary-500 text-abyss hover:bg-primary-400"
-                  : "bg-white/[0.06] text-text-tertiary",
-              )}
-            >
-              {isPending ? (
-                <Loader2 className="size-4 animate-spin" strokeWidth={2} />
-              ) : (
-                <Send className="size-4" strokeWidth={2} />
-              )}
-            </button>
-          </div>
-        </div>
-      </form>
+                <Smile className="size-4.5 size-5" strokeWidth={1.7} />
+              </button>
+              <textarea
+                ref={textareaRef}
+                value={input}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setInput(val);
+                  const caret = e.target.selectionStart ?? val.length;
+                  setMention(getMentionQuery(val, caret));
+                  setMentionIndex(0);
+                  autosize();
+                  if (val.trim()) sendTyping();
+                }}
+                onKeyDown={onKeyDown}
+                maxLength={CHAT_MAX_LEN}
+                rows={1}
+                placeholder={
+                  fr
+                    ? "Écris dans le Salon…  (@ pour mentionner)"
+                    : "Write in the Lounge…  (@ to mention)"
+                }
+                className="max-h-32 min-h-[2.25rem] flex-1 resize-none bg-transparent px-2 py-1.5 text-sm text-text-primary outline-none placeholder:text-text-tertiary"
+              />
+              <div className="flex items-center gap-2 pr-1">
+                {input.length > CHAT_MAX_LEN - 40 && (
+                  <span
+                    className={cn(
+                      "font-mono text-[10px] tabular-nums",
+                      remaining < 0 ? "text-error" : "text-gold-400",
+                    )}
+                  >
+                    {remaining}
+                  </span>
+                )}
+                <button
+                  type="submit"
+                  disabled={isPending || input.trim().length === 0}
+                  aria-label={fr ? "Envoyer" : "Send"}
+                  className={cn(
+                    "inline-flex size-9 shrink-0 items-center justify-center rounded-[10px] transition",
+                    input.trim().length > 0 && !isPending
+                      ? "bg-primary-500 text-abyss hover:bg-primary-400"
+                      : "bg-white/[0.06] text-text-tertiary",
+                  )}
+                >
+                  {isPending ? (
+                    <Loader2 className="size-4 animate-spin" strokeWidth={2} />
+                  ) : (
+                    <Send className="size-4" strokeWidth={2} />
+                  )}
+                </button>
+              </div>
+            </div>
+          </form>
+        )}
+      </div>
     </section>
   );
 }
@@ -792,25 +963,31 @@ function MessageRow({
   message: m,
   grouped,
   isMine,
-  canModerate,
   isAdmin,
+  isAuthorMuted,
   memberUsernames,
   locale,
+  onReply,
   onDelete,
   onPin,
+  onMute,
 }: {
   message: ChatMessage;
   grouped: boolean;
   isMine: boolean;
-  canModerate: boolean;
   isAdmin: boolean;
+  isAuthorMuted: boolean;
   memberUsernames: Set<string>;
   locale: Locale;
+  onReply: (m: ChatMessage) => void;
   onDelete: (id: string) => void;
   onPin: (id: string, pinned: boolean) => void;
+  onMute: (userId: string, mute: boolean, username: string) => void;
 }) {
   const fr = locale === "fr";
   const name = m.author.display_name ?? `@${m.author.username}`;
+  const authorIsAdmin = isAdminRole(m.author.role);
+  const canMute = isAdmin && !isMine;
   return (
     <li
       className={cn(
@@ -835,16 +1012,28 @@ function MessageRow({
 
       <div className="min-w-0 flex-1">
         {!grouped && (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
             <Link
               href={`/u/${m.author.username}`}
               className="text-xs font-semibold text-text-primary transition hover:text-primary-300 hover:underline"
             >
               {name}
             </Link>
+            {authorIsAdmin && (
+              <span className="inline-flex items-center gap-0.5 rounded-full bg-violet-500/15 px-1.5 text-[9px] font-bold uppercase tracking-wide text-violet-300">
+                <Shield className="size-2.5" strokeWidth={2.5} />
+                admin
+              </span>
+            )}
             {isMine && (
               <span className="rounded-full bg-primary-500/15 px-1.5 text-[9px] font-bold uppercase tracking-wide text-primary-300">
                 {fr ? "toi" : "you"}
+              </span>
+            )}
+            {isAuthorMuted && isAdmin && (
+              <span className="inline-flex items-center gap-0.5 rounded-full bg-error/15 px-1.5 text-[9px] font-bold uppercase tracking-wide text-error">
+                <MicOff className="size-2.5" strokeWidth={2.5} />
+                {fr ? "muet" : "muted"}
               </span>
             )}
             <span className="font-mono text-[10px] tabular-nums text-text-tertiary">
@@ -859,6 +1048,16 @@ function MessageRow({
           </div>
         )}
 
+        {m.reply && (
+          <div className="mb-1 mt-0.5 flex items-center gap-1.5 border-l-2 border-primary-500/40 pl-2 text-[11px] text-text-tertiary">
+            <Reply className="size-3 shrink-0" strokeWidth={2} />
+            <span className="font-semibold text-text-secondary">
+              @{m.reply.author}
+            </span>
+            <span className="min-w-0 truncate">{m.reply.body}</span>
+          </div>
+        )}
+
         <MessageBody body={m.body} memberUsernames={memberUsernames} locale={locale} />
 
         <div className="mt-0.5">
@@ -867,19 +1066,19 @@ function MessageRow({
       </div>
 
       <div className="absolute right-1.5 top-1 flex items-center gap-0.5 rounded-md border border-white/[0.08] bg-abyss/80 opacity-0 shadow-sm backdrop-blur transition group-hover:opacity-100 focus-within:opacity-100">
+        <button
+          type="button"
+          onClick={() => onReply(m)}
+          aria-label={fr ? "Répondre" : "Reply"}
+          className="flex size-6 items-center justify-center text-text-tertiary transition hover:text-primary-300"
+        >
+          <Reply className="size-3.5" strokeWidth={1.7} />
+        </button>
         {isAdmin && (
           <button
             type="button"
             onClick={() => onPin(m.id, !m.pinned_at)}
-            aria-label={
-              m.pinned_at
-                ? fr
-                  ? "Désépingler"
-                  : "Unpin"
-                : fr
-                  ? "Épingler"
-                  : "Pin"
-            }
+            aria-label={m.pinned_at ? (fr ? "Désépingler" : "Unpin") : fr ? "Épingler" : "Pin"}
             className="flex size-6 items-center justify-center text-text-tertiary transition hover:text-gold-300"
           >
             {m.pinned_at ? (
@@ -889,7 +1088,32 @@ function MessageRow({
             )}
           </button>
         )}
-        {canModerate && (
+        {canMute && (
+          <button
+            type="button"
+            onClick={() => onMute(m.user_id, !isAuthorMuted, m.author.username)}
+            aria-label={
+              isAuthorMuted
+                ? fr
+                  ? "Réactiver"
+                  : "Unmute"
+                : fr
+                  ? "Rendre muet"
+                  : "Mute"
+            }
+            className={cn(
+              "flex size-6 items-center justify-center text-text-tertiary transition",
+              isAuthorMuted ? "hover:text-primary-300" : "hover:text-error",
+            )}
+          >
+            {isAuthorMuted ? (
+              <Volume2 className="size-3.5" strokeWidth={1.7} />
+            ) : (
+              <MicOff className="size-3.5" strokeWidth={1.7} />
+            )}
+          </button>
+        )}
+        {(isAdmin || isMine) && (
           <button
             type="button"
             onClick={() => onDelete(m.id)}

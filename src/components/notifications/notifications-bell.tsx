@@ -12,7 +12,6 @@ import {
   Bell,
   CheckCheck,
   Megaphone,
-  Receipt,
   ShieldCheck,
   Trophy,
   Flame,
@@ -348,10 +347,16 @@ function summarize(n: NotificationRow, locale: Locale): string {
       return locale === "fr"
         ? `@${p.actor ?? "Quelqu'un"} a répondu : « ${String(p.preview ?? "").slice(0, 60)} »`
         : `@${p.actor ?? "Someone"} replied: "${String(p.preview ?? "").slice(0, 60)}"`;
-    case "chat_mention":
+    case "chat_mention": {
+      const preview = String(p.preview ?? "").slice(0, 60);
+      if (p.kind === "reply")
+        return locale === "fr"
+          ? `@${p.actor ?? "Quelqu'un"} t'a répondu dans le Salon : « ${preview} »`
+          : `@${p.actor ?? "Someone"} replied to you in the Lounge: "${preview}"`;
       return locale === "fr"
-        ? `@${p.actor ?? "Quelqu'un"} t'a mentionné dans le Salon : « ${String(p.preview ?? "").slice(0, 60)} »`
-        : `@${p.actor ?? "Someone"} mentioned you in the Lounge: "${String(p.preview ?? "").slice(0, 60)}"`;
+        ? `@${p.actor ?? "Quelqu'un"} t'a mentionné dans le Salon : « ${preview} »`
+        : `@${p.actor ?? "Someone"} mentioned you in the Lounge: "${preview}"`;
+    }
     default:
       return n.type;
   }
