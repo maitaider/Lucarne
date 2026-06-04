@@ -122,6 +122,19 @@ export async function listRecentChatMessages(limit = 30): Promise<ChatRecentMess
   });
 }
 
+/** Current salon slow-mode setting (min seconds between messages; 0 = off). */
+export async function getChatSlowmode(): Promise<number> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return 0;
+  const supabase = await getSupabaseServer();
+  const { data } = await supabase
+    .from("app_settings")
+    .select("chat_slow_mode_seconds")
+    .order("id", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  return data?.chat_slow_mode_seconds ?? 0;
+}
+
 /** Headline moderation stats for the admin panel + salon hero. */
 export async function getChatModStats(): Promise<ChatModStats> {
   const empty: ChatModStats = { total: 0, last24h: 0, activeChatters: 0, muted: 0, openReports: 0 };

@@ -288,3 +288,23 @@ export async function voteChatPoll(
   }
   return { ok: true };
 }
+
+/** Sets the salon slow mode (min seconds between messages; admin only). */
+export async function setChatSlowmode(
+  seconds: number,
+  locale: Locale = "fr",
+): Promise<ActionResult> {
+  const fr = locale !== "en";
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    return { ok: false, message: fr ? "Supabase non configuré" : "Supabase not configured" };
+  }
+  const supabase = await getSupabaseServer();
+  const { error } = await supabase.rpc("admin_set_chat_slowmode", { p_seconds: seconds });
+  if (error) {
+    if (error.message?.includes("not_authorized")) {
+      return { ok: false, message: fr ? "Réservé aux admins." : "Admins only." };
+    }
+    return { ok: false, message: error.message };
+  }
+  return { ok: true };
+}
