@@ -11,6 +11,7 @@ import {
   Newspaper,
   Radio,
   Receipt,
+  Shirt,
   Trophy,
   Users,
   type LucideIcon,
@@ -67,6 +68,12 @@ const NAV: Top[] = [
     fr: "Calendrier",
     en: "Calendar",
     icon: CalendarDays,
+  },
+  {
+    href: "/teams",
+    fr: "Équipes",
+    en: "Teams",
+    icon: Shirt,
   },
   {
     href: "/live",

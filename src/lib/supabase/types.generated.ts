@@ -1922,6 +1922,7 @@ export type Database = {
         Row: {
           active: boolean
           api_football_player_id: number | null
+          birth_date: string | null
           club: string | null
           created_at: string
           display_name: string
@@ -1936,6 +1937,7 @@ export type Database = {
         Insert: {
           active?: boolean
           api_football_player_id?: number | null
+          birth_date?: string | null
           club?: string | null
           created_at?: string
           display_name: string
@@ -1950,6 +1952,7 @@ export type Database = {
         Update: {
           active?: boolean
           api_football_player_id?: number | null
+          birth_date?: string | null
           club?: string | null
           created_at?: string
           display_name?: string
