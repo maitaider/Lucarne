@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { getSupabaseServer } from "@/lib/supabase/server";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 
 const uuid = z.string().uuid();
@@ -143,4 +144,64 @@ export async function resetTournamentPrediction(
     knockout_winners: knockouts,
     champion_team_id: null,
   });
+}
+
+export type ClearPredictionsResult =
+  | { ok: true; deleted: number }
+  | { ok: false; message: string };
+
+/**
+ * Wipe the caller's per-match SCORE predictions (the `bets`) for every match
+ * still OPEN for editing (status `scheduled` AND > 1 h before kickoff).
+ *
+ * In the score-only model the per-match scores ARE the prediction (they also
+ * drive the group standings), so "Tout effacer mon pronostic" must clear them
+ * too — resetting only the bracket left every score (and the standings derived
+ * from it) in place, which read as "the button does nothing".
+ *
+ * Locked / live / finished matches are left untouched: you can't un-predict a
+ * started match or erase points already scored. RLS gives `authenticated` no
+ * DELETE on `bets`, so this uses the service-role client and enforces both
+ * ownership (user_id) and the kickoff lock here.
+ */
+export async function clearMyMatchPredictions(): Promise<ClearPredictionsResult> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    return { ok: false, message: "Supabase non configuré." };
+  }
+
+  const supabase = await getSupabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, message: "Connexion requise." };
+
+  const admin = getSupabaseAdmin();
+  if (!admin) return { ok: false, message: "Service indisponible." };
+
+  // Matches still open for editing — same 1 h buffer as placing a bet.
+  const cutoff = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+  const { data: openMatches, error: mErr } = await admin
+    .schema("ref")
+    .from("matches")
+    .select("id")
+    .eq("status", "scheduled")
+    .gt("kickoff_at", cutoff);
+  if (mErr) return { ok: false, message: mErr.message };
+
+  const ids = (openMatches ?? []).map((m) => m.id);
+  if (ids.length === 0) return { ok: true, deleted: 0 };
+
+  const { data: deleted, error: dErr } = await admin
+    .from("bets")
+    .delete()
+    .eq("user_id", user.id)
+    .not("match_id", "is", null)
+    .in("match_id", ids)
+    .select("id");
+  if (dErr) return { ok: false, message: dErr.message };
+
+  revalidatePath("/predict");
+  revalidatePath("/bets");
+  revalidatePath("/dashboard");
+  return { ok: true, deleted: deleted?.length ?? 0 };
 }
