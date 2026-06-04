@@ -38,6 +38,7 @@ export type Database = {
         Row: {
           buy_in_amount_cents: number
           buy_in_deadline: string | null
+          chat_slow_mode_seconds: number
           contact_info: string | null
           contact_label: string | null
           currency: string
@@ -53,6 +54,7 @@ export type Database = {
         Insert: {
           buy_in_amount_cents?: number
           buy_in_deadline?: string | null
+          chat_slow_mode_seconds?: number
           contact_info?: string | null
           contact_label?: string | null
           currency?: string
@@ -68,6 +70,7 @@ export type Database = {
         Update: {
           buy_in_amount_cents?: number
           buy_in_deadline?: string | null
+          chat_slow_mode_seconds?: number
           contact_info?: string | null
           contact_label?: string | null
           currency?: string
@@ -1669,6 +1672,10 @@ export type Database = {
           p_until?: string
           p_user_id: string
         }
+        Returns: undefined
+      }
+      admin_set_chat_slowmode: {
+        Args: { p_seconds: number }
         Returns: undefined
       }
       admin_set_comment_pin: {

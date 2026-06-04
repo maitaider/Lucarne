@@ -7,6 +7,7 @@ import {
   setChatMute,
   setChatPin,
   resolveChatReport,
+  setChatSlowmode,
 } from "@/lib/chat/actions";
 import type {
   ChatReport,
@@ -47,12 +48,14 @@ export function AdminChatPanel({
   muted: initialMuted,
   recent: initialRecent,
   stats,
+  slowMode: initialSlowMode,
   locale,
 }: {
   reports: ChatReport[];
   muted: MutedMember[];
   recent: ChatRecentMessage[];
   stats: ChatModStats;
+  slowMode: number;
   locale: Locale;
 }) {
   const fr = locale === "fr";
@@ -63,9 +66,32 @@ export function AdminChatPanel({
   const [reports, setReports] = useState(initialReports);
   const [muted, setMuted] = useState(initialMuted);
   const [recent, setRecent] = useState(initialRecent);
+  const [slowMode, setSlowMode] = useState(initialSlowMode);
   const [mutedSet, setMutedSet] = useState<Set<string>>(
     () => new Set(initialMuted.map((m) => m.user_id)),
   );
+
+  function changeSlowMode(seconds: number) {
+    const prev = slowMode;
+    setSlowMode(seconds);
+    startTransition(async () => {
+      const res = await setChatSlowmode(seconds, locale);
+      if (res.ok) {
+        toast.success(
+          seconds === 0
+            ? fr
+              ? "Mode lent désactivé."
+              : "Slow mode off."
+            : fr
+              ? `Mode lent : ${seconds}s.`
+              : `Slow mode: ${seconds}s.`,
+        );
+      } else {
+        setSlowMode(prev);
+        toast.error(res.message ?? "");
+      }
+    });
+  }
 
   function resolve(commentId: string) {
     startTransition(async () => {
@@ -178,6 +204,36 @@ export function AdminChatPanel({
           );
         })}
       </div>
+
+      {/* Slow mode */}
+      <section className="rounded-[12px] border border-white/[0.08] bg-surface-1/[0.45] p-4 backdrop-blur-xl">
+        <h3 className="mb-1 flex items-center gap-2 text-sm font-semibold text-text-primary">
+          <Clock className="size-4 text-primary-300" strokeWidth={1.8} />
+          {fr ? "Mode lent" : "Slow mode"}
+        </h3>
+        <p className="mb-3 text-xs text-text-tertiary">
+          {fr
+            ? "Délai minimum imposé entre deux messages (en plus de l'anti-spam de 3 s)."
+            : "Minimum delay between two messages (on top of the 3s anti-spam)."}
+        </p>
+        <div className="flex flex-wrap gap-1.5">
+          {[0, 5, 10, 30, 60].map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => changeSlowMode(s)}
+              className={cn(
+                "rounded-full border px-3 py-1.5 text-xs font-semibold transition",
+                slowMode === s
+                  ? "border-primary-500/50 bg-primary-500/15 text-primary-200"
+                  : "border-white/[0.1] text-text-secondary hover:border-primary-500/40 hover:text-text-primary",
+              )}
+            >
+              {s === 0 ? (fr ? "Désactivé" : "Off") : `${s}s`}
+            </button>
+          ))}
+        </div>
+      </section>
 
       {/* Reported messages */}
       <section className="rounded-[12px] border border-white/[0.08] bg-surface-1/[0.45] p-4 backdrop-blur-xl">
