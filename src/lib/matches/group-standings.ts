@@ -62,10 +62,19 @@ type GroupMatchLike = Pick<
   away_team: TeamSnippet | TeamSnippet[] | null;
 };
 
+type FinishedGM = {
+  home_id: string;
+  away_id: string;
+  home_score: number;
+  away_score: number;
+};
+
 function computeGroupTables(matches: GroupMatchLike[]): GroupTable[] {
   // Bucket per group
   type Acc = Map<string, GroupStanding>;
   const groups = new Map<string, Acc>();
+  // Finished matches per group, kept for the head-to-head tie-break (I-2).
+  const finishedByGroup = new Map<string, FinishedGM[]>();
 
   function ensureTeam(group: string, team: TeamSnippet): GroupStanding {
     let acc = groups.get(group);
@@ -103,6 +112,15 @@ function computeGroupTables(matches: GroupMatchLike[]): GroupTable[] {
 
     if (m.status !== "finished" || m.home_score === null || m.away_score === null) continue;
     if (!home || !away) continue;
+
+    const fin = finishedByGroup.get(group) ?? [];
+    fin.push({
+      home_id: home.id,
+      away_id: away.id,
+      home_score: m.home_score,
+      away_score: m.away_score,
+    });
+    finishedByGroup.set(group, fin);
 
     const h = ensureTeam(group, home);
     const a = ensureTeam(group, away);
@@ -142,13 +160,81 @@ function computeGroupTables(matches: GroupMatchLike[]): GroupTable[] {
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([group_label, acc]) => ({
       group_label,
-      standings: Array.from(acc.values()).sort(rankCompare),
+      standings: rankGroup(
+        Array.from(acc.values()),
+        finishedByGroup.get(group_label) ?? [],
+      ),
     }));
 }
 
-function rankCompare(a: GroupStanding, b: GroupStanding): number {
-  if (b.points !== a.points) return b.points - a.points;
-  if (b.goal_diff !== a.goal_diff) return b.goal_diff - a.goal_diff;
-  if (b.goals_for !== a.goals_for) return b.goals_for - a.goals_for;
-  return a.team.name_fr.localeCompare(b.team.name_fr);
+/**
+ * FIFA group ranking — mirrors `public.actual_group_standings()` exactly so the
+ * live table and the bracket scoring never diverge (I-2):
+ *   1. overall points → goal difference → goals scored
+ *   then, AMONG teams still tied on all three:
+ *   2. head-to-head points → h2h goal difference → h2h goals scored
+ *   3. team_id, the deterministic final key (stands in for fair-play / drawing
+ *      of lots, and matches Postgres's uuid ordering so SQL and TS agree).
+ */
+function rankGroup(rows: GroupStanding[], matches: FinishedGM[]): GroupStanding[] {
+  // 1. Overall order establishes the tiers.
+  const overall = [...rows].sort(
+    (a, b) =>
+      b.points - a.points ||
+      b.goal_diff - a.goal_diff ||
+      b.goals_for - a.goals_for,
+  );
+
+  // 2. Tier number — teams sharing (points, GD, GF) share a tier.
+  const tierOf = new Map<string, number>();
+  let tier = 0;
+  let prev: GroupStanding | null = null;
+  for (const r of overall) {
+    if (
+      !prev ||
+      prev.points !== r.points ||
+      prev.goal_diff !== r.goal_diff ||
+      prev.goals_for !== r.goals_for
+    ) {
+      tier += 1;
+    }
+    tierOf.set(r.team.id, tier);
+    prev = r;
+  }
+
+  // 3. Head-to-head, over matches between same-tier (tied) teams only.
+  const h2h = new Map<string, { pts: number; gd: number; gf: number }>();
+  for (const r of rows) h2h.set(r.team.id, { pts: 0, gd: 0, gf: 0 });
+  for (const m of matches) {
+    const ht = tierOf.get(m.home_id);
+    const at = tierOf.get(m.away_id);
+    if (ht == null || at == null || ht !== at) continue;
+    const hh = h2h.get(m.home_id);
+    const ah = h2h.get(m.away_id);
+    if (!hh || !ah) continue;
+    hh.gf += m.home_score;
+    hh.gd += m.home_score - m.away_score;
+    ah.gf += m.away_score;
+    ah.gd += m.away_score - m.home_score;
+    if (m.home_score > m.away_score) hh.pts += 3;
+    else if (m.home_score < m.away_score) ah.pts += 3;
+    else {
+      hh.pts += 1;
+      ah.pts += 1;
+    }
+  }
+
+  // 4. Final order: tier, then head-to-head, then team_id (codepoint order ==
+  //    Postgres uuid order on canonical lowercase ids).
+  return [...overall].sort((a, b) => {
+    const ta = tierOf.get(a.team.id) ?? 0;
+    const tb = tierOf.get(b.team.id) ?? 0;
+    if (ta !== tb) return ta - tb;
+    const ha = h2h.get(a.team.id)!;
+    const hb = h2h.get(b.team.id)!;
+    if (hb.pts !== ha.pts) return hb.pts - ha.pts;
+    if (hb.gd !== ha.gd) return hb.gd - ha.gd;
+    if (hb.gf !== ha.gf) return hb.gf - ha.gf;
+    return a.team.id < b.team.id ? -1 : a.team.id > b.team.id ? 1 : 0;
+  });
 }

@@ -31,7 +31,6 @@ import { placeBet } from "@/lib/bets/place-bet";
 import { GroupCard } from "./group-card";
 import { KnockoutTie } from "./knockout-tie";
 import { ChampionBanner } from "./champion-banner";
-import type { PlayerOption } from "@/components/picks/player-combobox";
 import type { MatchListItem } from "@/lib/matches/shared";
 import {
   Crown,
@@ -47,14 +46,12 @@ import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
 
 export type Winner = "home" | "draw" | "away";
-export type ScorerPick = { player_id: string; player_name: string };
 
-/** Per-match pick: a scoreline (home/away goals) + optional scorers.
- *  The match result (win/draw) is derived from the score. */
+/** Per-match pick: a scoreline (home/away goals). The match result (win/draw)
+ *  and the total goals derive from the score. */
 export type MatchPick = {
   home_goals: number | null;
   away_goals: number | null;
-  scorers: ScorerPick[];
 };
 
 type InitialPicks = Record<
@@ -77,7 +74,7 @@ export type KnockoutScheduleItem = BracketMatchInfo & {
 type Tab = "groupes" | "finale";
 
 function emptyMatchPick(): MatchPick {
-  return { home_goals: null, away_goals: null, scorers: [] };
+  return { home_goals: null, away_goals: null };
 }
 
 function hydrateMatchPicks(initial: InitialPicks): Map<string, MatchPick> {
@@ -94,19 +91,6 @@ function hydrateMatchPicks(initial: InitialPicks): Map<string, MatchPick> {
       ) {
         state.home_goals = payload.home;
         state.away_goals = payload.away;
-      } else if (
-        r.bet_type === "anytime_scorer" &&
-        Array.isArray(payload.players)
-      ) {
-        state.scorers = (
-          payload.players as { player_id?: unknown; player_name?: unknown }[]
-        )
-          .map((p) => ({
-            player_id: String(p?.player_id ?? "").trim(),
-            player_name: String(p?.player_name ?? "").trim(),
-          }))
-          .filter((p) => p.player_id.length > 0 && p.player_name.length > 0)
-          .slice(0, 4);
       }
     }
     out.set(matchId, state);
@@ -141,7 +125,6 @@ export function PredictBoard({
   knockoutSchedule,
   initialPrediction,
   initialPicks,
-  players,
   canEdit,
   canBet,
   buyInAmountCents,
@@ -156,7 +139,6 @@ export function PredictBoard({
   knockoutSchedule: KnockoutScheduleItem[];
   initialPrediction: TournamentPrediction;
   initialPicks: InitialPicks;
-  players: PlayerOption[];
   canEdit: boolean;
   canBet: boolean;
   buyInAmountCents: number;
@@ -190,25 +172,6 @@ export function PredictBoard({
       for (const t of arr) map.set(t.id, t);
     return map;
   }, [groupTeams]);
-
-  // Per-team players for the scorer combobox.
-  const playersByTeam = useMemo(() => {
-    const map = new Map<string, PlayerOption[]>();
-    for (const p of players) {
-      const arr = map.get(p.team_id) ?? [];
-      arr.push(p);
-      map.set(p.team_id, arr);
-    }
-    for (const arr of map.values()) {
-      arr.sort((a, b) => {
-        const an = a.shirt_number ?? 999;
-        const bn = b.shirt_number ?? 999;
-        if (an !== bn) return an - bn;
-        return a.display_name.localeCompare(b.display_name);
-      });
-    }
-    return map;
-  }, [players]);
 
   // Group matches grouped by group_label.
   const matchesByGroup = useMemo(() => {
@@ -344,9 +307,7 @@ export function PredictBoard({
   function savePerMatch(
     matchId: string,
     update: (prev: MatchPick) => MatchPick,
-    bet:
-      | { kind: "score"; home: number; away: number }
-      | { kind: "scorers"; picks: ScorerPick[] },
+    bet: { kind: "score"; home: number; away: number },
   ) {
     if (!canBet) {
       router.push("/buy-in");
@@ -382,24 +343,11 @@ export function PredictBoard({
       }
     }
 
-    const payload = (() => {
-      if (bet.kind === "score")
-        return {
-          bet_type: "exact_score" as const,
-          match_id: matchId,
-          payload: { home: bet.home, away: bet.away },
-        };
-      return {
-        bet_type: "anytime_scorer" as const,
-        match_id: matchId,
-        payload: {
-          players: bet.picks.slice(0, 4).map((p) => ({
-            player_id: p.player_id,
-            player_name: p.player_name,
-          })),
-        },
-      };
-    })();
+    const payload = {
+      bet_type: "exact_score" as const,
+      match_id: matchId,
+      payload: { home: bet.home, away: bet.away },
+    };
 
     startTransition(async () => {
       const res = await placeBet({
@@ -492,7 +440,7 @@ export function PredictBoard({
           {
             icon: ListOrdered,
             title: "Phase de groupes",
-            body: "Classe chaque groupe 1ᵉʳ→4ᵉ et parie sur chacun des 6 matchs par groupe (winner, buts, buteurs).",
+            body: "Classe chaque groupe 1ᵉʳ→4ᵉ et pronostique le score de chacun des 6 matchs par groupe.",
           },
           {
             icon: MousePointerClick,
@@ -509,7 +457,7 @@ export function PredictBoard({
           {
             icon: ListOrdered,
             title: "Group phase",
-            body: "Rank each group 1st→4th and pick every group match (winner, goals, scorers).",
+            body: "Rank each group 1st→4th and predict the score of every group match.",
           },
           {
             icon: MousePointerClick,
@@ -607,7 +555,6 @@ export function PredictBoard({
           matchesByGroup={matchesByGroup}
           groups={groups}
           matchPicks={matchPicks}
-          playersByTeam={playersByTeam}
           teamById={teamById}
           canEdit={canEdit}
           canBet={canBet}
@@ -620,14 +567,10 @@ export function PredictBoard({
           knockouts={knockouts}
           groups={groups}
           thirdAssign={thirdAssign}
-          matchPicks={matchPicks}
-          playersByTeam={playersByTeam}
           teamById={teamById}
           canEdit={canEdit}
-          canBet={canBet}
           onPickWinner={pickKnockoutWinner}
           onPickThirdPlace={pickThirdPlace}
-          onSavePerMatch={savePerMatch}
           onResetStage={reset}
           locale={locale}
         />
@@ -654,8 +597,8 @@ export function PredictBoard({
                 </div>
                 <p className="mt-0.5 text-xs leading-5 text-text-tertiary">
                   {locale === "fr"
-                    ? "Efface les groupes + phase finale + champion. Les pronos par match (winner/buts/buteurs) restent — utilise les boutons par section pour les retoucher."
-                    : "Clears groups + knockouts + champion. Per-match picks stay — use per-section buttons to tweak them."}
+                    ? "Efface les groupes + phase finale + champion. Les pronos de score par match restent — utilise les boutons par section pour les retoucher."
+                    : "Clears groups + knockouts + champion. Per-match score picks stay — use per-section buttons to tweak them."}
                 </p>
               </div>
               <Button
@@ -721,7 +664,6 @@ function GroupesSection({
   matchesByGroup,
   groups,
   matchPicks,
-  playersByTeam,
   teamById,
   canEdit,
   canBet,
@@ -732,16 +674,13 @@ function GroupesSection({
   matchesByGroup: Record<string, MatchListItem[]>;
   groups: GroupStandings;
   matchPicks: Map<string, MatchPick>;
-  playersByTeam: Map<string, PlayerOption[]>;
   teamById: Map<string, TeamLite>;
   canEdit: boolean;
   canBet: boolean;
   onSavePerMatch: (
     matchId: string,
     update: (prev: MatchPick) => MatchPick,
-    bet:
-      | { kind: "score"; home: number; away: number }
-      | { kind: "scorers"; picks: ScorerPick[] },
+    bet: { kind: "score"; home: number; away: number },
   ) => void;
   locale: Locale;
 }) {
@@ -765,8 +704,8 @@ function GroupesSection({
           />
           <span>
             {locale === "fr"
-              ? "Tape le résultat de chacun des 6 matchs par groupe (1 · Nul · 2). Le classement se calcule tout seul : les 2 premiers se qualifient, le 3ᵉ joue le repêchage. Touche « + » sur un match pour ajouter buts et buteurs."
-              : "Tap a result for each of the 6 group matches (1 · Draw · 2). The standings compute automatically: top 2 qualify, 3rd goes to the playoff. Tap “+” on a match to add goals and scorers."}
+              ? "Pronostique le score de chacun des 6 matchs par groupe. Le classement se calcule tout seul : les 2 premiers se qualifient, le 3ᵉ joue le repêchage."
+              : "Predict the score of each of the 6 group matches. The standings compute automatically: top 2 qualify, 3rd goes to the playoff."}
           </span>
         </p>
       </Card>
@@ -779,7 +718,6 @@ function GroupesSection({
             allTeams={groupTeams[label] ?? []}
             matches={matchesByGroup[label] ?? []}
             matchPicks={matchPicks}
-            playersByTeam={playersByTeam}
             teamById={teamById}
             canEdit={canEdit}
             canBet={canBet}
@@ -801,14 +739,10 @@ function FinaleSection({
   knockouts,
   groups,
   thirdAssign,
-  matchPicks,
-  playersByTeam,
   teamById,
   canEdit,
-  canBet,
   onPickWinner,
   onPickThirdPlace,
-  onSavePerMatch,
   onResetStage,
   locale,
 }: {
@@ -816,23 +750,13 @@ function FinaleSection({
   knockouts: KnockoutWinners;
   groups: GroupStandings;
   thirdAssign: Record<string, string>;
-  matchPicks: Map<string, MatchPick>;
-  playersByTeam: Map<string, PlayerOption[]>;
   teamById: Map<string, TeamLite>;
   canEdit: boolean;
-  canBet: boolean;
   onPickWinner: (matchNumber: number, teamId: string) => void;
   onPickThirdPlace: (
     matchNumber: number,
     side: "home" | "away",
     teamId: string,
-  ) => void;
-  onSavePerMatch: (
-    matchId: string,
-    update: (prev: MatchPick) => MatchPick,
-    bet:
-      | { kind: "score"; home: number; away: number }
-      | { kind: "scorers"; picks: ScorerPick[] },
   ) => void;
   onResetStage: (
     stage: "r32" | "r16" | "qf" | "sf" | "third_place" | "final",
@@ -863,14 +787,10 @@ function FinaleSection({
         groups={groups}
         knockouts={knockouts}
         thirdAssign={thirdAssign}
-        matchPicks={matchPicks}
-        playersByTeam={playersByTeam}
         teamById={teamById}
         canEdit={canEdit}
-        canBet={canBet}
         onPickWinner={onPickWinner}
         onPickThirdPlace={onPickThirdPlace}
-        onSavePerMatch={onSavePerMatch}
         locale={locale}
       />
     );

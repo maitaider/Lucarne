@@ -52,6 +52,9 @@ export type MatchListItem = {
   status: MatchStatus;
   home_score: number | null;
   away_score: number | null;
+  // Penalty shootout result (knockout ties). Optional: not fetched everywhere.
+  home_pen?: number | null;
+  away_pen?: number | null;
   home_placeholder: string | null;
   away_placeholder: string | null;
   home_team: TeamSnippet | null;

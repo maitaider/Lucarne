@@ -8,7 +8,7 @@ import {
   useState,
 } from "react";
 import { useRouter } from "@/i18n/navigation";
-import { Loader2, X, Zap, Trophy, Target, Users, Check } from "lucide-react";
+import { Loader2, X, Zap, Trophy, Target, Check } from "lucide-react";
 import { placeBet } from "@/lib/bets/place-bet";
 import { POINTS_SCHEME } from "@/lib/bets/types";
 import { Flag } from "@/components/team/flag";
@@ -24,7 +24,6 @@ import type { Locale } from "@/i18n/routing";
 export type QuickBetExistingPicks = Partial<{
   match_winner: { winner: "home" | "draw" | "away" };
   total_goals: { total: number };
-  anytime_scorer: { players: { player_name: string }[] };
 }>;
 
 export type QuickBetMatch = {
@@ -118,20 +117,11 @@ function QuickBetSheet({
   const [totalGoals, setTotalGoals] = useState<number | null>(
     existing.total_goals?.total ?? null,
   );
-  const [scorers, setScorers] = useState<string[]>(() => {
-    const base = ["", "", "", ""];
-    existing.anytime_scorer?.players.forEach((p, i) => {
-      if (i < 4) base[i] = p.player_name;
-    });
-    return base;
-  });
   const [isPending, setIsPending] = useState(false);
   const [visible, setVisible] = useState(false);
 
   const isEditing =
-    existing.match_winner != null ||
-    existing.total_goals != null ||
-    existing.anytime_scorer != null;
+    existing.match_winner != null || existing.total_goals != null;
 
   useEffect(() => {
     const id = requestAnimationFrame(() => setVisible(true));
@@ -190,30 +180,20 @@ function QuickBetSheet({
     timeZone: "America/Toronto",
   });
 
-  const cleanScorers = scorers
-    .map((s) => s.trim())
-    .filter((s) => s.length >= 2)
-    .slice(0, 4);
-  const hasAny =
-    winnerPick !== null || totalGoals !== null || cleanScorers.length > 0;
+  const hasAny = winnerPick !== null || totalGoals !== null;
 
   async function handleSubmit() {
     if (!hasAny || isPending) return;
     setIsPending(true);
 
     const submissions: {
-      bet_type: "match_winner" | "total_goals" | "anytime_scorer";
+      bet_type: "match_winner" | "total_goals";
       payload: unknown;
     }[] = [];
     if (winnerPick !== null)
       submissions.push({ bet_type: "match_winner", payload: { winner: winnerPick } });
     if (totalGoals !== null)
       submissions.push({ bet_type: "total_goals", payload: { total: totalGoals } });
-    if (cleanScorers.length > 0)
-      submissions.push({
-        bet_type: "anytime_scorer",
-        payload: { players: cleanScorers.map((player_name) => ({ player_name })) },
-      });
 
     let ok = 0;
     let firstError = "";
@@ -336,7 +316,6 @@ function QuickBetSheet({
                   title={fr ? "Vainqueur" : "Winner"}
                   points={POINTS_SCHEME.match_winner}
                   done={winnerPick !== null}
-                  locale={locale}
                 >
                   <div className="grid grid-cols-3 gap-2">
                     <WinnerButton
@@ -369,7 +348,6 @@ function QuickBetSheet({
                   title={fr ? "Total de buts" : "Total goals"}
                   points={POINTS_SCHEME.total_goals_exact}
                   done={totalGoals !== null}
-                  locale={locale}
                 >
                   <div className="grid grid-cols-6 gap-2">
                     {[0, 1, 2, 3, 4, 5].map((n) => {
@@ -398,48 +376,6 @@ function QuickBetSheet({
                   </p>
                 </Section>
 
-                <Section
-                  icon={Users}
-                  title={fr ? "Buteurs" : "Scorers"}
-                  points={POINTS_SCHEME.anytime_scorer_each}
-                  pointsSuffix={fr ? "/joueur" : "/player"}
-                  done={cleanScorers.length > 0}
-                  locale={locale}
-                >
-                  <p className="mb-2 text-[11px] text-text-tertiary">
-                    {fr
-                      ? `Jusqu'à 4 joueurs, de n'importe quelle équipe (${homeName} ou ${awayName}).`
-                      : `Up to 4 players, from either team (${homeName} or ${awayName}).`}
-                  </p>
-                  <div className="grid gap-2">
-                    {scorers.map((s, i) => (
-                      <div key={i} className="relative">
-                        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 font-mono text-[10px] font-bold text-text-tertiary">
-                          {i + 1}
-                        </span>
-                        <input
-                          type="text"
-                          value={s}
-                          onChange={(e) => {
-                            const next = [...scorers];
-                            next[i] = e.target.value;
-                            setScorers(next);
-                          }}
-                          placeholder={
-                            fr ? `Buteur ${i + 1} · ex. Mbappé` : `Scorer ${i + 1} · e.g. Mbappé`
-                          }
-                          maxLength={80}
-                          className="w-full rounded-sm border border-white/[0.1] bg-abyss/[0.5] py-2 pl-7 pr-3 text-sm text-text-primary outline-none placeholder:text-text-tertiary focus:border-primary-500/50"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                  <p className="mt-2 text-[10px] leading-4 text-text-tertiary">
-                    {fr
-                      ? `+${POINTS_SCHEME.anytime_scorer_each} pts par buteur trouvé · le nom de famille suffit`
-                      : `+${POINTS_SCHEME.anytime_scorer_each} pts per correct scorer · last name is enough`}
-                  </p>
-                </Section>
               </div>
 
               {/* Footer / submit */}
@@ -488,7 +424,6 @@ function Section({
   points,
   pointsSuffix,
   done,
-  locale,
   children,
 }: {
   icon: typeof Trophy;
@@ -496,7 +431,6 @@ function Section({
   points: number;
   pointsSuffix?: string;
   done: boolean;
-  locale: Locale;
   children: React.ReactNode;
 }) {
   return (

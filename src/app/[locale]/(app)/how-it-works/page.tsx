@@ -19,7 +19,6 @@ import {
   Target,
   Ticket,
   Trophy,
-  Users,
   Zap,
   type LucideIcon,
 } from "lucide-react";
@@ -160,14 +159,12 @@ export default async function HowItWorksPage({
             icon={Target}
             accent="violet"
             title={
-              L === "fr"
-                ? "Buteurs + points automatiques"
-                : "Scorers + automatic points"
+              L === "fr" ? "Points automatiques" : "Automatic points"
             }
             body={
               L === "fr"
-                ? "Ajoute jusqu'à 4 buteurs par match pour des points bonus. Dès qu'un match finit, le moteur lit les buts et clôture tes paris — aucun admin à attendre. Barème ci-dessous."
-                : "Add up to 4 scorers per match for bonus points. As soon as a match ends, the engine reads the goals and settles your bets — no admin wait. Scoring below."
+                ? "Dès qu'un match est terminé, le moteur lit le score et clôture tes pronostics — aucun admin à attendre. Barème ci-dessous."
+                : "As soon as a match ends, the engine reads the score and settles your predictions — no admin wait. Scoring below."
             }
           />
         </Reveal>
@@ -196,18 +193,11 @@ export default async function HowItWorksPage({
             accent="gold"
           />
           <ScoreCard
-            icon={Users}
-            title={L === "fr" ? "Buteur (anytime)" : "Anytime scorer"}
-            value="+4"
-            sub={L === "fr" ? "par joueur trouvé" : "per correct scorer"}
-            accent="violet"
-          />
-          <ScoreCard
             icon={Zap}
-            title={L === "fr" ? "Premier buteur" : "First scorer"}
-            value="+8"
-            sub={L === "fr" ? "le 1er buteur du match" : "the match's first scorer"}
-            accent="primary"
+            title={L === "fr" ? "Score exact" : "Exact score"}
+            value="+5"
+            sub={L === "fr" ? "le score pile" : "the exact scoreline"}
+            accent="violet"
           />
         </div>
 
@@ -251,12 +241,6 @@ export default async function HowItWorksPage({
             </ul>
           </div>
 
-          {/* Scorers + bracket note */}
-          <p className="rounded-[10px] border border-white/[0.08] bg-surface-1/[0.5] p-4 text-xs leading-6 text-text-secondary backdrop-blur-xl">
-            {L === "fr"
-              ? "Buteurs : ajoute jusqu'à 4 buteurs par match — +4 chacun s'il marque. Ta phase finale (le bracket) te sert à bâtir tes qualifiés et désigner ton champion ; les points, eux, viennent de tes pronostics de score et de buteurs, match par match."
-              : "Scorers: add up to 4 scorers per match — +4 each if they score. Your bracket lets you build your qualifiers and pick your champion; points themselves come from your per-match score and scorer picks."}
-          </p>
         </div>
       </section>
 

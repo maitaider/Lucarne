@@ -3,7 +3,6 @@ import { listMatches } from "@/lib/matches/queries";
 import { getMyBuyInStatus } from "@/lib/profile/buy-in";
 import { getMyTournamentPrediction } from "@/lib/predictions/queries";
 import { getMyPicksByMatch } from "@/lib/bets/my-picks";
-import { listPlayersForTeams } from "@/lib/players/queries";
 import { AppPageShell } from "@/components/layout/app-page-shell";
 import { PageHero } from "@/components/layout/page-hero";
 import { PredictBoard } from "@/components/predict/predict-board";
@@ -75,10 +74,6 @@ export default async function PredictPage({
       if (!list.some((x) => x.id === t.id)) list.push(teamMap.get(t.id)!);
     }
   }
-
-  // Players for the scorer combobox.
-  const teamIds = Array.from(teamMap.keys());
-  const allPlayers = await listPlayersForTeams(teamIds);
 
   // Serialize picks Map → plain object for client boundary.
   const picksSnapshot: Record<
@@ -178,7 +173,6 @@ export default async function PredictPage({
         knockoutSchedule={knockoutSchedule}
         initialPrediction={prediction}
         initialPicks={picksSnapshot}
-        players={allPlayers}
         canEdit={buyIn.can_bet && !prediction.locked_at}
         canBet={buyIn.can_bet}
         buyInAmountCents={buyIn.amount_cents}

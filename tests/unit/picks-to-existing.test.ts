@@ -39,28 +39,14 @@ describe("picksToExisting", () => {
     expect(out.total_goals).toEqual({ total: 3 });
   });
 
-  it("maps anytime_scorer picks with up to 4 players", () => {
+  it("ignores anytime_scorer picks (score-only scoring)", () => {
     const out = picksToExisting([
       pick({
         bet_type: "anytime_scorer",
-        payload: {
-          players: [
-            { player_name: "Mbappé" },
-            { player_name: "Saka" },
-            { player_name: "" }, // empty → skipped
-            { player_name: "Lautaro" },
-            { player_name: "Vinicius" },
-            { player_name: "Should be dropped (cap at 4)" },
-          ],
-        },
+        payload: { players: [{ player_name: "Mbappé" }] },
       }),
     ]);
-    expect(out.anytime_scorer?.players).toEqual([
-      { player_name: "Mbappé" },
-      { player_name: "Saka" },
-      { player_name: "Lautaro" },
-      { player_name: "Vinicius" },
-    ]);
+    expect(out).toEqual({});
   });
 
   it("ignores settled or rejected picks", () => {

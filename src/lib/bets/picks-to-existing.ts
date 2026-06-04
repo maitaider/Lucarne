@@ -22,12 +22,6 @@ export function picksToExisting(
       }
     } else if (p.bet_type === "total_goals" && typeof payload?.total === "number") {
       out.total_goals = { total: payload.total };
-    } else if (p.bet_type === "anytime_scorer" && Array.isArray(payload?.players)) {
-      const players = (payload.players as { player_name?: unknown }[])
-        .map((pl) => ({ player_name: String(pl?.player_name ?? "").trim() }))
-        .filter((pl) => pl.player_name.length > 0)
-        .slice(0, 4);
-      if (players.length > 0) out.anytime_scorer = { players };
     } else if (
       p.bet_type === "exact_score" &&
       typeof payload?.home === "number" &&
