@@ -666,7 +666,7 @@ export function ChatRoom({
   const onlineCount = online.length;
 
   return (
-    <section className="relative flex h-[70vh] min-h-[480px] max-h-[880px] flex-col overflow-hidden rounded-[16px] border border-white/[0.08] bg-surface-1/[0.5] shadow-card backdrop-blur-xl">
+    <section className="relative flex h-[calc(100dvh-20rem)] min-h-[20rem] max-h-[880px] flex-col overflow-hidden rounded-[16px] border border-white/[0.08] bg-surface-1/[0.5] shadow-card backdrop-blur-xl sm:h-[70dvh] sm:min-h-[480px]">
       {/* Animated accent line */}
       <div className="lk-gradient-pan h-[2px] w-full shrink-0 bg-[linear-gradient(90deg,transparent,rgba(34,217,130,0.55),rgba(124,92,255,0.55),transparent)]" />
 
