@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { ArrowRight, KeyRound, ShieldCheck, Sparkles } from "lucide-react";
@@ -29,8 +30,16 @@ export async function LandingCta() {
 
   return (
     <section className="relative isolate overflow-hidden border-y border-gold-500/20 bg-abyss">
+      {/* Closing nation visual — mirrors the Canada hero at the top */}
+      <Image
+        src="/assets/lucarne/world-cup-2026/11-algeria-2026-home-celebration.png"
+        alt=""
+        fill
+        sizes="100vw"
+        className="absolute inset-0 -z-20 object-cover object-[64%_28%] opacity-[0.45]"
+      />
       <FloatingFlags />
-      {/* Readability + brand wash over the floating flags */}
+      {/* Readability + brand wash over the photo and floating flags */}
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_60%_60%_at_50%_42%,rgba(5,6,5,0.55),rgba(5,6,5,0.92))]" />
 
       <div className="mx-auto max-w-3xl px-6 py-24 text-center lg:px-8 lg:py-28">
