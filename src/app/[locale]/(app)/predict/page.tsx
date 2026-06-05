@@ -106,15 +106,6 @@ export default async function PredictPage({
 
   const groupMatches = allMatches.filter((m) => m.stage === "group");
 
-  // Celebration photo for the hero visual (same for both tabs).
-  const heroVisual = {
-    src: "/assets/lucarne/world-cup-2026/11-algeria-2026-home-celebration.png",
-    alt:
-      L === "fr"
-        ? "Footballeur en maillot domicile de l'Algérie célébrant dans un stade plein."
-        : "Footballer in an Algeria home kit celebrating in a packed stadium.",
-  };
-
   // Stat chips for the hero — small, scannable, motivational.
   const groupsFilled = Object.values(prediction.group_standings).filter(
     (g) => g.length === 4,
@@ -153,7 +144,8 @@ export default async function PredictPage({
             />
           </>
         }
-        visual={heroVisual}
+        backgroundSrc="/assets/lucarne/world-cup-2026/11-algeria-2026-home-celebration.png"
+        backgroundClassName="object-[62%_32%] opacity-[0.4]"
       />
 
       <PredictBoard
