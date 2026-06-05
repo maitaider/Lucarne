@@ -39,22 +39,26 @@ export async function getCommunityOdds(
   }
 
   const supabase = await getSupabaseServer();
-  const { data, error } = await supabase.rpc("match_consensus", {
-    p_match_ids: matchIds,
-  });
-
-  if (error || !data) return result;
-
-  for (const row of data) {
-    const total = row.total ?? 0;
-    if (!row.match_id || total === 0) continue;
-    result.set(row.match_id, {
-      home: Math.round(((row.home ?? 0) / total) * 100),
-      draw: Math.round(((row.draw ?? 0) / total) * 100),
-      away: Math.round(((row.away ?? 0) / total) * 100),
-      total,
-    });
-  }
+  // One scalar call per match. match_consensus takes a single uuid (not an
+  // array) because this PostgREST drops array-parameter functions from its REST
+  // schema cache (they 404 while scalar-param siblings are exposed fine).
+  await Promise.all(
+    matchIds.map(async (id) => {
+      const { data, error } = await supabase.rpc("match_consensus", {
+        p_match_id: id,
+      });
+      if (error || !data) return;
+      const row = Array.isArray(data) ? data[0] : data;
+      const total = row?.total ?? 0;
+      if (!row || total === 0) return;
+      result.set(id, {
+        home: Math.round(((row.home ?? 0) / total) * 100),
+        draw: Math.round(((row.draw ?? 0) / total) * 100),
+        away: Math.round(((row.away ?? 0) / total) * 100),
+        total,
+      });
+    }),
+  );
 
   return result;
 }
