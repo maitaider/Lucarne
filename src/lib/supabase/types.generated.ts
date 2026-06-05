@@ -1820,12 +1820,11 @@ export type Database = {
       }
       lock_all_tournament_predictions: { Args: never; Returns: number }
       match_consensus: {
-        Args: { p_match_ids: string[] }
+        Args: { p_match_id: string }
         Returns: {
           away: number
           draw: number
           home: number
-          match_id: string
           total: number
         }[]
       }
