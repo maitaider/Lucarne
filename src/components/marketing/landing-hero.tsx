@@ -1,14 +1,14 @@
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { LucarneLogo } from "@/components/brand/lucarne-mark";
 import { Countdown } from "./countdown";
 import { CountUp } from "@/components/ui/count-up";
+import { getPublicAccessPrice } from "@/lib/admin/economy";
 import {
   ArrowRight,
   CalendarDays,
   KeyRound,
-  LockKeyhole,
   ShieldCheck,
   Trophy,
   Users,
@@ -18,9 +18,15 @@ import {
 export async function LandingHero() {
   const t = await getTranslations("landing");
   const tCommon = await getTranslations("common");
+  const locale = await getLocale();
+  const price = await getPublicAccessPrice();
+  const priceLabel = (price.amount_cents / 100).toLocaleString(
+    locale === "fr" ? "fr-CA" : "en-CA",
+    { style: "currency", currency: price.currency, maximumFractionDigits: 0 },
+  );
 
   const proofItems = [
-    { icon: LockKeyhole, label: t("heroProofPrivate") },
+    { icon: Users, label: t("heroProofPrivate") },
     { icon: Zap, label: t("heroProofInstant") },
     { icon: Trophy, label: t("heroProofCup") },
   ] as const;
@@ -106,7 +112,7 @@ export async function LandingHero() {
 
             <p className="mt-4 inline-flex items-center gap-1.5 text-xs text-text-tertiary">
               <ShieldCheck className="size-3.5 text-primary-400" strokeWidth={1.8} />
-              {t("ctaPaymentNote")}
+              {t("ctaPaymentNote", { price: priceLabel })}
             </p>
           </div>
         </div>
@@ -126,7 +132,7 @@ export async function LandingHero() {
           />
           <StatStripItem
             icon={CalendarDays}
-            value={<CountUp value={40} />}
+            value={<CountUp value={39} />}
             label={t("statDays")}
             color="text-violet-400"
           />

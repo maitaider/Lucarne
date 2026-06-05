@@ -2,11 +2,11 @@ import { getTranslations } from "next-intl/server";
 import Image from "next/image";
 import { Reveal } from "@/components/ui/reveal";
 import {
+  Calculator,
   ChevronRight,
-  CircleDollarSign,
   CreditCard,
+  Eye,
   LockKeyhole,
-  ShieldCheck,
   Trophy,
   UsersRound,
 } from "lucide-react";
@@ -16,13 +16,13 @@ export async function LandingFeatures() {
 
   const features = [
     {
-      icon: CircleDollarSign,
+      icon: Calculator,
       title: t("feature1Title"),
       body: t("feature1Body"),
       accent: "primary",
     },
     {
-      icon: LockKeyhole,
+      icon: Eye,
       title: t("feature2Title"),
       body: t("feature2Body"),
       accent: "violet",
@@ -42,7 +42,7 @@ export async function LandingFeatures() {
   ] as const;
 
   const trustItems = [
-    { icon: ShieldCheck, title: t("trust1Title"), body: t("trust1Body") },
+    { icon: LockKeyhole, title: t("trust1Title"), body: t("trust1Body") },
     { icon: CreditCard, title: t("trust2Title"), body: t("trust2Body") },
     { icon: UsersRound, title: t("trust3Title"), body: t("trust3Body") },
   ] as const;
