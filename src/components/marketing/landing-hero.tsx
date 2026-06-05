@@ -34,13 +34,13 @@ export async function LandingHero() {
   return (
     <section className="relative isolate min-h-[86svh] overflow-hidden border-b border-white/10 bg-abyss">
       <Image
-        src="/marketing/lucarne-hero-stadium.jpg"
+        src="/assets/lucarne/world-cup-2026/12-canada-2026-home-celebration.png"
         alt=""
         fill
         priority
         quality={86}
         sizes="100vw"
-        className="absolute inset-0 -z-30 object-cover object-[62%_50%]"
+        className="absolute inset-0 -z-30 object-cover object-[60%_38%]"
       />
       <div className="absolute inset-0 -z-20 bg-[linear-gradient(90deg,rgba(5,6,5,0.96)_0%,rgba(5,6,5,0.84)_34%,rgba(5,6,5,0.42)_67%,rgba(5,6,5,0.32)_100%)]" />
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_70%_42%_at_22%_12%,rgba(34,217,130,0.2),transparent_62%),linear-gradient(180deg,rgba(5,6,5,0.1)_0%,rgba(5,6,5,0.94)_100%)]" />
