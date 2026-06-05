@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { useToast } from "@/components/ui/toast-provider";
 import {
@@ -10,7 +10,7 @@ import {
 import type { MatchListItem, TeamSnippet } from "@/lib/matches/shared";
 import type { Locale } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
-import { Loader2, RefreshCw, Search } from "lucide-react";
+import { Loader2, Minus, Plus, RefreshCw, Search } from "lucide-react";
 
 const STATUSES = [
   "scheduled",
@@ -37,10 +37,32 @@ function teamName(
   return placeholder ?? "?";
 }
 
+/** Live, or kicked off but not yet finished — i.e. a result is expected. */
+function needsAttention(m: MatchListItem, nowMs: number): boolean {
+  if (m.status === "live") return true;
+  return (
+    m.status === "scheduled" &&
+    nowMs > 0 &&
+    new Date(m.kickoff_at).getTime() <= nowMs
+  );
+}
+
+function isSameDay(iso: string, nowMs: number): boolean {
+  if (nowMs === 0) return false;
+  const d = new Date(iso);
+  const n = new Date(nowMs);
+  return (
+    d.getFullYear() === n.getFullYear() &&
+    d.getMonth() === n.getMonth() &&
+    d.getDate() === n.getDate()
+  );
+}
+
 /**
- * Admin match results — score-only scoring. The admin enters just the final
- * score + status (and, for a level knockout tie, the penalty shootout). No
- * scorers: nothing to type by hand → nothing to mistype.
+ * Admin match results — score-only, optimised for FAST live entry on a phone.
+ * Defaults to the "to settle" view (live + kicked-off matches) so the admin
+ * never hunts through 104 fixtures during a match; big +/- steppers and one-tap
+ * status buttons make a score update a few taps. No scorers (nothing to mistype).
  */
 export function MatchResultsAdmin({
   matches,
@@ -52,27 +74,89 @@ export function MatchResultsAdmin({
   const fr = locale === "fr";
   const [query, setQuery] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
+  // Clock for classifying matches as "to settle" (live or already kicked off).
+  // Lazy init = server time on first paint (authoritative, no render-time impurity);
+  // refreshed each minute so a match that just started slides into the view itself.
+  const [nowMs, setNowMs] = useState(() => Date.now());
+
+  useEffect(() => {
+    const t = setInterval(() => setNowMs(Date.now()), 60_000);
+    return () => clearInterval(t);
+  }, []);
+
+  const hasLive = useMemo(() => matches.some((m) => m.status === "live"), [matches]);
+  const [filter, setFilter] = useState<"attention" | "today" | "all">(
+    hasLive ? "attention" : "all",
+  );
+
+  const attentionCount = useMemo(
+    () => matches.filter((m) => needsAttention(m, nowMs)).length,
+    [matches, nowMs],
+  );
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const sorted = [...matches].sort(
-      (a, b) =>
-        new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime(),
-    );
-    if (!q) return sorted;
-    return sorted.filter((m) => {
-      const h = teamName(m.home_team, m.home_placeholder, fr).toLowerCase();
-      const a = teamName(m.away_team, m.away_placeholder, fr).toLowerCase();
-      return (
-        h.includes(q) ||
-        a.includes(q) ||
-        String(m.match_number ?? "").includes(q)
-      );
+    let list = [...matches].sort((a, b) => {
+      // Live first, then by kickoff (soonest first).
+      if (a.status === "live" && b.status !== "live") return -1;
+      if (b.status === "live" && a.status !== "live") return 1;
+      return new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime();
     });
-  }, [matches, query, fr]);
+
+    if (filter === "attention") list = list.filter((m) => needsAttention(m, nowMs));
+    else if (filter === "today") list = list.filter((m) => isSameDay(m.kickoff_at, nowMs));
+
+    if (q) {
+      list = list.filter((m) => {
+        const h = teamName(m.home_team, m.home_placeholder, fr).toLowerCase();
+        const a = teamName(m.away_team, m.away_placeholder, fr).toLowerCase();
+        return (
+          h.includes(q) ||
+          a.includes(q) ||
+          String(m.match_number ?? "").includes(q)
+        );
+      });
+    }
+    return list;
+  }, [matches, query, filter, nowMs, fr]);
+
+  const TABS: { key: typeof filter; label: string; badge?: number }[] = [
+    { key: "attention", label: fr ? "À régler" : "To settle", badge: attentionCount },
+    { key: "today", label: fr ? "Aujourd'hui" : "Today" },
+    { key: "all", label: fr ? "Tous" : "All" },
+  ];
 
   return (
     <div className="space-y-4">
+      {/* Quick filter — defaults to what needs a result right now */}
+      <div className="flex flex-wrap items-center gap-1.5">
+        {TABS.map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            onClick={() => setFilter(t.key)}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm font-semibold transition",
+              filter === t.key
+                ? "bg-primary-500 text-abyss"
+                : "border border-white/[0.1] bg-white/[0.03] text-text-secondary hover:text-text-primary",
+            )}
+          >
+            {t.label}
+            {t.badge != null && t.badge > 0 && (
+              <span
+                className={cn(
+                  "rounded-full px-1.5 text-[10px] font-bold tabular-nums",
+                  filter === t.key ? "bg-abyss/20 text-abyss" : "bg-error/20 text-error",
+                )}
+              >
+                {t.badge}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
       <div className="relative">
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-text-tertiary" />
         <input
@@ -97,7 +181,13 @@ export function MatchResultsAdmin({
         ))}
         {filtered.length === 0 && (
           <li className="rounded-[10px] border border-white/[0.08] bg-white/[0.02] px-4 py-6 text-center text-sm text-text-tertiary">
-            {fr ? "Aucun match." : "No matches."}
+            {filter === "attention"
+              ? fr
+                ? "Rien à régler pour l'instant — tout est à jour ✓"
+                : "Nothing to settle right now — all caught up ✓"
+              : fr
+                ? "Aucun match."
+                : "No matches."}
           </li>
         )}
       </ul>
@@ -125,7 +215,14 @@ function MatchRow({
   const hasScore = match.home_score != null && match.away_score != null;
 
   return (
-    <li className="overflow-hidden rounded-[10px] border border-white/[0.08] bg-surface-1/[0.5]">
+    <li
+      className={cn(
+        "overflow-hidden rounded-[10px] border bg-surface-1/[0.5]",
+        match.status === "live"
+          ? "border-error/30 ring-1 ring-error/20"
+          : "border-white/[0.08]",
+      )}
+    >
       <button
         type="button"
         onClick={onToggle}
@@ -273,55 +370,74 @@ function MatchEditor({
 
   return (
     <div className="space-y-4 border-t border-white/[0.08] bg-black/20 px-3.5 py-4">
-      <div className="flex flex-wrap items-end gap-3">
-        <ScoreInput
+      {/* Score steppers — big tap targets for fast mobile entry */}
+      <div className="flex items-end justify-center gap-2 sm:gap-4">
+        <ScoreStepper
           label={teamName(match.home_team, match.home_placeholder, fr)}
           value={home}
           onChange={changeHome}
         />
-        <span className="pb-2 text-lg font-bold text-text-tertiary">–</span>
-        <ScoreInput
+        <span className="pb-3 text-2xl font-bold text-text-tertiary">–</span>
+        <ScoreStepper
           label={teamName(match.away_team, match.away_placeholder, fr)}
           value={away}
           onChange={changeAway}
         />
-        <label className="flex flex-col gap-1">
-          <span className="text-[11px] font-medium text-text-tertiary">
-            {fr ? "Statut" : "Status"}
-          </span>
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className="rounded-sm border border-white/[0.1] bg-surface-2 px-2.5 py-2 text-sm text-text-primary outline-none focus:border-primary-500"
-          >
-            {STATUSES.map((s) => (
-              <option key={s} value={s}>
+      </div>
+
+      {/* Status — one-tap buttons instead of a dropdown */}
+      <div>
+        <span className="mb-1.5 block text-center text-[11px] font-medium text-text-tertiary">
+          {fr ? "Statut" : "Status"}
+        </span>
+        <div className="flex flex-wrap justify-center gap-1.5">
+          {STATUSES.map((s) => {
+            const active = status === s;
+            return (
+              <button
+                key={s}
+                type="button"
+                onClick={() => setStatus(s)}
+                aria-pressed={active}
+                className={cn(
+                  "rounded-full px-3 py-2 text-xs font-semibold transition",
+                  active
+                    ? s === "live"
+                      ? "bg-error text-white"
+                      : s === "finished"
+                        ? "bg-primary-500 text-abyss"
+                        : "bg-surface-3 text-text-primary ring-1 ring-white/[0.15]"
+                    : "border border-white/[0.1] bg-white/[0.02] text-text-tertiary hover:text-text-secondary",
+                )}
+              >
                 {STATUS_LABEL[s][fr ? "fr" : "en"]}
-              </option>
-            ))}
-          </select>
-        </label>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {isKO && (
-        <div className="flex flex-wrap items-end gap-3 rounded-[10px] border border-white/[0.06] bg-white/[0.02] p-3">
-          <ScoreInput
+        <div className="flex items-end justify-center gap-2 rounded-[10px] border border-white/[0.06] bg-white/[0.02] p-3 sm:gap-4">
+          <ScoreStepper
             label={`${fr ? "Tab." : "Pens"} ${teamName(match.home_team, match.home_placeholder, fr)}`}
             value={homePen}
             onChange={setHomePen}
           />
-          <span className="pb-2 text-lg font-bold text-text-tertiary">–</span>
-          <ScoreInput
+          <span className="pb-3 text-2xl font-bold text-text-tertiary">–</span>
+          <ScoreStepper
             label={`${fr ? "Tab." : "Pens"} ${teamName(match.away_team, match.away_placeholder, fr)}`}
             value={awayPen}
             onChange={setAwayPen}
           />
-          <p className="max-w-[18rem] pb-1 text-[11px] leading-4 text-text-tertiary">
-            {fr
-              ? "Tirs au but — départage le vainqueur quand le score reste à égalité (phase finale)."
-              : "Penalty shootout — decides the winner when the score stays level (knockouts)."}
-          </p>
         </div>
+      )}
+      {isKO && (
+        <p className="text-center text-[11px] leading-4 text-text-tertiary">
+          {fr
+            ? "Tirs au but — départage le vainqueur quand le score reste à égalité (phase finale)."
+            : "Penalty shootout — decides the winner when the score stays level (knockouts)."}
+        </p>
       )}
 
       {home !== "" && away !== "" && status !== "finished" && (
@@ -337,46 +453,46 @@ function MatchEditor({
           type="button"
           onClick={save}
           disabled={isPending}
-          className="inline-flex items-center gap-2 rounded-sm bg-primary-500 px-4 py-2 text-sm font-semibold text-abyss transition hover:bg-primary-400 disabled:opacity-60"
+          className="inline-flex items-center gap-2 rounded-sm bg-primary-500 px-5 py-2.5 text-sm font-semibold text-abyss transition hover:bg-primary-400 disabled:opacity-60"
         >
           {isPending && <Loader2 className="size-4 animate-spin" />}
-          {fr ? "Enregistrer le résultat" : "Save result"}
+          {fr ? "Enregistrer" : "Save"}
         </button>
         {match.status === "finished" && (
           <button
             type="button"
             onClick={recompute}
             disabled={isRecomputing}
-            className="inline-flex items-center gap-2 rounded-sm border border-white/[0.12] px-3 py-2 text-sm font-medium text-text-secondary transition hover:border-primary-500/40 hover:text-text-primary disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-sm border border-white/[0.12] px-3 py-2.5 text-sm font-medium text-text-secondary transition hover:border-primary-500/40 hover:text-text-primary disabled:opacity-60"
           >
             {isRecomputing ? (
               <Loader2 className="size-4 animate-spin" />
             ) : (
               <RefreshCw className="size-4" />
             )}
-            {fr ? "Recalculer les points" : "Recompute points"}
+            {fr ? "Recalculer" : "Recompute"}
           </button>
         )}
         <button
           type="button"
           onClick={onDone}
-          className="rounded-sm px-3 py-2 text-sm text-text-secondary transition hover:text-text-primary"
+          className="rounded-sm px-3 py-2.5 text-sm text-text-secondary transition hover:text-text-primary"
         >
           {fr ? "Fermer" : "Close"}
         </button>
-        {status === "finished" && (
-          <span className="text-[11px] text-text-tertiary">
-            {fr
-              ? "« Terminé » règle automatiquement les pronostics (et recalcule si tu corriges)."
-              : "“Finished” settles predictions automatically (and recomputes on correction)."}
-          </span>
-        )}
       </div>
+      {status === "finished" && (
+        <p className="text-[11px] text-text-tertiary">
+          {fr
+            ? "« Terminé » règle automatiquement les pronostics (et recalcule si tu corriges)."
+            : "“Finished” settles predictions automatically (and recomputes on correction)."}
+        </p>
+      )}
     </div>
   );
 }
 
-function ScoreInput({
+function ScoreStepper({
   label,
   value,
   onChange,
@@ -385,18 +501,40 @@ function ScoreInput({
   value: string;
   onChange: (v: string) => void;
 }) {
+  const n = value === "" ? 0 : Number(value);
+  const set = (next: number) => onChange(String(Math.max(0, Math.min(99, next))));
+
   return (
-    <label className="flex flex-col gap-1">
-      <span className="max-w-[7rem] truncate text-[11px] font-medium text-text-tertiary">
+    <div className="flex flex-col items-center gap-1.5">
+      <span className="max-w-[6.5rem] truncate text-center text-[11px] font-medium text-text-tertiary">
         {label}
       </span>
-      <input
-        value={value}
-        onChange={(e) => onChange(e.target.value.replace(/\D/g, "").slice(0, 2))}
-        inputMode="numeric"
-        placeholder="0"
-        className="w-16 rounded-sm border border-white/[0.1] bg-surface-2 px-2.5 py-2 text-center text-lg font-bold tabular-nums text-text-primary outline-none focus:border-primary-500"
-      />
-    </label>
+      <div className="flex items-center gap-1.5">
+        <button
+          type="button"
+          onClick={() => set(n - 1)}
+          aria-label={`− ${label}`}
+          className="flex size-11 items-center justify-center rounded-md border border-white/[0.12] bg-surface-2 text-text-secondary transition hover:border-primary-500/40 hover:text-text-primary active:scale-95"
+        >
+          <Minus className="size-5" strokeWidth={2.4} />
+        </button>
+        <input
+          value={value}
+          onChange={(e) => onChange(e.target.value.replace(/\D/g, "").slice(0, 2))}
+          inputMode="numeric"
+          placeholder="0"
+          aria-label={label}
+          className="w-14 rounded-sm border border-white/[0.1] bg-surface-2 px-1 py-2 text-center text-2xl font-bold tabular-nums text-text-primary outline-none focus:border-primary-500"
+        />
+        <button
+          type="button"
+          onClick={() => set(n + 1)}
+          aria-label={`+ ${label}`}
+          className="flex size-11 items-center justify-center rounded-md border border-white/[0.12] bg-surface-2 text-text-secondary transition hover:border-primary-500/40 hover:text-text-primary active:scale-95"
+        >
+          <Plus className="size-5" strokeWidth={2.4} />
+        </button>
+      </div>
+    </div>
   );
 }
