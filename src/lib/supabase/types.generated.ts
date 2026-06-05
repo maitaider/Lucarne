@@ -1763,6 +1763,10 @@ export type Database = {
         }
         Returns: string
       }
+      cron_send_kickoff_reminders: {
+        Args: { p_within_minutes?: number }
+        Returns: number
+      }
       cron_sync_match: {
         Args: {
           p_away?: number
