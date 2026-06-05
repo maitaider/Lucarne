@@ -15,11 +15,18 @@ export type CommunityOdds = {
 const DEFAULT: CommunityOdds = { home: 38, draw: 24, away: 38, total: 0 };
 
 /**
- * Returns the community consensus per match for `match_winner` bets.
- * Falls back to balanced defaults when no community data exists.
+ * Returns the community consensus (% home / draw / away) per match, over ALL
+ * active predictions — not just the caller's.
  *
- * Note: this aggregates ALL validated/settled bets, not just current user's.
- * Used for the dashboard PredictionCards to show "what the community thinks".
+ * Goes through the `match_consensus` SECURITY DEFINER RPC for two reasons:
+ *   1. The anti-copy RLS on `bets` would otherwise hide other players' bets
+ *      from a direct query (the caller would only "see" their own).
+ *   2. Since the score-only pivot, players post `exact_score`, not
+ *      `match_winner`, so the winner is derived from the score server-side.
+ * The RPC returns only aggregate counts (no individual pick leaks).
+ *
+ * Matches with no/insufficient data keep the balanced `DEFAULT` (total 0); the
+ * UI decides the minimum sample before showing a consensus.
  */
 export async function getCommunityOdds(
   matchIds: string[],
@@ -32,37 +39,20 @@ export async function getCommunityOdds(
   }
 
   const supabase = await getSupabaseServer();
-  const { data, error } = await supabase
-    .from("bets")
-    .select("match_id, payload")
-    .eq("bet_type", "match_winner")
-    .in("status", ["validated", "settled", "paid"])
-    .in("match_id", matchIds);
+  const { data, error } = await supabase.rpc("match_consensus", {
+    p_match_ids: matchIds,
+  });
 
   if (error || !data) return result;
 
-  type Tally = { home: number; draw: number; away: number; total: number };
-  const tally = new Map<string, Tally>();
-
   for (const row of data) {
-    if (!row.match_id) continue;
-    const payload = row.payload as { winner?: string } | null;
-    if (!payload?.winner) continue;
-    const t = tally.get(row.match_id) ?? { home: 0, draw: 0, away: 0, total: 0 };
-    if (payload.winner === "home") t.home += 1;
-    else if (payload.winner === "draw") t.draw += 1;
-    else if (payload.winner === "away") t.away += 1;
-    t.total += 1;
-    tally.set(row.match_id, t);
-  }
-
-  for (const [matchId, t] of tally.entries()) {
-    if (t.total === 0) continue;
-    result.set(matchId, {
-      home: Math.round((t.home / t.total) * 100),
-      draw: Math.round((t.draw / t.total) * 100),
-      away: Math.round((t.away / t.total) * 100),
-      total: t.total,
+    const total = row.total ?? 0;
+    if (!row.match_id || total === 0) continue;
+    result.set(row.match_id, {
+      home: Math.round(((row.home ?? 0) / total) * 100),
+      draw: Math.round(((row.draw ?? 0) / total) * 100),
+      away: Math.round(((row.away ?? 0) / total) * 100),
+      total,
     });
   }
 

@@ -4,6 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { getMatchById, type MatchListItem } from "@/lib/matches/queries";
 import { getMyPicksByMatch } from "@/lib/bets/my-picks";
 import { OthersPredictions } from "@/components/match/others-predictions";
+import { CommunityConsensus } from "@/components/match/community-consensus";
 import { listPlayersForTeams, type PlayerRow } from "@/lib/players/queries";
 import {
   getGroupStandings,
@@ -175,6 +176,16 @@ export default async function MatchDetailPage({
           editHref={editHref}
           shareBetId={scorePick?.bet_id ?? null}
           shareable={kickedOff}
+          locale={L}
+        />
+      </Reveal>
+
+      {/* ── Community consensus (aggregate, safe before kickoff) ────────── */}
+      <Reveal className="mt-6" delayMs={30}>
+        <CommunityConsensus
+          matchId={matchId}
+          homeName={homeName}
+          awayName={awayName}
           locale={L}
         />
       </Reveal>
