@@ -77,7 +77,7 @@
     "ogTitle": "Lucarne · Ton app privée pour le Mondial 2026",
     "ogDescription": "Accès privé à la Coupe du Monde 2026 : tous les matchs, scores en direct, news et analyses, et un concours de pronostics entre amis.",
     "twitterDescription": "Accès privé à la Coupe du Monde 2026 : matchs, scores en direct, news, analyses et concours de pronos entre amis.",
-    "ogImageAlt": "Interface Lucarne dans un stade de football nocturne.",
+    "ogImageAlt": "Footballeur en maillot rouge du Canada célébrant un but dans un stade plein.",
     "sharedTitleFallback": "Pronostic · Lucarne",
     "sharedDescription": "Le pronostic de @{username} sur Lucarne, le pool de pronos de la Coupe du Monde 2026."
   },
