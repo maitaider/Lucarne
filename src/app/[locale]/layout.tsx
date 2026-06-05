@@ -48,9 +48,9 @@ export async function generateMetadata({
       type: "website",
       images: [
         {
-          url: "/marketing/lucarne-hero-stadium.jpg",
-          width: 1672,
-          height: 941,
+          url: "/marketing/og-canada-2026.jpg",
+          width: 1200,
+          height: 675,
           alt: t("ogImageAlt"),
         },
       ],
@@ -59,7 +59,7 @@ export async function generateMetadata({
       card: "summary_large_image",
       title: t("ogTitle"),
       description: t("twitterDescription"),
-      images: ["/marketing/lucarne-hero-stadium.jpg"],
+      images: ["/marketing/og-canada-2026.jpg"],
     },
     appleWebApp: {
       title: "Lucarne",
