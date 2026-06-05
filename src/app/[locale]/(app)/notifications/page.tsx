@@ -1,7 +1,11 @@
 import { setRequestLocale } from "next-intl/server";
-import { listMyNotifications } from "@/lib/notifications/queries";
+import {
+  listMyNotifications,
+  getNotificationMutes,
+} from "@/lib/notifications/queries";
 import { getCurrentUser } from "@/lib/profile/queries";
 import { NotificationsList } from "@/components/notifications/notifications-list";
+import { NotificationSettings } from "@/components/notifications/notification-settings";
 import { Bell } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
 
@@ -14,9 +18,10 @@ export default async function NotificationsPage({
   setRequestLocale(locale);
   const L = locale as Locale;
 
-  const [user, items] = await Promise.all([
+  const [user, items, muted] = await Promise.all([
     getCurrentUser(),
     listMyNotifications(100),
+    getNotificationMutes(),
   ]);
   const unread = items.filter((n) => !n.read_at).length;
 
@@ -45,6 +50,10 @@ export default async function NotificationsPage({
       </header>
 
       <NotificationsList initial={items} locale={L} userId={user?.id ?? ""} />
+
+      <div className="mt-6">
+        <NotificationSettings initialMuted={muted} locale={L} />
+      </div>
     </main>
   );
 }

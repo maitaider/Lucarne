@@ -890,6 +890,46 @@ export type Database = {
           },
         ]
       }
+      notification_prefs: {
+        Row: {
+          muted_types: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          muted_types?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          muted_types?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_prefs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "mv_global_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "notification_prefs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "mv_league_standings"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "notification_prefs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -2039,6 +2079,7 @@ export type Database = {
         | "reaction_received"
         | "comment_received"
         | "chat_mention"
+        | "poll_vote"
       payment_method:
         | "cash"
         | "transfer"
@@ -2567,6 +2608,7 @@ export const Constants = {
         "reaction_received",
         "comment_received",
         "chat_mention",
+        "poll_vote",
       ],
       payment_method: [
         "cash",

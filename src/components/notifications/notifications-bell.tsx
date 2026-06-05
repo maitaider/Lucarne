@@ -9,6 +9,7 @@ import {
 } from "@/lib/notifications/actions";
 import {
   AtSign,
+  BarChart3,
   Bell,
   CheckCheck,
   Megaphone,
@@ -35,6 +36,7 @@ const ICONS: Record<string, LucideIcon> = {
   comment_reply: Megaphone,
   comment_received: MessageCircle,
   chat_mention: AtSign,
+  poll_vote: BarChart3,
   reaction_received: Flame,
   daily_challenge: Megaphone,
   friend_request: Bell,
@@ -56,6 +58,7 @@ const ACCENT: Record<string, string> = {
   comment_reply: "text-violet-300 bg-violet-500/15 ring-violet-500/30",
   comment_received: "text-violet-300 bg-violet-500/15 ring-violet-500/30",
   chat_mention: "text-primary-300 bg-primary-500/15 ring-primary-500/30",
+  poll_vote: "text-violet-300 bg-violet-500/15 ring-violet-500/30",
   reaction_received: "text-gold-300 bg-gold-500/15 ring-gold-500/30",
   league_position: "text-gold-300 bg-gold-500/15 ring-gold-500/30",
   daily_challenge: "text-violet-300 bg-violet-500/15 ring-violet-500/30",
@@ -347,6 +350,10 @@ function summarize(n: NotificationRow, locale: Locale): string {
       return locale === "fr"
         ? `@${p.actor ?? "Quelqu'un"} a répondu : « ${String(p.preview ?? "").slice(0, 60)} »`
         : `@${p.actor ?? "Someone"} replied: "${String(p.preview ?? "").slice(0, 60)}"`;
+    case "poll_vote":
+      return locale === "fr"
+        ? `@${p.actor ?? "Quelqu'un"} a voté à ton sondage : « ${String(p.preview ?? "").slice(0, 50)} »`
+        : `@${p.actor ?? "Someone"} voted on your poll: "${String(p.preview ?? "").slice(0, 50)}"`;
     case "chat_mention": {
       const preview = String(p.preview ?? "").slice(0, 60);
       if (p.kind === "reply")
@@ -380,6 +387,7 @@ function linkFor(n: NotificationRow): string | null {
     case "comment_received":
       return p.match_id ? `/matches/${p.match_id}` : "/leagues";
     case "chat_mention":
+    case "poll_vote":
       return "/chat";
     case "league_position":
       return "/leaderboard/global";
