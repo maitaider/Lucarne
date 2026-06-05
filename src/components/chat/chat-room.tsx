@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { Link } from "@/i18n/navigation";
 import { getSupabaseBrowser } from "@/lib/supabase/client";
@@ -34,6 +34,8 @@ import { MessageBody } from "./message-body";
 import { PollCard } from "./poll-card";
 import { PollComposer } from "./poll-composer";
 import { BetCard } from "./bet-card";
+import { LiveMatchBar } from "./live-match-bar";
+import type { ChatLiveMatch } from "@/lib/chat/queries";
 import { cn } from "@/lib/utils";
 import {
   ArrowDown,
@@ -58,6 +60,7 @@ type Props = {
   initialMessages: ChatMessage[];
   members: ChatMember[];
   initialMutes: ChatMute[];
+  initialLiveMatches: ChatLiveMatch[];
   currentUserId: string;
   isAdmin: boolean;
   locale: Locale;
@@ -168,6 +171,7 @@ export function ChatRoom({
   initialMessages,
   members,
   initialMutes,
+  initialLiveMatches,
   currentUserId,
   isAdmin,
   locale,
@@ -177,6 +181,19 @@ export function ChatRoom({
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState("");
   const [isPending, startTransition] = useTransition();
+
+  // Watch party
+  const [liveMatches, setLiveMatches] = useState<ChatLiveMatch[]>(initialLiveMatches);
+  const [floats, setFloats] = useState<{ id: string; emoji: string; left: number }[]>([]);
+  const floatCounter = useRef(0);
+
+  const pushFloat = useCallback((emoji: string) => {
+    const id = crypto.randomUUID();
+    const left = 8 + ((floatCounter.current * 23) % 74);
+    floatCounter.current += 1;
+    setFloats((f) => [...f, { id, emoji, left }]);
+    setTimeout(() => setFloats((f) => f.filter((x) => x.id !== id)), 2700);
+  }, []);
 
   // Moderation + composing extras
   const [mutedIds, setMutedIds] = useState<Set<string>>(
@@ -429,6 +446,31 @@ export function ChatRoom({
           ),
         );
       })
+      .on("broadcast", { event: "reaction" }, ({ payload }) => {
+        const e = (payload as { emoji?: string })?.emoji;
+        if (e) pushFloat(e);
+      })
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "ref", table: "matches" },
+        (payload) => {
+          const r = payload.new as {
+            id: string;
+            home_score: number | null;
+            away_score: number | null;
+            status: string;
+          };
+          setLiveMatches((prev) =>
+            r.status !== "live"
+              ? prev.filter((m) => m.id !== r.id)
+              : prev.map((m) =>
+                  m.id === r.id
+                    ? { ...m, home_score: r.home_score, away_score: r.away_score }
+                    : m,
+                ),
+          );
+        },
+      )
       .on("broadcast", { event: "typing" }, ({ payload }) => {
         const p = payload as { user_id?: string; username?: string };
         if (!p?.user_id || p.user_id === currentUserId) return;
@@ -488,7 +530,7 @@ export function ChatRoom({
       timeouts.clear();
       void supabase.removeChannel(channel);
     };
-  }, [currentUserId]);
+  }, [currentUserId, pushFloat]);
 
   // --- Auto-scroll ----------------------------------------------------------
   useEffect(() => {
@@ -766,6 +808,15 @@ export function ChatRoom({
     });
   }
 
+  function handleReact(emoji: string) {
+    pushFloat(emoji);
+    channelRef.current?.send({
+      type: "broadcast",
+      event: "reaction",
+      payload: { emoji },
+    });
+  }
+
   function selectMention(member: ChatMember) {
     if (!mention) return;
     const el = textareaRef.current;
@@ -850,6 +901,9 @@ export function ChatRoom({
     <section className="relative flex h-[calc(100dvh-20rem)] min-h-[20rem] max-h-[880px] flex-col overflow-hidden rounded-[16px] border border-white/[0.08] bg-surface-1/[0.5] shadow-card backdrop-blur-xl sm:h-[70dvh] sm:min-h-[480px]">
       {/* Animated accent line */}
       <div className="lk-gradient-pan h-[2px] w-full shrink-0 bg-[linear-gradient(90deg,transparent,rgba(34,217,130,0.55),rgba(124,92,255,0.55),transparent)]" />
+
+      {/* Watch party — live scores + one-tap reactions */}
+      <LiveMatchBar matches={liveMatches} locale={locale} onReact={handleReact} />
 
       {/* Header strip: live status + online presence */}
       <div className="flex shrink-0 items-center justify-between gap-2 border-b border-white/[0.08] bg-abyss/30 px-3 py-2 sm:px-4">
@@ -1284,6 +1338,21 @@ export function ChatRoom({
       )}
 
       {pollOpen && <PollComposer locale={locale} onClose={() => setPollOpen(false)} />}
+
+      {/* Floating watch-party reactions */}
+      {floats.length > 0 && (
+        <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden">
+          {floats.map((f) => (
+            <span
+              key={f.id}
+              className="lk-float-up absolute bottom-24 text-3xl"
+              style={{ left: `${f.left}%` }}
+            >
+              {f.emoji}
+            </span>
+          ))}
+        </div>
+      )}
     </section>
   );
 }
