@@ -2,6 +2,8 @@ import Image from "next/image";
 import { setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/profile/queries";
+import { getPlayerAchievements } from "@/lib/profile/achievements";
+import { PlayerBadges } from "@/components/profile/player-badges";
 import { getMyStats } from "@/lib/profile/stats";
 import { listMatches, type MatchListItem } from "@/lib/matches/queries";
 import { listMyBets } from "@/lib/bets/queries";
@@ -67,6 +69,7 @@ export default async function DashboardPage({
     myPicksByMatch,
     buyIn,
     prediction,
+    achievements,
   ] = await Promise.all([
     getCurrentUser(),
     getMyStats(),
@@ -77,6 +80,10 @@ export default async function DashboardPage({
     getMyPicksByMatch(),
     getMyBuyInStatus(),
     getMyTournamentPrediction(),
+    (async () => {
+      const u = await getCurrentUser();
+      return u?.username ? getPlayerAchievements(u.username) : null;
+    })(),
   ]);
 
   // Resolve the user's predicted champion from the teams present in the
@@ -283,6 +290,7 @@ export default async function DashboardPage({
 
         {/* Right rail */}
         <aside className="flex min-w-0 flex-col gap-5">
+          <PlayerBadges achievements={achievements} locale={L} />
           <MiniLeaderboard
             top5={top5}
             myRow={showMyRow ? (myRow ?? null) : null}
