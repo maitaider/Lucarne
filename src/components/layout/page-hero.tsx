@@ -48,6 +48,8 @@ export function PageHero({
   stats,
   visual,
   background = "default",
+  backgroundSrc = "/marketing/lucarne-hero-stadium.jpg",
+  backgroundClassName,
   className,
 }: {
   kicker: string;
@@ -72,6 +74,10 @@ export function PageHero({
    *    paints a backdrop)
    */
   background?: "default" | "subtle" | "none";
+  /** Background image src (used when background="default"). Defaults to the stadium photo. */
+  backgroundSrc?: string;
+  /** Override the bg image positioning/opacity, e.g. "object-[60%_30%] opacity-[0.4]". */
+  backgroundClassName?: string;
   className?: string;
 }) {
   const tone = ACCENT_CLASSES[accent];
@@ -90,11 +96,14 @@ export function PageHero({
       {background === "default" && (
         <>
           <Image
-            src="/marketing/lucarne-hero-stadium.jpg"
+            src={backgroundSrc}
             alt=""
             fill
             sizes="100vw"
-            className="absolute inset-0 -z-20 object-cover object-[60%_44%] opacity-[0.2]"
+            className={cn(
+              "absolute inset-0 -z-20 object-cover",
+              backgroundClassName ?? "object-[60%_44%] opacity-[0.2]",
+            )}
           />
           <div className="absolute inset-0 -z-10 bg-[linear-gradient(96deg,rgba(5,6,5,0.94)_0%,rgba(5,6,5,0.78)_44%,rgba(5,6,5,0.5)_100%)]" />
         </>
