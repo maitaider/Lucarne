@@ -172,7 +172,7 @@ export default async function DashboardPage({
           className="pointer-events-none absolute -right-24 -top-24 -z-10 size-[420px] rounded-full bg-primary-500/10 blur-3xl"
         />
 
-        <div className="relative grid gap-6 p-4 sm:p-8 lg:grid-cols-[1.3fr_0.7fr] lg:items-center lg:gap-10">
+        <div className="relative grid grid-cols-1 gap-6 p-4 sm:p-8 lg:grid-cols-[1.3fr_0.7fr] lg:items-center lg:gap-10">
           {/* Left — greeting + KPIs */}
           <div className="min-w-0">
             <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -250,7 +250,7 @@ export default async function DashboardPage({
           On mobile it drops below the actionable content (featured match,
           leaderboard, salon) so those surface first; restored to source order
           on lg where there's room side-by-side. */}
-      <div className="order-last grid gap-5 md:grid-cols-3 lg:order-none">
+      <div className="order-last grid grid-cols-1 gap-5 md:grid-cols-3 lg:order-none">
         <ChampionCard team={championTeam} canBet={buyIn.can_bet} locale={L} />
         <CagnotteCard
           amountCents={buyIn.amount_cents}
@@ -262,10 +262,16 @@ export default async function DashboardPage({
         <TournamentCard startAt={buyIn.settings.tournament_start_at} locale={L} />
       </div>
 
-      {/* ===================== MAIN: 2fr / 1fr ====================== */}
-      <div className="grid gap-5 lg:grid-cols-3">
+      {/* ===================== MAIN: 2fr / 1fr ======================
+          `grid-cols-1` base + `min-w-0` on both columns are load-bearing on
+          mobile: without an explicit single track the grid uses an implicit
+          `auto` column that grows to its widest child's min-content (the
+          featured match + its 80px flags), and grid items default to
+          `min-width:auto` (won't shrink) — together they pushed the whole grid
+          (and every card in it) past the viewport → cards clipped on the right. */}
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         {/* Left column */}
-        <div className="flex flex-col gap-5 lg:col-span-2">
+        <div className="flex min-w-0 flex-col gap-5 lg:col-span-2">
           <FeaturedMatch
             match={featured}
             myPicks={featured ? myPicksByMatch.get(featured.id) : undefined}
@@ -276,7 +282,7 @@ export default async function DashboardPage({
         </div>
 
         {/* Right rail */}
-        <aside className="flex flex-col gap-5">
+        <aside className="flex min-w-0 flex-col gap-5">
           <MiniLeaderboard
             top5={top5}
             myRow={showMyRow ? (myRow ?? null) : null}
