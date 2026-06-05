@@ -2,6 +2,7 @@ import "server-only";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { getReactionsForTargets, type ReactionSummary } from "@/lib/social/queries";
 import { getSharedPrediction, type SharedPrediction } from "@/lib/social/share";
+import { listMatches } from "@/lib/matches/queries";
 import { GLOBAL_CHAT_ID, CHAT_BOT_USER_ID } from "./constants";
 
 export type ChatAuthor = {
@@ -220,4 +221,35 @@ export async function listChatMutes(): Promise<ChatMute[]> {
   return (data ?? [])
     .filter((m) => !m.until || new Date(m.until).getTime() > now)
     .map((m) => ({ user_id: m.user_id, until: m.until }));
+}
+
+export type ChatLiveMatch = {
+  id: string;
+  home_name_fr: string | null;
+  home_name_en: string | null;
+  home_iso: string | null;
+  away_name_fr: string | null;
+  away_name_en: string | null;
+  away_iso: string | null;
+  home_score: number | null;
+  away_score: number | null;
+};
+
+/** Matches currently live — powers the salon "watch party" score bar. */
+export async function listLiveMatches(): Promise<ChatLiveMatch[]> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return [];
+  const all = await listMatches();
+  return all
+    .filter((m) => m.status === "live")
+    .map((m) => ({
+      id: m.id,
+      home_name_fr: m.home_team?.name_fr ?? null,
+      home_name_en: m.home_team?.name_en ?? null,
+      home_iso: m.home_team?.iso_code ?? null,
+      away_name_fr: m.away_team?.name_fr ?? null,
+      away_name_en: m.away_team?.name_en ?? null,
+      away_iso: m.away_team?.iso_code ?? null,
+      home_score: m.home_score,
+      away_score: m.away_score,
+    }));
 }
