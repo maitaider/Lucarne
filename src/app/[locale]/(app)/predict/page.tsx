@@ -106,24 +106,14 @@ export default async function PredictPage({
 
   const groupMatches = allMatches.filter((m) => m.stage === "group");
 
-  // Asset pairs with the active tab — picked at server render time so
-  // the hero asset matches the work surface below.
-  const heroVisual =
-    tab === "finale"
-      ? {
-          src: "/assets/lucarne/claude-pack-20260525/svg/03-knockout-scenario-tree.svg",
-          alt:
-            L === "fr"
-              ? "Illustration de l'arbre de la phase finale"
-              : "Knockout bracket illustration",
-        }
-      : {
-          src: "/assets/lucarne/claude-pack-20260525/svg/02-predict-groups-board.svg",
-          alt:
-            L === "fr"
-              ? "Illustration du tableau de pronostics par groupe"
-              : "Group prediction board illustration",
-        };
+  // Celebration photo for the hero visual (same for both tabs).
+  const heroVisual = {
+    src: "/assets/lucarne/world-cup-2026/11-algeria-2026-home-celebration.png",
+    alt:
+      L === "fr"
+        ? "Footballeur en maillot domicile de l'Algérie célébrant dans un stade plein."
+        : "Footballer in an Algeria home kit celebrating in a packed stadium.",
+  };
 
   // Stat chips for the hero — small, scannable, motivational.
   const groupsFilled = Object.values(prediction.group_standings).filter(
