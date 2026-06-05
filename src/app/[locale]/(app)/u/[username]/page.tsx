@@ -24,6 +24,8 @@ import {
   type ProfileBet,
   type ProfileTeamSide,
 } from "@/lib/profile/public-profile";
+import { getPlayerAchievements } from "@/lib/profile/achievements";
+import { PlayerBadges } from "@/components/profile/player-badges";
 import { AppPageShell } from "@/components/layout/app-page-shell";
 import { SectionPanel } from "@/components/layout/section-panel";
 import { Flag } from "@/components/team/flag";
@@ -57,7 +59,10 @@ export default async function PublicProfilePage({
   ]);
   if (!profile) notFound();
 
-  const recent = await getProfileRecentBets(username, 8);
+  const [recent, achievements] = await Promise.all([
+    getProfileRecentBets(username, 8),
+    getPlayerAchievements(username),
+  ]);
 
   const isSelf = me?.id === profile.user_id;
   const isAdmin = profile.role === "admin" || profile.role === "super_admin";
@@ -162,6 +167,9 @@ export default async function PublicProfilePage({
           />
         </div>
       </section>
+
+      {/* ── Badges & streaks ─────────────────────────────────────────────── */}
+      <PlayerBadges achievements={achievements} locale={L} />
 
       {/* ── Recent predictions (validated + settled) ─────────────────────── */}
       <SectionPanel

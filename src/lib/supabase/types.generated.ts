@@ -1802,6 +1802,18 @@ export type Database = {
         }
         Returns: string
       }
+      player_achievements: {
+        Args: { p_username: string }
+        Returns: {
+          best_streak: number
+          current_streak: number
+          exact_count: number
+          scorer_count: number
+          settled_count: number
+          total_points: number
+          won_count: number
+        }[]
+      }
       profile_recent_bets: {
         Args: { p_limit?: number; p_username: string }
         Returns: {
