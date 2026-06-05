@@ -17,23 +17,72 @@
   --color-border-subtle: #2b362a;
   --color-border-strong: #4c5a47;
 
-  /* Primary — pelouse irradiée */
+  /* Primary — pelouse irradiée.
+     Full 50→900 ramp. 400/500/600 are the original brand values; the rest
+     are derived so utilities like text-primary-300 (used widely, incl.
+     <Badge>) actually emit CSS in Tailwind v4 instead of silently no-op'ing. */
+  --color-primary-50: #eafdf3;
+  --color-primary-100: #c8f8de;
+  --color-primary-200: #97f1c4;
+  --color-primary-300: #66eaa9;
   --color-primary-400: #3fe599;
   --color-primary-500: #22d982;
   --color-primary-600: #16b26b;
+  --color-primary-700: #128c55;
+  --color-primary-800: #0f6e44;
+  --color-primary-900: #0c5435;
   --color-primary-glow: rgba(34, 217, 130, 0.2);
 
   /* Gold — trophée */
+  --color-gold-50: #fffaea;
+  --color-gold-100: #fff1c9;
+  --color-gold-200: #ffe7a3;
+  --color-gold-300: #ffde84;
   --color-gold-400: #ffd66b;
   --color-gold-500: #f5c447;
   --color-gold-600: #d6a423;
+  --color-gold-700: #ad831c;
+  --color-gold-800: #876615;
+  --color-gold-900: #654d10;
   --color-gold-glow: rgba(245, 196, 71, 0.15);
 
   /* Violet — écran live */
+  --color-violet-50: #f1eeff;
+  --color-violet-100: #ded6ff;
+  --color-violet-200: #c4b5ff;
+  --color-violet-300: #ad97ff;
   --color-violet-400: #9a82ff;
   --color-violet-500: #7c5cff;
   --color-violet-600: #5d3ee0;
+  --color-violet-700: #4a30b8;
+  --color-violet-800: #382593;
+  --color-violet-900: #2a1c70;
   --color-violet-glow: rgba(124, 92, 255, 0.2);
+
+  /* Amber — bronze (3e place podium), trophées. Canonical Tailwind ramp;
+     kept distinct from gold so 3rd-place reads as bronze, not gold. */
+  --color-amber-50: #fffbeb;
+  --color-amber-100: #fef3c7;
+  --color-amber-200: #fde68a;
+  --color-amber-300: #fcd34d;
+  --color-amber-400: #fbbf24;
+  --color-amber-500: #f59e0b;
+  --color-amber-600: #d97706;
+  --color-amber-700: #b45309;
+  --color-amber-800: #92400e;
+  --color-amber-900: #78350f;
+
+  /* Emerald — vert secondaire (accents onboarding/cockpit). */
+  --color-emerald-50: #ecfdf5;
+  --color-emerald-100: #d1fae5;
+  --color-emerald-200: #a7f3d0;
+  --color-emerald-300: #6ee7b7;
+  --color-emerald-400: #34d399;
+  --color-emerald-500: #10b981;
+  --color-emerald-600: #059669;
+  --color-emerald-700: #047857;
+  --color-emerald-800: #065f46;
+  --color-emerald-900: #064e3b;
 
   /* Semantic */
   --color-success: #22d982;
