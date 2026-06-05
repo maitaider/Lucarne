@@ -62,6 +62,7 @@ const ACCENT: Record<string, string> = {
   reaction_received: "text-gold-300 bg-gold-500/15 ring-gold-500/30",
   league_position: "text-gold-300 bg-gold-500/15 ring-gold-500/30",
   daily_challenge: "text-violet-300 bg-violet-500/15 ring-violet-500/30",
+  match_kickoff: "text-primary-300 bg-primary-500/15 ring-primary-500/30",
 };
 
 export function NotificationsBell({
@@ -364,6 +365,17 @@ function summarize(n: NotificationRow, locale: Locale): string {
         ? `@${p.actor ?? "Quelqu'un"} t'a mentionné dans le Salon : « ${preview} »`
         : `@${p.actor ?? "Someone"} mentioned you in the Lounge: "${preview}"`;
     }
+    case "match_kickoff": {
+      const home = locale === "fr" ? p.home_fr : p.home_en;
+      const away = locale === "fr" ? p.away_fr : p.away_en;
+      if (home && away)
+        return locale === "fr"
+          ? `⏰ Pronostique ${home}–${away} avant le coup d'envoi !`
+          : `⏰ Predict ${home}–${away} before kickoff!`;
+      return locale === "fr"
+        ? "⏰ Un match arrive — pronostique avant le coup d'envoi !"
+        : "⏰ A match is coming up — predict before kickoff!";
+    }
     default:
       return n.type;
   }
@@ -391,6 +403,8 @@ function linkFor(n: NotificationRow): string | null {
       return "/chat";
     case "league_position":
       return "/leaderboard/global";
+    case "match_kickoff":
+      return p.match_id ? `/matches/${p.match_id}` : "/predict";
     default:
       return null;
   }

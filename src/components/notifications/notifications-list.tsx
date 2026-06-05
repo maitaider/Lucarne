@@ -258,6 +258,17 @@ function summarize(n: NotificationRow, locale: Locale): string {
       return locale === "fr"
         ? `@${p.by_username ?? "Un joueur"} t'a dépassé au classement (#${p.new_rank ?? "?"}).`
         : `@${p.by_username ?? "A player"} overtook you in the standings (#${p.new_rank ?? "?"}).`;
+    case "match_kickoff": {
+      const home = locale === "fr" ? p.home_fr : p.home_en;
+      const away = locale === "fr" ? p.away_fr : p.away_en;
+      if (home && away)
+        return locale === "fr"
+          ? `⏰ Pronostique ${home}–${away} avant le coup d'envoi !`
+          : `⏰ Predict ${home}–${away} before kickoff!`;
+      return locale === "fr"
+        ? "⏰ Un match arrive — pronostique avant le coup d'envoi !"
+        : "⏰ A match is coming up — predict before kickoff!";
+    }
     default:
       return n.type;
   }
@@ -280,6 +291,8 @@ function linkFor(n: NotificationRow): string | null {
       return p.match_id ? `/matches/${p.match_id}` : "/leagues";
     case "league_position":
       return "/leaderboard/global";
+    case "match_kickoff":
+      return p.match_id ? `/matches/${p.match_id}` : "/predict";
     default:
       return null;
   }
