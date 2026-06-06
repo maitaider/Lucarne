@@ -144,8 +144,7 @@ export default async function PredictPage({
             />
           </>
         }
-        backgroundSrc="/assets/lucarne/world-cup-2026/11-algeria-2026-home-celebration.png"
-        backgroundClassName="object-[62%_32%] opacity-[0.4]"
+        background="subtle"
       />
 
       <PredictBoard
