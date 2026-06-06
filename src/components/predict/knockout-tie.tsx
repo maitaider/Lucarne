@@ -19,6 +19,7 @@ import type { KnockoutScheduleItem, TeamLite } from "./predict-board";
  */
 export function KnockoutTie({
   match,
+  schedule,
   groups,
   knockouts,
   thirdAssign,
@@ -29,6 +30,7 @@ export function KnockoutTie({
   locale,
 }: {
   match: KnockoutScheduleItem;
+  schedule: KnockoutScheduleItem[];
   groups: GroupStandings;
   knockouts: KnockoutWinners;
   thirdAssign: Record<string, string>;
@@ -42,7 +44,13 @@ export function KnockoutTie({
   ) => void;
   locale: Locale;
 }) {
-  const { home, away } = resolveMatch(match, groups, knockouts, thirdAssign);
+  const { home, away } = resolveMatch(
+    match,
+    groups,
+    knockouts,
+    thirdAssign,
+    schedule,
+  );
   const winnerId = knockouts[String(match.match_number)] ?? null;
 
   return (

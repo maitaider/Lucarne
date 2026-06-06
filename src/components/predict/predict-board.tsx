@@ -948,6 +948,8 @@ function FinaleSection({
       { key: "final", label: fr ? "Finale" : "Final" },
     ];
   const thirdPlace = byStage["third_place"] ?? [];
+  // Flat schedule so ties can resolve "L<n>" loser slots (third-place playoff).
+  const schedule = Object.values(byStage).flat();
   const finalMatch = (byStage["final"] ?? [])[0];
   const championId = finalMatch
     ? (knockouts[String(finalMatch.match_number)] ?? null)
@@ -959,6 +961,7 @@ function FinaleSection({
       <KnockoutTie
         key={m.match_number}
         match={m}
+        schedule={schedule}
         groups={groups}
         knockouts={knockouts}
         thirdAssign={thirdAssign}
