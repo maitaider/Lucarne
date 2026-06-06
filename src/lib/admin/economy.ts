@@ -44,6 +44,15 @@ const DEFAULT: AppSettings = {
     over_under: 2.5,
     tournament_winner: 20,
     top_scorer: 15,
+    // Phase finale (bracket) — points par bonne équipe atteignant le tour,
+    // gros lot pour le podium. Cf. migration 20260606170000.
+    bracket_r16: 1,
+    bracket_qf: 3,
+    bracket_sf: 6,
+    bracket_final: 10,
+    bracket_champion: 30,
+    bracket_runner_up: 20,
+    bracket_third: 15,
   },
   contact_label: "Lucarne Admin",
   contact_info: null,
@@ -91,6 +100,12 @@ export function effectiveBuyInDeadline(settings: AppSettings): Date {
   return new Date(
     new Date(settings.tournament_start_at).getTime() - 60 * 60 * 1000,
   );
+}
+
+/** True once the global prediction deadline has passed. Lives here (a lib, not
+ *  a component) so callers don't trip the react-hooks/purity Date.now() rule. */
+export function isBuyInDeadlinePassed(settings: AppSettings): boolean {
+  return effectiveBuyInDeadline(settings).getTime() < Date.now();
 }
 
 /**

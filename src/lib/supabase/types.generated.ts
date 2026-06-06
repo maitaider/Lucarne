@@ -1819,6 +1819,7 @@ export type Database = {
         }[]
       }
       lock_all_tournament_predictions: { Args: never; Returns: number }
+      recompute_bracket_points: { Args: never; Returns: undefined }
       match_consensus: {
         Args: { p_match_id: string }
         Returns: {

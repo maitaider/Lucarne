@@ -1,7 +1,12 @@
 import { setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { getAppSettings } from "@/lib/admin/economy";
+import {
+  getAppSettings,
+  effectiveBuyInDeadline,
+  isBuyInDeadlinePassed,
+} from "@/lib/admin/economy";
 import { SettingsForm } from "@/components/admin/settings-form";
+import { AdminFillPredictions } from "@/components/admin/admin-fill-predictions";
 import { ArrowRight, Coins, Settings, ShieldCheck } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
 
@@ -42,6 +47,19 @@ export default async function AdminSettingsPage({
           contact_info: settings.contact_info,
         }}
         locale={L}
+      />
+
+      <AdminFillPredictions
+        locale={L}
+        deadlineLabel={effectiveBuyInDeadline(settings).toLocaleString(
+          fr ? "fr-CA" : "en-CA",
+          {
+            timeZone: "America/Toronto",
+            dateStyle: "medium",
+            timeStyle: "short",
+          },
+        )}
+        deadlinePassed={isBuyInDeadlinePassed(settings)}
       />
 
       <Link

@@ -978,8 +978,8 @@ function FinaleSection({
           <Trophy className="mt-0.5 size-4 shrink-0 text-gold-400" strokeWidth={2} />
           <span>
             {fr
-              ? "L'arbre se remplit depuis tes groupes. Tape l'équipe qui passe à chaque tour — de gauche à droite — jusqu'à couronner ton champion. Tout se met à jour tout seul."
-              : "The bracket fills from your groups. Tap the team that advances in each tie — left to right — all the way to your champion. Everything updates automatically."}
+              ? "L'arbre se remplit depuis tes groupes. Tape l'équipe qui passe à chaque tour — de gauche à droite — jusqu'à couronner ton champion. C'est désormais SCORÉ : des points par bonne équipe qui atteint chaque tour, et un gros lot pour le champion, le finaliste et le 3e. Tout se verrouille 1 h avant le 1er match."
+              : "The bracket fills from your groups. Tap the team that advances in each tie — left to right — all the way to your champion. It's now SCORED: points for each team you correctly send to each round, plus a big bonus for the champion, runner-up and 3rd place. Everything locks 1h before the first match."}
           </span>
         </p>
       </Card>
