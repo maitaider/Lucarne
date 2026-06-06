@@ -53,7 +53,23 @@ export default async function HowItWorksPage({
   ).toLocaleDateString(moneyLocale, { day: "numeric", month: "long", year: "numeric" });
 
   return (
-    <main className="mx-auto max-w-4xl px-4 pb-20 pt-6 sm:px-6 sm:pt-8 lg:px-8">
+    <main className="relative">
+      {/* Ambient stadium backdrop behind the whole guide */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
+      >
+        <Image
+          src="/assets/lucarne/world-cup-2026/09-stadium-supporters-sunset.png"
+          alt=""
+          fill
+          sizes="100vw"
+          className="object-cover object-top opacity-[0.10]"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,6,5,0.82)_0%,rgba(5,6,5,0.95)_55%,rgba(5,6,5,0.99)_100%)]" />
+      </div>
+
+      <div className="mx-auto max-w-4xl px-4 pb-20 pt-6 sm:px-6 sm:pt-8 lg:px-8">
       <header className="relative mb-8 overflow-hidden rounded-md border border-white/[0.13] bg-abyss/[0.8] p-6 shadow-[0_28px_90px_rgba(0,0,0,0.38),inset_0_1px_0_rgba(255,255,255,0.08)] sm:p-8">
         <Image
           src="/marketing/lucarne-hero-stadium.jpg"
@@ -257,6 +273,130 @@ export default async function HowItWorksPage({
         </div>
       </section>
 
+      {/* Detailed worked example — a full run to the trophy */}
+      <section className="relative mt-10 overflow-hidden rounded-[14px] border border-gold-500/30 bg-abyss/[0.7] p-5 shadow-[0_28px_90px_rgba(0,0,0,0.4)] sm:p-7">
+        <Image
+          src="/assets/lucarne/world-cup-2026/04-argentina-net-shot.png"
+          alt=""
+          fill
+          sizes="100vw"
+          className="absolute inset-0 -z-20 object-cover object-[72%_28%] opacity-[0.16]"
+        />
+        <div className="absolute inset-0 -z-10 bg-[linear-gradient(118deg,rgba(5,6,5,0.96)_0%,rgba(5,6,5,0.82)_52%,rgba(5,6,5,0.58)_100%)]" />
+
+        <div className="relative">
+          <div className="mb-2 inline-flex items-center gap-1.5 rounded-sm border border-gold-500/35 bg-gold-500/[0.1] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-gold-300">
+            <Trophy className="size-3.5" strokeWidth={1.7} />
+            {L === "fr" ? "Exemple complet" : "Full example"}
+          </div>
+          <h2 className="font-display text-xl font-semibold leading-tight text-text-primary sm:text-2xl">
+            {L === "fr"
+              ? "Un pronostic, du 1ᵉʳ match au sacre"
+              : "One run, from kickoff to the trophy"}
+          </h2>
+          <p className="mt-1.5 max-w-xl text-sm leading-6 text-text-secondary">
+            {L === "fr"
+              ? "Suis un pronostic type et regarde les points s'empiler, tour après tour, jusqu'à la finale. Chiffres donnés à titre d'exemple."
+              : "Follow a typical run and watch the points stack, round after round, all the way to the final. Numbers shown as an example."}
+          </p>
+
+          <div className="mt-5 space-y-3">
+            <JourneyStage
+              icon={Sparkles}
+              accent="primary"
+              title={L === "fr" ? "Phase de groupes" : "Group stage"}
+              sub={
+                L === "fr"
+                  ? "tes scores, match par match"
+                  : "your scores, match by match"
+              }
+              rows={
+                L === "fr"
+                  ? [
+                      { label: "Argentine 2–1 → résultat 2–1", note: "vainqueur + total + score exact", pts: 13 },
+                      { label: "Brésil 3–0 → résultat 3–1", note: "vainqueur + total à ±1", pts: 5 },
+                      { label: "France 1–0 → résultat 1–0", note: "bon vainqueur", pts: 3 },
+                    ]
+                  : [
+                      { label: "Argentina 2–1 → result 2–1", note: "winner + total + exact score", pts: 13 },
+                      { label: "Brazil 3–0 → result 3–1", note: "winner + total within 1", pts: 5 },
+                      { label: "France 1–0 → result 1–0", note: "correct winner", pts: 3 },
+                    ]
+              }
+              subtotalLabel={L === "fr" ? "sur 3 matchs montrés" : "across 3 shown matches"}
+              subtotal={21}
+            />
+
+            <JourneyStage
+              icon={ListOrdered}
+              accent="violet"
+              title={L === "fr" ? "Ta phase finale" : "Your bracket"}
+              sub={
+                L === "fr"
+                  ? "points par équipe envoyée au bon tour"
+                  : "points per team you send to the right round"
+              }
+              rows={
+                L === "fr"
+                  ? [
+                      { label: "8ᵉˢ de finale — 12 bonnes équipes", note: "+1 par équipe", pts: 12 },
+                      { label: "Quarts — 6 bonnes équipes", note: "+3 par équipe", pts: 18 },
+                      { label: "Demies — 3 bonnes équipes", note: "+6 par équipe", pts: 18 },
+                      { label: "Finale — tes 2 finalistes y sont", note: "+10 par équipe", pts: 20 },
+                    ]
+                  : [
+                      { label: "Round of 16 — 12 correct teams", note: "+1 per team", pts: 12 },
+                      { label: "Quarters — 6 correct teams", note: "+3 per team", pts: 18 },
+                      { label: "Semis — 3 correct teams", note: "+6 per team", pts: 18 },
+                      { label: "Final — both your finalists made it", note: "+10 per team", pts: 20 },
+                    ]
+              }
+              subtotalLabel={L === "fr" ? "parcours" : "run"}
+              subtotal={68}
+            />
+
+            <JourneyStage
+              icon={Crown}
+              accent="gold"
+              title={L === "fr" ? "Le podium" : "The podium"}
+              sub={L === "fr" ? "le gros lot" : "the jackpot"}
+              rows={
+                L === "fr"
+                  ? [
+                      { label: "🏆 Champion exact — Argentine", note: "le sacre", pts: 30 },
+                      { label: "🥈 Finaliste exact", note: "le 2ᵉ", pts: 20 },
+                      { label: "🥉 3ᵉ place exacte", note: "le 3ᵉ", pts: 15 },
+                    ]
+                  : [
+                      { label: "🏆 Exact champion — Argentina", note: "the title", pts: 30 },
+                      { label: "🥈 Exact runner-up", note: "2nd place", pts: 20 },
+                      { label: "🥉 Exact 3rd place", note: "3rd place", pts: 15 },
+                    ]
+              }
+              subtotalLabel={L === "fr" ? "podium" : "podium"}
+              subtotal={65}
+            />
+          </div>
+
+          {/* Grand total */}
+          <div className="mt-4 flex items-center justify-between gap-3 rounded-[10px] border border-gold-500/40 bg-gold-500/[0.12] px-4 py-3.5 shadow-glow-gold">
+            <span className="flex items-center gap-2 font-display text-sm font-semibold text-gold-200">
+              <Crown className="size-4 text-gold-300" strokeWidth={1.9} />
+              {L === "fr" ? "Total de l'exemple" : "Example total"}
+            </span>
+            <span className="font-display text-2xl font-bold tabular-nums text-gold-200">
+              154{" "}
+              <span className="text-sm font-semibold text-gold-300/80">pts</span>
+            </span>
+          </div>
+          <p className="mt-2 text-[11px] leading-4 text-text-tertiary">
+            {L === "fr"
+              ? "21 (poules, extrait) + 68 (parcours) + 65 (podium). Ton total réel dépend de tous tes matchs et de ton arbre."
+              : "21 (groups, excerpt) + 68 (run) + 65 (podium). Your real total depends on all your matches and your bracket."}
+          </p>
+        </div>
+      </section>
+
       {/* Pot + payout */}
       <section className="mt-10 rounded-[14px] border border-gold-500/35 bg-gradient-to-br from-gold-500/[0.12] via-primary-500/[0.04] to-transparent p-5 backdrop-blur-xl sm:p-6">
         <div className="flex items-start gap-3">
@@ -306,6 +446,7 @@ export default async function HowItWorksPage({
           }
         />
       </section>
+      </div>
     </main>
   );
 }
@@ -438,6 +579,78 @@ function NoteCard({
         <span className="text-sm font-semibold text-text-primary">{title}</span>
       </div>
       <p className="text-xs leading-5 text-text-secondary">{body}</p>
+    </div>
+  );
+}
+
+function JourneyStage({
+  icon: Icon,
+  accent,
+  title,
+  sub,
+  rows,
+  subtotalLabel,
+  subtotal,
+}: {
+  icon: LucideIcon;
+  accent: "gold" | "primary" | "violet";
+  title: string;
+  sub: string;
+  rows: { label: string; note: string; pts: number }[];
+  subtotalLabel: string;
+  subtotal: number;
+}) {
+  const tone = {
+    gold: "border-gold-500/30 bg-gold-500/[0.06] text-gold-300",
+    primary: "border-primary-500/30 bg-primary-500/[0.06] text-primary-300",
+    violet: "border-violet-500/30 bg-violet-500/[0.06] text-violet-300",
+  }[accent];
+  const ptsTone = {
+    gold: "text-gold-300",
+    primary: "text-primary-300",
+    violet: "text-violet-300",
+  }[accent];
+  return (
+    <div className="rounded-[10px] border border-white/[0.08] bg-surface-1/[0.55] p-4 backdrop-blur-xl">
+      <div className="mb-3 flex items-center gap-2.5">
+        <span
+          className={`flex size-9 shrink-0 items-center justify-center rounded-[10px] border ${tone}`}
+        >
+          <Icon className="size-5" strokeWidth={1.7} />
+        </span>
+        <div className="min-w-0">
+          <div className="font-display text-sm font-semibold text-text-primary">
+            {title}
+          </div>
+          <div className="text-[11px] text-text-tertiary">{sub}</div>
+        </div>
+      </div>
+      <ul className="space-y-1.5">
+        {rows.map((r) => (
+          <li
+            key={r.label}
+            className="flex items-baseline justify-between gap-3 border-t border-white/[0.05] pt-1.5 first:border-0 first:pt-0"
+          >
+            <span className="min-w-0 text-xs leading-5 text-text-secondary">
+              {r.label}
+              <span className="ml-1.5 text-[10px] text-text-tertiary">
+                · {r.note}
+              </span>
+            </span>
+            <b className={`shrink-0 font-mono text-sm tabular-nums ${ptsTone}`}>
+              +{r.pts}
+            </b>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-2.5 flex items-baseline justify-between gap-3 border-t border-white/[0.1] pt-2">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
+          {subtotalLabel}
+        </span>
+        <b className={`font-display text-base font-bold tabular-nums ${ptsTone}`}>
+          +{subtotal}
+        </b>
+      </div>
     </div>
   );
 }
