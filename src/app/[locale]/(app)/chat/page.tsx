@@ -47,9 +47,7 @@ export default async function ChatPage({
             ? "Le tchat du groupe en temps réel — vannes, débats et pronos. Mentionne avec @, colle un lien de prono, réagis aux messages."
             : "The group's realtime chat — banter, debates and predictions. Mention with @, paste a prediction link, react to messages."
         }
-        background="default"
-        backgroundSrc="/assets/lucarne/world-cup-2026/12-canada-2026-home-celebration.png"
-        backgroundClassName="object-[60%_30%] opacity-[0.38]"
+        background="subtle"
         stats={
           <>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.1] bg-white/[0.04] px-2.5 py-1 text-xs font-medium text-text-secondary">

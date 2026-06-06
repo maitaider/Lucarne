@@ -29,6 +29,11 @@ const NATION_BACKDROPS: { test: RegExp; src: string; position: string }[] = [
     src: "/assets/lucarne/world-cup-2026/13-algeria-stadium-control.png",
     position: "object-[60%_28%]",
   },
+  {
+    test: /\/chat(\/|$)/,
+    src: "/assets/lucarne/world-cup-2026/12-canada-2026-home-celebration.png",
+    position: "object-[60%_26%]",
+  },
 ];
 
 export function AppAtmosphere() {
