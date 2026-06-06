@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   pruneOrphanedKnockoutPicks,
+  sanitizeThirdPlaceAssignments,
   type BracketMatchInfo,
   type GroupStandings,
   type KnockoutWinners,
@@ -221,6 +222,15 @@ export function PredictBoard({
   }));
   const [thirdAssign, setThirdAssign] = useState<Record<string, string>>({});
 
+  // A team can occupy only ONE knockout slot. `thirdAssign` is a loose map the
+  // user fills via dropdowns; sanitize it before resolving so a 3rd-placed team
+  // never lands in two overlapping pool slots, and never lingers after being
+  // reordered out of 3rd. Everything (rendering + prune) reads THIS.
+  const cleanThird = useMemo(
+    () => sanitizeThirdPlaceAssignments(thirdAssign, groups, knockoutSchedule),
+    [thirdAssign, groups, knockoutSchedule],
+  );
+
   // ---- Per-match state (score) -----------------------------------------------
   // `matchPicks` = CONFIRMED picks only (feeds standings + bracket).
   const [matchPicks, setMatchPicks] = useState<Map<string, MatchPick>>(() =>
@@ -304,13 +314,21 @@ export function PredictBoard({
 
   function commitGroupOrder(group: string, next: string[]) {
     const nextGroups = { ...groups, [group]: next };
+    // Reordering can move a team out of (or into) 3rd place — re-sanitize the
+    // third-place picks against the new standings so none linger as duplicates.
+    const nextAssign = sanitizeThirdPlaceAssignments(
+      thirdAssign,
+      nextGroups,
+      knockoutSchedule,
+    );
     const pruned = pruneOrphanedKnockoutPicks(
       knockoutSchedule,
       nextGroups,
       knockouts,
-      thirdAssign,
+      nextAssign,
     );
     setGroups(nextGroups);
+    setThirdAssign(nextAssign);
     setKnockouts(pruned);
     saveBracket({
       groups: nextGroups,
@@ -335,7 +353,7 @@ export function PredictBoard({
       knockoutSchedule,
       groups,
       next,
-      thirdAssign,
+      cleanThird,
     );
     setKnockouts(pruned);
     saveBracket({
@@ -354,7 +372,18 @@ export function PredictBoard({
   ) {
     if (!canEdit) return;
     const key = `${matchNumber}-${side}`;
-    const nextAssign = { ...thirdAssign, [key]: teamId };
+    // Start from the sanitized map so we never build on a stale/duplicate base.
+    const nextAssign: Record<string, string> = { ...cleanThird };
+    if (!teamId) {
+      // Empty value = clear this slot (the ✕ / the dropdown's blank option).
+      delete nextAssign[key];
+    } else {
+      // A team can occupy only one slot: drop it from any other slot first.
+      for (const k of Object.keys(nextAssign)) {
+        if (nextAssign[k] === teamId) delete nextAssign[k];
+      }
+      nextAssign[key] = teamId;
+    }
     setThirdAssign(nextAssign);
     const pruned = pruneOrphanedKnockoutPicks(
       knockoutSchedule,
@@ -707,7 +736,7 @@ export function PredictBoard({
           byStage={byStage}
           knockouts={knockouts}
           groups={groups}
-          thirdAssign={thirdAssign}
+          thirdAssign={cleanThird}
           teamById={teamById}
           canEdit={canEdit}
           onPickWinner={pickKnockoutWinner}
