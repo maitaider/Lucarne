@@ -31,6 +31,7 @@ export function resolveSlot(
   placeholder: string | null,
   groups: GroupStandings,
   knockouts: KnockoutWinners,
+  schedule?: BracketMatchInfo[],
 ): BracketSlot {
   const slot: BracketSlot = {
     placeholder: placeholder ?? "",
@@ -45,6 +46,30 @@ export function resolveSlot(
   const wMatch = /^W(\d+)$/.exec(ph);
   if (wMatch) {
     slot.team_id = knockouts[wMatch[1]!] ?? null;
+    return slot;
+  }
+
+  // Loser-of-match shape: "L<number>" — used by the third-place playoff
+  // ("L<sf1> vs L<sf2>"). The loser is the participant of match N who isn't
+  // its winner, so we need match N's two resolved teams + its winner pick.
+  // Requires the schedule to find match N's placeholders (else stays null).
+  const lMatch = /^L(\d+)$/.exec(ph);
+  if (lMatch) {
+    const n = lMatch[1]!;
+    const winner = knockouts[n];
+    const m = schedule?.find((x) => String(x.match_number) === n);
+    if (winner && m) {
+      const a = resolveSlot(m.home_placeholder, groups, knockouts, schedule);
+      const b = resolveSlot(m.away_placeholder, groups, knockouts, schedule);
+      if (a.team_id && b.team_id) {
+        slot.team_id =
+          a.team_id === winner
+            ? b.team_id
+            : b.team_id === winner
+              ? a.team_id
+              : null;
+      }
+    }
     return slot;
   }
 
@@ -92,9 +117,10 @@ export function resolveMatch(
   groups: GroupStandings,
   knockouts: KnockoutWinners,
   thirdPlaceAssignments?: Record<string, string>,
+  schedule?: BracketMatchInfo[],
 ): { home: BracketSlot; away: BracketSlot } {
-  const home = resolveSlot(match.home_placeholder, groups, knockouts);
-  const away = resolveSlot(match.away_placeholder, groups, knockouts);
+  const home = resolveSlot(match.home_placeholder, groups, knockouts, schedule);
+  const away = resolveSlot(match.away_placeholder, groups, knockouts, schedule);
   if (thirdPlaceAssignments) {
     if (home.is_third_place_pool && !home.team_id) {
       home.team_id =
@@ -146,6 +172,7 @@ export function pruneOrphanedKnockoutPicks(
       groups,
       fresh, // <-- use freshly pruned winners so far for upstream resolution
       thirdPlaceAssignments,
+      matches, // <-- schedule, so "L<n>" loser slots can resolve
     );
     const pick = knockouts[String(m.match_number)];
     if (pick && (pick === home.team_id || pick === away.team_id)) {

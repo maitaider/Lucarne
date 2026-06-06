@@ -207,3 +207,45 @@ describe("sanitizeThirdPlaceAssignments", () => {
     expect(clean).toEqual({});
   });
 });
+
+describe("resolveSlot loser-of-match (third-place playoff)", () => {
+  // Two semifinals + the third-place playoff between their losers.
+  const SCHEDULE: BracketMatchInfo[] = [
+    { match_number: 101, stage: "sf", home_placeholder: "1A", away_placeholder: "1B" },
+    { match_number: 102, stage: "sf", home_placeholder: "2A", away_placeholder: "2B" },
+    {
+      match_number: 200,
+      stage: "third_place",
+      home_placeholder: "L101",
+      away_placeholder: "L102",
+    },
+  ];
+
+  it("resolves 'L101' to the loser of match 101", () => {
+    // 101 = A1 vs B1; winner A1 → loser B1.
+    const slot = resolveSlot("L101", SAMPLE_GROUPS, { "101": TEAM.A1 }, SCHEDULE);
+    expect(slot.team_id).toBe(TEAM.B1);
+  });
+
+  it("returns null until the match winner is picked", () => {
+    expect(resolveSlot("L101", SAMPLE_GROUPS, {}, SCHEDULE).team_id).toBeNull();
+  });
+
+  it("returns null without a schedule (can't find participants)", () => {
+    expect(resolveSlot("L101", SAMPLE_GROUPS, { "101": TEAM.A1 }).team_id).toBeNull();
+  });
+
+  it("fills both third-place slots from the two semifinal losers", () => {
+    const thirdMatch = SCHEDULE[2]!;
+    // 101: A1 vs B1, winner A1 → loser B1. 102: A2 vs B2, winner B2 → loser A2.
+    const { home, away } = resolveMatch(
+      thirdMatch,
+      SAMPLE_GROUPS,
+      { "101": TEAM.A1, "102": TEAM.B2 },
+      undefined,
+      SCHEDULE,
+    );
+    expect(home.team_id).toBe(TEAM.B1);
+    expect(away.team_id).toBe(TEAM.A2);
+  });
+});
