@@ -7,7 +7,7 @@ import {
   type GroupStandings,
   type KnockoutWinners,
 } from "@/lib/predictions/resolve-bracket";
-import { CheckCircle2, XCircle } from "lucide-react";
+import { CheckCircle2, X, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
 import type { KnockoutScheduleItem, TeamLite } from "./predict-board";
@@ -121,9 +121,19 @@ function KnockoutSlot({
     side === "home" ? match.home_placeholder : match.away_placeholder;
 
   if (isThirdPool && !teamId) {
+    const thisKey = `${match.match_number}-${side}`;
+    // A 3rd-placed team can fill only one slot — hide teams already taken by
+    // another third-place slot (candidate groups overlap heavily, so the same
+    // team is otherwise offered in several dropdowns).
+    const usedElsewhere = new Set(
+      Object.entries(thirdAssign)
+        .filter(([k]) => k !== thisKey)
+        .map(([, v]) => v),
+    );
     const options = candidateGroups
       .map((g) => groups[g]?.[2] ?? null)
       .filter((id): id is string => !!id)
+      .filter((id) => !usedElsewhere.has(id))
       .map((id) => teamById.get(id))
       .filter((t): t is TeamLite => !!t);
     return (
@@ -173,7 +183,7 @@ function KnockoutSlot({
   if (!t) return null;
   const name = locale === "fr" ? t.name_fr : t.name_en;
 
-  return (
+  const advanceButton = (
     <button
       type="button"
       onClick={() => canEdit && onPickWinner(teamId)}
@@ -190,7 +200,7 @@ function KnockoutSlot({
               : `Pick ${name} to advance`
       }
       className={cn(
-        "group flex w-full min-w-0 items-center gap-2 px-2.5 py-2 text-xs transition disabled:cursor-not-allowed",
+        "group flex min-w-0 flex-1 items-center gap-2 px-2.5 py-2 text-xs transition disabled:cursor-not-allowed",
         picked
           ? "bg-primary-500/[0.18] font-bold text-primary-100 hover:bg-error/[0.12]"
           : canEdit
@@ -213,5 +223,33 @@ function KnockoutSlot({
         </span>
       )}
     </button>
+  );
+
+  return (
+    <div className="flex w-full min-w-0 items-stretch">
+      {advanceButton}
+      {/* A filled 3rd-place slot stays editable: ✕ clears it and reopens the
+          dropdown (also prunes any downstream winner that used this team). */}
+      {isThirdPool && canEdit && (
+        <Tooltip
+          content={
+            locale === "fr"
+              ? "Changer / retirer ce 3ᵉ"
+              : "Change / remove this 3rd"
+          }
+        >
+          <button
+            type="button"
+            onClick={() => onPickThirdPlace(match.match_number, side, "")}
+            aria-label={
+              locale === "fr" ? "Retirer le 3ᵉ sélectionné" : "Remove selected 3rd"
+            }
+            className="flex shrink-0 items-center px-2 text-text-tertiary transition hover:bg-error/[0.12] hover:text-error"
+          >
+            <X className="size-3.5" strokeWidth={2.5} />
+          </button>
+        </Tooltip>
+      )}
+    </div>
   );
 }
