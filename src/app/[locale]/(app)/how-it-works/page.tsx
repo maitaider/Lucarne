@@ -63,10 +63,10 @@ export default async function HowItWorksPage({
     <main className="relative">
       <div className="mx-auto max-w-4xl px-4 pb-20 pt-6 sm:px-6 sm:pt-8 lg:px-8">
         {/* ── HERO ─────────────────────────────────────────────────────── */}
-        <header className="relative mb-10 overflow-hidden rounded-[18px] border border-white/[0.14] bg-surface-1/[0.3] shadow-[0_34px_110px_rgba(0,0,0,0.5)] backdrop-blur-md">
+        <header className="relative mb-10 overflow-hidden rounded-[18px] border border-white/[0.14] bg-surface-1/[0.4] shadow-[0_34px_110px_rgba(0,0,0,0.5)] backdrop-blur-md">
           <div
             aria-hidden
-            className="absolute inset-0 -z-10 bg-[linear-gradient(105deg,rgba(5,6,5,0.92)_0%,rgba(5,6,5,0.66)_50%,rgba(5,6,5,0.2)_100%)]"
+            className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(5,6,5,0.9)_0%,rgba(5,6,5,0.8)_58%,rgba(5,6,5,0.32)_82%,rgba(5,6,5,0)_100%)]"
           />
           <div className="relative max-w-2xl p-6 sm:p-8">
             <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-primary-500/40 bg-primary-500/[0.14] px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-200 backdrop-blur-sm">
