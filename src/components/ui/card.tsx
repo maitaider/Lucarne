@@ -17,14 +17,14 @@ import { cn } from "@/lib/utils";
 type Accent = "neutral" | "primary" | "gold" | "violet";
 type Padded = "none" | "sm" | "md" | "lg";
 
-const BASE = "rounded-md border bg-surface-1/[0.55] shadow-card backdrop-blur-md";
+const BASE = "rounded-md border bg-surface-1/[0.65] shadow-card backdrop-blur-md";
 
 const ACCENT: Record<Accent, string> = {
   neutral: "border-border-subtle",
   primary: "border-primary-500/25",
-  gold: "border-gold-500/30 bg-gradient-to-br from-gold-500/[0.12] via-surface-1/[0.55] to-surface-1/[0.55]",
+  gold: "border-gold-500/30 bg-gradient-to-br from-gold-500/[0.12] via-surface-1/[0.65] to-surface-1/[0.65]",
   violet:
-    "border-violet-500/25 bg-gradient-to-br from-violet-500/[0.12] via-surface-1/[0.55] to-surface-1/[0.55]",
+    "border-violet-500/25 bg-gradient-to-br from-violet-500/[0.12] via-surface-1/[0.65] to-surface-1/[0.65]",
 };
 
 const PADDED: Record<Padded, string> = {
