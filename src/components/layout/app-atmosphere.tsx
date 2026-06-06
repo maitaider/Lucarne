@@ -35,6 +35,36 @@ const NATION_BACKDROPS: { test: RegExp; src: string; position: string }[] = [
     position: "object-[60%_26%]",
   },
   {
+    test: /\/live(\/|$)/,
+    src: "/assets/lucarne/world-cup-2026/04-argentina-net-shot.png",
+    position: "object-[55%_30%]",
+  },
+  {
+    test: /\/leaderboard(\/|$)/,
+    src: "/assets/lucarne/world-cup-2026/05-brazil-volley-night.png",
+    position: "object-[58%_30%]",
+  },
+  {
+    test: /\/buy-in(\/|$)/,
+    src: "/assets/lucarne/world-cup-2026/07-morocco-supporters-celebration.png",
+    position: "object-[55%_28%]",
+  },
+  {
+    test: /\/leagues(\/|$)/,
+    src: "/assets/lucarne/world-cup-2026/02-mexico-azteca-celebration.png",
+    position: "object-[58%_30%]",
+  },
+  {
+    test: /\/news(\/|$)/,
+    src: "/assets/lucarne/world-cup-2026/09-stadium-supporters-sunset.png",
+    position: "object-[55%_35%]",
+  },
+  {
+    test: /\/profile(\/|$)/,
+    src: "/assets/lucarne/world-cup-2026/03-usa-final-strike.png",
+    position: "object-[58%_28%]",
+  },
+  {
     test: /\/predict(\/|$)/,
     src: "/assets/lucarne/world-cup-2026/11-algeria-2026-home-celebration.png",
     position: "object-[55%_28%]",
