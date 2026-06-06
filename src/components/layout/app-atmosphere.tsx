@@ -15,6 +15,11 @@ import { usePathname } from "next/navigation";
  */
 const NATION_BACKDROPS: { test: RegExp; src: string; position: string }[] = [
   {
+    test: /\/dashboard(\/|$)/,
+    src: "/assets/lucarne/world-cup-2026/11-algeria-2026-home-celebration.png",
+    position: "object-[58%_26%]",
+  },
+  {
     test: /\/matches(\/|$)/,
     src: "/assets/lucarne/world-cup-2026/14-canada-winter-toronto-sprint.png",
     position: "object-[70%_22%]",
