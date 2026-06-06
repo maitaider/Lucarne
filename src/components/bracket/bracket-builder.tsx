@@ -35,6 +35,7 @@ import {
   RotateCcw,
   Trash2,
   Trophy,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
@@ -923,7 +924,7 @@ function KnockoutSlot({
   if (!t) return null;
   const name = locale === "fr" ? t.name_fr : t.name_en;
 
-  return (
+  const teamButton = (
     <button
       type="button"
       onClick={() => canEdit && onPickWinner(teamId)}
@@ -955,6 +956,44 @@ function KnockoutSlot({
       )}
     </button>
   );
+
+  // A filled third-place slot stays editable: a small ✕ next to the team
+  // clears the pick and reopens the dropdown (and prunes any downstream
+  // winner that relied on this team). Direct qualifiers have no ✕.
+  if (isThirdPool && canEdit) {
+    return (
+      <div
+        className={cn(
+          "flex min-w-0 items-center gap-1",
+          rightAligned && "flex-row-reverse justify-end",
+        )}
+      >
+        {teamButton}
+        <Tooltip
+          content={
+            locale === "fr"
+              ? "Changer / retirer ce 3ᵉ"
+              : "Change / remove this 3rd"
+          }
+        >
+          <button
+            type="button"
+            onClick={() => onPickThirdPlace(match.match_number, side, "")}
+            aria-label={
+              locale === "fr"
+                ? "Retirer le 3ᵉ sélectionné"
+                : "Remove selected 3rd"
+            }
+            className="shrink-0 rounded-xs p-0.5 text-text-tertiary transition hover:bg-white/[0.06] hover:text-red-300"
+          >
+            <X className="size-3.5" strokeWidth={2} />
+          </button>
+        </Tooltip>
+      </div>
+    );
+  }
+
+  return teamButton;
 }
 
 /* -------------------------------------------------------------------------- */
