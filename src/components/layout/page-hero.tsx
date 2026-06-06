@@ -47,7 +47,7 @@ export function PageHero({
   actions,
   stats,
   visual,
-  background = "default",
+  background = "subtle",
   backgroundSrc = "/marketing/lucarne-hero-stadium.jpg",
   backgroundClassName,
   className,
@@ -86,7 +86,7 @@ export function PageHero({
       className={cn(
         "relative overflow-hidden rounded-sm border border-white/[0.13]",
         background === "default" && "bg-abyss/[0.8]",
-        background === "subtle" && "bg-surface-1/[0.7]",
+        background === "subtle" && "bg-surface-1/[0.62] backdrop-blur-md",
         background === "none" && "bg-transparent border-transparent",
         background !== "none" &&
           "shadow-[0_24px_80px_rgba(0,0,0,0.32),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl",
