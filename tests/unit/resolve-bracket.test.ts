@@ -3,6 +3,7 @@ import {
   resolveSlot,
   resolveMatch,
   pruneOrphanedKnockoutPicks,
+  sanitizeThirdPlaceAssignments,
   type BracketMatchInfo,
   type GroupStandings,
   type KnockoutWinners,
@@ -132,5 +133,77 @@ describe("pruneOrphanedKnockoutPicks", () => {
     const pruned = pruneOrphanedKnockoutPicks(SCHEDULE, reordered, knockouts);
     expect(pruned["73"]).toBeUndefined();
     expect(pruned["89"]).toBeUndefined();
+  });
+});
+
+describe("sanitizeThirdPlaceAssignments", () => {
+  // Two R32 matches whose away slot both draw from the SAME third-place pool
+  // (candidate groups C/D/F overlap) — the setup that let a team appear twice.
+  const SCHEDULE: BracketMatchInfo[] = [
+    {
+      match_number: 75,
+      stage: "r32",
+      home_placeholder: "1A",
+      away_placeholder: "3CDF",
+    },
+    {
+      match_number: 76,
+      stage: "r32",
+      home_placeholder: "1B",
+      away_placeholder: "3CDF",
+    },
+  ];
+
+  it("keeps distinct, valid third-place picks", () => {
+    const clean = sanitizeThirdPlaceAssignments(
+      { "75-away": TEAM.C3, "76-away": TEAM.D3 },
+      SAMPLE_GROUPS,
+      SCHEDULE,
+    );
+    expect(clean).toEqual({ "75-away": TEAM.C3, "76-away": TEAM.D3 });
+  });
+
+  it("drops a duplicate: the same 3rd assigned to two slots (first wins)", () => {
+    const clean = sanitizeThirdPlaceAssignments(
+      { "75-away": TEAM.C3, "76-away": TEAM.C3 },
+      SAMPLE_GROUPS,
+      SCHEDULE,
+    );
+    // Lower match number wins; the second slot is left empty for a re-pick.
+    expect(clean).toEqual({ "75-away": TEAM.C3 });
+  });
+
+  it("drops a team that isn't a candidate group's predicted 3rd", () => {
+    // A3 is group A's 3rd, but slot 75's pool is C/D/F — A isn't a candidate.
+    const clean = sanitizeThirdPlaceAssignments(
+      { "75-away": TEAM.A3 },
+      SAMPLE_GROUPS,
+      SCHEDULE,
+    );
+    expect(clean).toEqual({});
+  });
+
+  it("drops a stale pick after the team is reordered out of 3rd place", () => {
+    // User assigned C3 (group C's 3rd) to slot 75, then promotes C3 to 2nd.
+    // C's 3rd is now team-c2 and C3 qualifies directly → the pick must drop.
+    const reordered: GroupStandings = {
+      ...SAMPLE_GROUPS,
+      C: ["team-c1", TEAM.C3, "team-c2", "team-c4"],
+    };
+    const clean = sanitizeThirdPlaceAssignments(
+      { "75-away": TEAM.C3 },
+      reordered,
+      SCHEDULE,
+    );
+    expect(clean).toEqual({});
+  });
+
+  it("ignores empty assignments and non-third-place slots", () => {
+    const clean = sanitizeThirdPlaceAssignments(
+      { "75-away": "", "73-home": TEAM.C3 },
+      SAMPLE_GROUPS,
+      SCHEDULE,
+    );
+    expect(clean).toEqual({});
   });
 });

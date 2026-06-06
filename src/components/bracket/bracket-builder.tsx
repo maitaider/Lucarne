@@ -13,6 +13,7 @@ import { Tooltip } from "@/components/ui/tooltip";
 import {
   pruneOrphanedKnockoutPicks,
   resolveMatch,
+  sanitizeThirdPlaceAssignments,
   type BracketMatchInfo,
   type GroupStandings,
   type KnockoutWinners,
@@ -90,6 +91,17 @@ export function BracketBuilder({
    */
   const [thirdAssign, setThirdAssign] = useState<Record<string, string>>({});
 
+  /**
+   * Sanitized view of `thirdAssign`: a team can occupy only one knockout slot,
+   * so we drop stale / duplicate / invalid assignments before resolving. Every
+   * render and downstream prune reads THIS, not the raw map (which may briefly
+   * hold a now-invalid pick — e.g. right after a group reorder).
+   */
+  const cleanThird = useMemo(
+    () => sanitizeThirdPlaceAssignments(thirdAssign, groups, knockoutSchedule),
+    [thirdAssign, groups, knockoutSchedule],
+  );
+
   const teamById = useMemo(() => {
     const map = new Map<string, TeamLite>();
     for (const arr of Object.values(groupTeams))
@@ -136,13 +148,21 @@ export function BracketBuilder({
     const next = [...list];
     [next[idx], next[target]] = [next[target]!, next[idx]!];
     const nextGroups = { ...groups, [group]: next };
+    // Reordering can move a team out of (or into) 3rd place — re-sanitize the
+    // third-place picks against the new standings so none linger as duplicates.
+    const nextAssign = sanitizeThirdPlaceAssignments(
+      thirdAssign,
+      nextGroups,
+      knockoutSchedule,
+    );
     const pruned = pruneOrphanedKnockoutPicks(
       knockoutSchedule,
       nextGroups,
       knockouts,
-      thirdAssign,
+      nextAssign,
     );
     setGroups(nextGroups);
+    setThirdAssign(nextAssign);
     setKnockouts(pruned);
     save({
       groups: nextGroups,
@@ -159,7 +179,7 @@ export function BracketBuilder({
       knockoutSchedule,
       groups,
       next,
-      thirdAssign,
+      cleanThird,
     );
     setKnockouts(pruned);
     save({
@@ -173,7 +193,17 @@ export function BracketBuilder({
   function pickThirdPlace(matchNumber: number, side: "home" | "away", teamId: string) {
     if (!canEdit) return;
     const key = `${matchNumber}-${side}`;
-    const nextAssign = { ...thirdAssign, [key]: teamId };
+    // Start from the sanitized map so we never build on a stale/duplicate base.
+    const nextAssign: Record<string, string> = { ...cleanThird };
+    if (!teamId) {
+      delete nextAssign[key];
+    } else {
+      // A team can occupy only one slot: drop it from any other slot first.
+      for (const k of Object.keys(nextAssign)) {
+        if (nextAssign[k] === teamId) delete nextAssign[k];
+      }
+      nextAssign[key] = teamId;
+    }
     setThirdAssign(nextAssign);
     // Re-prune in case this freshly-filled slot now invalidates a downstream pick.
     const pruned = pruneOrphanedKnockoutPicks(
@@ -495,7 +525,7 @@ export function BracketBuilder({
                     m,
                     groups,
                     knockouts,
-                    thirdAssign,
+                    cleanThird,
                   );
                   const picked = knockouts[String(m.match_number)] ?? null;
                   return (
@@ -511,7 +541,7 @@ export function BracketBuilder({
                       pickedId={picked}
                       teamById={teamById}
                       groups={groups}
-                      thirdAssign={thirdAssign}
+                      thirdAssign={cleanThird}
                       canEdit={canEdit}
                       onPickWinner={(teamId) =>
                         pickKnockout(m.match_number, teamId)
@@ -821,9 +851,19 @@ function KnockoutSlot({
 
   // Third-place pool slot that isn't assigned yet → render a tiny select.
   if (isThirdPool && !teamId) {
+    const thisKey = `${match.match_number}-${side}`;
+    // A 3rd-placed team can fill only one slot — hide teams already taken by
+    // another third-place slot (candidate groups overlap, so the same team is
+    // otherwise offered in several dropdowns).
+    const usedElsewhere = new Set(
+      Object.entries(thirdAssign)
+        .filter(([k]) => k !== thisKey)
+        .map(([, v]) => v),
+    );
     const options = candidateGroups
       .map((g) => groups[g]?.[2] ?? null) // user's predicted 3rd of each group
       .filter((id): id is string => !!id)
+      .filter((id) => !usedElsewhere.has(id))
       .map((id) => teamById.get(id))
       .filter((t): t is TeamLite => !!t);
 
