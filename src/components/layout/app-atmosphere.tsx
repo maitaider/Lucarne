@@ -60,6 +60,11 @@ const NATION_BACKDROPS: { test: RegExp; src: string; position: string }[] = [
     position: "object-[55%_35%]",
   },
   {
+    test: /\/how-it-works(\/|$)/,
+    src: "/assets/lucarne/world-cup-2026/09-stadium-supporters-sunset.png",
+    position: "object-[50%_25%]",
+  },
+  {
     test: /\/profile(\/|$)/,
     src: "/assets/lucarne/world-cup-2026/03-usa-final-strike.png",
     position: "object-[58%_28%]",

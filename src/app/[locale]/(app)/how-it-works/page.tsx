@@ -61,21 +61,6 @@ export default async function HowItWorksPage({
 
   return (
     <main className="relative">
-      {/* Ambient stadium backdrop — visible in the gaps behind the guide */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
-      >
-        <Image
-          src="/assets/lucarne/world-cup-2026/09-stadium-supporters-sunset.png"
-          alt=""
-          fill
-          sizes="100vw"
-          className="object-cover object-top opacity-[0.22]"
-        />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,6,5,0.55)_0%,rgba(5,6,5,0.86)_38%,rgba(5,6,5,0.97)_100%)]" />
-      </div>
-
       <div className="mx-auto max-w-4xl px-4 pb-20 pt-6 sm:px-6 sm:pt-8 lg:px-8">
         {/* ── HERO ─────────────────────────────────────────────────────── */}
         <header className="relative mb-10 flex min-h-[300px] flex-col justify-end overflow-hidden rounded-[18px] border border-white/[0.14] shadow-[0_34px_110px_rgba(0,0,0,0.5)] sm:min-h-[340px]">
