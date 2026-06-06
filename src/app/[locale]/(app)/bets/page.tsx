@@ -169,8 +169,8 @@ function EmptyBets({ locale }: { locale: Locale }) {
       title: locale === "fr" ? "Faire ton prono" : "Make your pick",
       text:
         locale === "fr"
-          ? "Vainqueur, score exact, buteurs… plus c'est précis, plus ça rapporte de points."
-          : "Winner, exact score, scorers… the sharper your call, the more points it earns.",
+          ? "Vainqueur, total de buts, score exact… plus c'est précis, plus ça rapporte. Et ta phase finale rapporte aussi."
+          : "Winner, total goals, exact score… the sharper your call, the more it earns. Your knockout bracket scores too.",
     },
     {
       title: locale === "fr" ? "Suivre tes points" : "Track your points",

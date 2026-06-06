@@ -41,8 +41,8 @@ export default async function AdminPlayersPage({
             </h1>
             <p className="mt-1 max-w-2xl text-sm leading-6 text-text-secondary">
               {L === "fr"
-                ? "Ajoute, modifie ou désactive un joueur. Les pronos buteurs des usagers tirent leur liste de cette table en temps réel."
-                : "Add, edit, or deactivate a player. The scorer picker on /picks pulls from this table live."}
+                ? "Ajoute, modifie ou désactive un joueur. La saisie des buteurs réels d'un match (côté admin) tire sa liste de cette table en temps réel."
+                : "Add, edit, or deactivate a player. The admin's real-goalscorer entry for a match pulls from this table live."}
             </p>
           </div>
           <div className="rounded-sm border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs">
