@@ -757,7 +757,7 @@ export function PredictBoard({
         (groupsFilledCount > 0 ||
           knockoutPickedCount > 0 ||
           matchWinnersCount > 0) && (
-          <Card className="mt-2 border-error/25 bg-error/[0.04]" padded="md">
+          <Card className="mt-2 border-error/30" padded="md">
             <div className="flex flex-col items-center gap-3 text-center sm:flex-row sm:justify-between sm:text-left">
               <div>
                 <div className="font-display text-sm font-semibold text-text-primary">
