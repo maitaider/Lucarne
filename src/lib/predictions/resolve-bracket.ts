@@ -155,3 +155,72 @@ export function pruneOrphanedKnockoutPicks(
   }
   return fresh;
 }
+
+/**
+ * A team can occupy at most ONE knockout slot. Third-place assignments are a
+ * loose `"<match>-<side>" → team_id` map the user fills via dropdowns. Without
+ * guarding, the same predicted-3rd team can be dropped into two *overlapping*
+ * pool slots (e.g. "3EHIJK" and "3AEHIJ" both accept group E's 3rd), or a team
+ * reordered out of 3rd keeps a stale assignment while *also* qualifying
+ * directly as a 1st/2nd — both make a team appear twice in the bracket.
+ *
+ * Returns a cleaned copy where every kept assignment:
+ *   1. targets a real third-place-pool slot, and
+ *   2. names the user's predicted 3rd (index 2) of one of that slot's
+ *      candidate groups, and
+ *   3. is unique — the same team is never assigned to two slots (first wins,
+ *      ordered by match number then home-before-away) and is never a team that
+ *      already qualifies directly (sits at index 0/1 of any group).
+ */
+export function sanitizeThirdPlaceAssignments(
+  thirdPlaceAssignments: Record<string, string>,
+  groups: GroupStandings,
+  matches: BracketMatchInfo[],
+): Record<string, string> {
+  // Teams that already qualify directly as a group winner or runner-up.
+  const directQualifiers = new Set<string>();
+  for (const arr of Object.values(groups)) {
+    if (arr[0]) directQualifiers.add(arr[0]);
+    if (arr[1]) directQualifiers.add(arr[1]);
+  }
+
+  // Per third-place slot, the teams it may legally take: the predicted 3rd
+  // (index 2) of each of its candidate groups.
+  const allowedByKey = new Map<string, Set<string>>();
+  for (const m of matches) {
+    for (const side of ["home", "away"] as const) {
+      const ph = side === "home" ? m.home_placeholder : m.away_placeholder;
+      const slot = resolveSlot(ph, groups, {});
+      if (!slot.is_third_place_pool) continue;
+      const allowed = new Set<string>();
+      for (const g of slot.third_place_candidate_groups) {
+        const third = groups[g]?.[2];
+        if (third) allowed.add(third);
+      }
+      allowedByKey.set(`${m.match_number}-${side}`, allowed);
+    }
+  }
+
+  // Stable order so "first assignment wins" is deterministic.
+  const keys = Object.keys(thirdPlaceAssignments).sort((a, b) => {
+    const [am, asd] = a.split("-");
+    const [bm, bsd] = b.split("-");
+    return (
+      Number(am) - Number(bm) || (asd === bsd ? 0 : asd === "home" ? -1 : 1)
+    );
+  });
+
+  const clean: Record<string, string> = {};
+  const used = new Set<string>();
+  for (const key of keys) {
+    const teamId = thirdPlaceAssignments[key];
+    if (!teamId) continue;
+    const allowed = allowedByKey.get(key);
+    if (!allowed || !allowed.has(teamId)) continue; // not a valid 3rd here
+    if (directQualifiers.has(teamId)) continue; // already qualifies directly
+    if (used.has(teamId)) continue; // already placed in another slot
+    clean[key] = teamId;
+    used.add(teamId);
+  }
+  return clean;
+}
