@@ -83,7 +83,7 @@ export function GroupCard({
   }).length;
 
   return (
-    <div className="overflow-hidden rounded-md border border-border-subtle bg-surface-1 shadow-card">
+    <div className="overflow-hidden rounded-md border border-border-subtle bg-surface-1/[0.65] shadow-card backdrop-blur-md">
       {/* Header */}
       <div className="flex items-center justify-between gap-2 border-b border-white/[0.06] px-3 py-2.5">
         <span className="font-display text-sm font-bold text-text-primary">
