@@ -69,11 +69,11 @@ export default async function MatchesPage({
       {/* Header with tournament summary */}
       <header className="relative mb-6 overflow-hidden rounded-sm border border-white/[0.12] bg-surface-1/[0.7] p-5 shadow-[0_26px_85px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl sm:p-6">
         <Image
-          src="/marketing/lucarne-hero-stadium.jpg"
+          src="/assets/lucarne/world-cup-2026/14-canada-winter-toronto-sprint.png"
           alt=""
           fill
           sizes="100vw"
-          className="absolute inset-0 -z-20 object-cover object-[54%_50%] opacity-[0.2]"
+          className="absolute inset-0 -z-20 object-cover object-[65%_30%] opacity-[0.3]"
         />
         <div className="absolute inset-0 -z-10 bg-[linear-gradient(100deg,rgba(5,6,5,0.96)_0%,rgba(5,6,5,0.78)_55%,rgba(5,6,5,0.58)_100%)]" />
         <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
