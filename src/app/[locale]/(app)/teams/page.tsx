@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { setRequestLocale } from "next-intl/server";
 import { listSquadsForBrowse } from "@/lib/players/queries";
 import {
@@ -67,15 +66,7 @@ export default async function TeamsIndexPage({
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-8 lg:px-8">
-      <header className="relative mb-6 overflow-hidden rounded-sm border border-white/[0.12] bg-surface-1/[0.7] p-5 shadow-[0_26px_85px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.06)] sm:p-6">
-        <Image
-          src="/assets/lucarne/world-cup-2026/13-algeria-stadium-control.png"
-          alt=""
-          fill
-          sizes="100vw"
-          className="absolute inset-0 -z-20 object-cover object-[60%_30%] opacity-[0.3]"
-        />
-        <div className="absolute inset-0 -z-10 bg-[linear-gradient(100deg,rgba(5,6,5,0.95)_0%,rgba(5,6,5,0.8)_55%,rgba(5,6,5,0.58)_100%)]" />
+      <header className="mb-6">
         <h1 className="flex items-center gap-2 font-display text-2xl font-bold text-text-primary">
           <Users className="size-6 text-primary-400" strokeWidth={1.7} />
           {fr ? "Équipes & joueurs" : "Teams & players"}
