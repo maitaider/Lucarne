@@ -64,8 +64,8 @@ const STEPS: Step[] = [
       en: "Quick-bet in 1 tap",
     },
     body: {
-      fr: "Va dans l'onglet Pronostics. Mets le score de chaque match et tes buteurs — c'est gratuit et modifiable jusqu'à 1h avant le coup d'envoi.",
-      en: "Open the Predictions tab. Set each match score and your scorers — it's free and editable up to 1h before kickoff.",
+      fr: "Va dans l'onglet Pronostics. Mets le score de chaque match et bâtis ta phase finale (elle aussi notée) — c'est gratuit et modifiable jusqu'à 1 h avant le coup d'envoi du 1ᵉʳ match.",
+      en: "Open the Predictions tab. Set each match score and build your knockout bracket (scored too) — free and editable until 1 h before the first match kicks off.",
     },
     illustration: <QuickBetIllustration />,
   },

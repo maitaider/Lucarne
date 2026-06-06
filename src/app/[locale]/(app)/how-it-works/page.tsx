@@ -143,8 +143,8 @@ export default async function HowItWorksPage({
             title={L === "fr" ? "Bâtis ta phase finale" : "Build your bracket"}
             body={
               L === "fr"
-                ? "L'arbre se remplit depuis tes groupes. Tape l'équipe qui passe à chaque tour — de gauche à droite — jusqu'à ton champion. Re-tape une équipe pour annuler. Verrouillé au coup d'envoi du 1ᵉʳ match."
-                : "The bracket fills from your groups. Tap the team that advances each round — left to right — to your champion. Re-tap to cancel. Locked at the very first kickoff."
+                ? "L'arbre se remplit depuis tes groupes. Tape l'équipe qui passe à chaque tour — de gauche à droite — jusqu'à ton champion. Re-tape pour annuler. C'est noté : des points par bonne équipe à chaque tour + un gros lot pour le podium (barème ci-dessous)."
+                : "The bracket fills from your groups. Tap the team that advances each round — left to right — to your champion. Re-tap to cancel. It's scored: points per correct team each round + a big bonus for the podium (breakdown below)."
             }
             cta={{
               href: "/predict?tab=finale",
@@ -241,6 +241,19 @@ export default async function HowItWorksPage({
             </ul>
           </div>
 
+          {/* Knockout (bracket) scoring */}
+          <div className="rounded-[10px] border border-gold-500/25 bg-gold-500/[0.06] p-4 text-xs leading-6 text-text-secondary backdrop-blur-xl">
+            <p className="mb-1 flex items-center gap-1.5 font-semibold text-text-primary">
+              <Trophy className="size-3.5 text-gold-400" strokeWidth={2} />
+              {L === "fr"
+                ? "Phase finale — ton arbre est aussi noté"
+                : "Knockouts — your bracket is scored too"}
+            </p>
+            {L === "fr"
+              ? "Pour chaque équipe que tu envoies au bon tour : 8ᵉˢ +1 · quarts +3 · demies +6 · finale +10. Et le gros lot du podium : champion +30 · finaliste +20 · 3ᵉ place +15. Plus ton arbre colle à la réalité, plus tu marques."
+              : "For each team you send to the right round: Round of 16 +1 · quarters +3 · semis +6 · final +10. Plus the podium jackpot: champion +30 · runner-up +20 · 3rd place +15. The closer your bracket is to reality, the more you score."}
+          </div>
+
         </div>
       </section>
 
@@ -276,11 +289,11 @@ export default async function HowItWorksPage({
       <section className="mt-10 grid gap-3 sm:grid-cols-2">
         <NoteCard
           icon={CalendarClock}
-          title={L === "fr" ? "Deux types de verrou" : "Two kinds of lock"}
+          title={L === "fr" ? "Un seul verrou" : "One single lock"}
           body={
             L === "fr"
-              ? `Scénario : verrouillé une seule fois le ${lockLabel}. Pronos par match : chaque ligne se verrouille 1 h avant son propre coup d'envoi.`
-              : `Scenario: locked once on ${lockLabel}. Per-match picks: each row locks 1 h before its own kickoff.`
+              ? `Tout — scores de poule ET arbre — reste modifiable jusqu'à 1 h avant le coup d'envoi du 1ᵉʳ match (${lockLabel}). Ensuite, plus aucune modification. Les payeurs qui n'ont rien rempli reçoivent un pronostic aléatoire.`
+              : `Everything — group scores AND bracket — stays editable until 1 h before the first match (${lockLabel}). After that, no more changes. Paying members who left it empty get a random prediction.`
           }
         />
         <NoteCard
