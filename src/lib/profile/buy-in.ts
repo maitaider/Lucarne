@@ -74,7 +74,8 @@ export async function getMyBuyInStatus(): Promise<BuyInStatus> {
     return {
       ...baseline,
       is_admin: true,
-      can_bet: true,
+      // Single global lock: nobody edits after the deadline (admins included).
+      can_bet: !deadlinePassed,
     };
   }
 
@@ -97,7 +98,9 @@ export async function getMyBuyInStatus(): Promise<BuyInStatus> {
     paid,
     paid_at: payment?.received_at ?? null,
     paid_cents: payment?.amount_cents ?? null,
-    can_bet: paid, // payers can keep editing even after the seat-sale deadline
+    // Verrou unique : les payeurs éditent jusqu'à l'échéance (1 h avant le 1er
+    // match), puis tout est gelé — le remplissage aléatoire prend le relais.
+    can_bet: paid && !deadlinePassed,
   };
 }
 
