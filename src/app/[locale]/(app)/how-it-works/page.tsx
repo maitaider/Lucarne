@@ -2,6 +2,7 @@ import Image from "next/image";
 import { setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Reveal } from "@/components/ui/reveal";
+import { Flag } from "@/components/team/flag";
 import {
   getAppSettings,
   formatMoney,
@@ -10,6 +11,7 @@ import {
 import {
   ArrowRight,
   CalendarClock,
+  CheckCircle2,
   Crown,
   HelpCircle,
   ListOrdered,
@@ -32,9 +34,10 @@ export default async function HowItWorksPage({
   const { locale } = await params;
   setRequestLocale(locale);
   const L = locale as Locale;
+  const fr = L === "fr";
 
   const settings = await getAppSettings();
-  const moneyLocale = L === "fr" ? "fr-CA" : "en-CA";
+  const moneyLocale = fr ? "fr-CA" : "en-CA";
   const buyInLabel = formatMoney(
     settings.buy_in_amount_cents,
     settings.currency,
@@ -50,11 +53,15 @@ export default async function HowItWorksPage({
   ).toLocaleDateString(moneyLocale, { day: "numeric", month: "long" });
   const tournamentEnd = new Date(
     settings.tournament_end_at,
-  ).toLocaleDateString(moneyLocale, { day: "numeric", month: "long", year: "numeric" });
+  ).toLocaleDateString(moneyLocale, {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
   return (
     <main className="relative">
-      {/* Ambient stadium backdrop behind the whole guide */}
+      {/* Ambient stadium backdrop — visible in the gaps behind the guide */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
@@ -64,394 +71,425 @@ export default async function HowItWorksPage({
           alt=""
           fill
           sizes="100vw"
-          className="object-cover object-top opacity-[0.10]"
+          className="object-cover object-top opacity-[0.22]"
         />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,6,5,0.82)_0%,rgba(5,6,5,0.95)_55%,rgba(5,6,5,0.99)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,6,5,0.55)_0%,rgba(5,6,5,0.86)_38%,rgba(5,6,5,0.97)_100%)]" />
       </div>
 
       <div className="mx-auto max-w-4xl px-4 pb-20 pt-6 sm:px-6 sm:pt-8 lg:px-8">
-      <header className="relative mb-8 overflow-hidden rounded-md border border-white/[0.13] bg-abyss/[0.8] p-6 shadow-[0_28px_90px_rgba(0,0,0,0.38),inset_0_1px_0_rgba(255,255,255,0.08)] sm:p-8">
-        <Image
-          src="/marketing/lucarne-hero-stadium.jpg"
-          alt=""
-          fill
-          sizes="100vw"
-          className="absolute inset-0 -z-20 object-cover object-[60%_44%] opacity-[0.18]"
-        />
-        <div className="absolute inset-0 -z-10 bg-[linear-gradient(96deg,rgba(5,6,5,0.94)_0%,rgba(5,6,5,0.78)_44%,rgba(5,6,5,0.5)_100%)]" />
-        <div className="relative max-w-2xl">
-          <div className="mb-3 inline-flex items-center gap-1.5 rounded-sm border border-primary-500/35 bg-primary-500/[0.1] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-300">
-            <HelpCircle className="size-3.5" strokeWidth={1.7} />
-            {L === "fr" ? "Le guide" : "The guide"}
+        {/* ── HERO ─────────────────────────────────────────────────────── */}
+        <header className="relative mb-10 flex min-h-[300px] flex-col justify-end overflow-hidden rounded-[18px] border border-white/[0.14] shadow-[0_34px_110px_rgba(0,0,0,0.5)] sm:min-h-[340px]">
+          <Image
+            src="/assets/lucarne/world-cup-2026/03-usa-final-strike.png"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="absolute inset-0 -z-20 object-cover object-[68%_30%]"
+          />
+          <div className="absolute inset-0 -z-10 bg-[linear-gradient(105deg,rgba(5,6,5,0.95)_0%,rgba(5,6,5,0.8)_42%,rgba(5,6,5,0.32)_72%,rgba(5,6,5,0.12)_100%)]" />
+          <div className="absolute inset-0 -z-10 bg-[linear-gradient(0deg,rgba(5,6,5,0.85)_0%,transparent_55%)]" />
+
+          <div className="relative max-w-2xl p-6 sm:p-8">
+            <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-primary-500/40 bg-primary-500/[0.14] px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-200 backdrop-blur-sm">
+              <HelpCircle className="size-3.5" strokeWidth={1.9} />
+              {fr ? "Le guide" : "The guide"}
+            </div>
+            <h1 className="font-display text-[2.1rem] font-bold leading-[1.05] text-white drop-shadow-lg sm:text-5xl">
+              {fr ? "Comment marche Lucarne" : "How Lucarne works"}
+            </h1>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-white/85 sm:text-base">
+              {fr
+                ? `Un paiement pour l'accès, deux niveaux de pronostic, un pot commun qui récompense les meilleurs. Du ${tournamentStart} au ${tournamentEnd}.`
+                : `One payment for access, two levels of prediction, a group pot that rewards the best. From ${tournamentStart} to ${tournamentEnd}.`}
+            </p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              {[
+                { v: "104", l: fr ? "matchs" : "matches" },
+                { v: "48", l: fr ? "équipes" : "teams" },
+                { v: "13", l: fr ? "pts max / match" : "pts max / match" },
+                { v: "0", l: fr ? "calcul à la main" : "manual math" },
+              ].map((s) => (
+                <span
+                  key={s.l}
+                  className="inline-flex items-baseline gap-1.5 rounded-full border border-white/[0.16] bg-white/[0.08] px-2.5 py-1 text-xs text-white/90 backdrop-blur-sm"
+                >
+                  <b className="font-display tabular-nums text-white">{s.v}</b>
+                  <span className="text-white/65">{s.l}</span>
+                </span>
+              ))}
+            </div>
           </div>
-          <h1 className="font-display text-3xl font-semibold leading-tight text-text-primary sm:text-4xl">
-            {L === "fr"
-              ? "Comment marche Lucarne"
-              : "How Lucarne works"}
-          </h1>
-          <p className="mt-2 text-sm leading-6 text-text-secondary">
-            {L === "fr"
-              ? `Un seul paiement pour l'accès, deux niveaux de pronostic, et un pot commun qui récompense les meilleurs entre amis. Tournoi du ${tournamentStart} au ${tournamentEnd}.`
-              : `One payment for access, two levels of prediction, and a group pot that rewards the best among friends. Tournament runs ${tournamentStart} to ${tournamentEnd}.`}
-          </p>
-        </div>
-      </header>
+        </header>
 
-      <ol className="space-y-4">
-        <Reveal>
-          <Step
-            n={1}
-            icon={Ticket}
-            accent="gold"
-            title={L === "fr" ? "Achète ta place" : "Buy your seat"}
-            body={
-              L === "fr"
-                ? `Une seule fois. ${buyInLabel} via Stripe, débloque l'accès complet aux pronos sur les 104 matchs. Fenêtre d'achat jusqu'au ${lockLabel}. Pas d'abonnement.`
-                : `One-time. ${buyInLabel} via Stripe, unlocks full picking on all 104 matches. Sales open until ${lockLabel}. No subscription.`
-            }
-            cta={{
-              href: "/buy-in",
-              label: L === "fr" ? "Acheter ma place" : "Buy my seat",
-            }}
-          />
-        </Reveal>
-
-        <Reveal delayMs={90}>
-          <Step
-            n={2}
-            icon={Sparkles}
-            accent="primary"
-            title={
-              L === "fr"
-                ? "Pronostique les matchs de groupe"
-                : "Predict the group matches"
-            }
-            body={
-              L === "fr"
-                ? "Pour chaque match, entre le score des deux équipes (ex. 2-1). Le classement de chaque groupe se calcule tout seul à partir de tes résultats."
-                : "For each match, enter both teams' score (e.g. 2-1). Each group's standings are computed automatically from your results."
-            }
-            cta={{
-              href: "/predict?tab=groupes",
-              label: L === "fr" ? "Pronostiquer les groupes" : "Predict groups",
-            }}
-            bullets={
-              L === "fr"
-                ? [
-                    "Les 2 premiers de chaque groupe se qualifient",
-                    "Plus les 8 meilleurs 3ᵉ (repêchage)",
-                    "Égalités tranchées au goal-average",
-                  ]
-                : [
-                    "Top 2 of each group qualify",
-                    "Plus the 8 best third-placed (playoff)",
-                    "Ties broken on goal difference",
-                  ]
-            }
-          />
-        </Reveal>
-
-        <Reveal delayMs={180}>
-          <Step
-            n={3}
-            icon={Trophy}
-            accent="gold"
-            title={L === "fr" ? "Bâtis ta phase finale" : "Build your bracket"}
-            body={
-              L === "fr"
-                ? "L'arbre se remplit depuis tes groupes. Tape l'équipe qui passe à chaque tour — de gauche à droite — jusqu'à ton champion. Re-tape pour annuler. C'est noté : des points par bonne équipe à chaque tour + un gros lot pour le podium (barème ci-dessous)."
-                : "The bracket fills from your groups. Tap the team that advances each round — left to right — to your champion. Re-tap to cancel. It's scored: points per correct team each round + a big bonus for the podium (breakdown below)."
-            }
-            cta={{
-              href: "/predict?tab=finale",
-              label: L === "fr" ? "Ouvrir la phase finale" : "Open knockouts",
-            }}
-          />
-        </Reveal>
-
-        <Reveal delayMs={270}>
-          <Step
-            n={4}
-            icon={Target}
-            accent="violet"
-            title={
-              L === "fr" ? "Points automatiques" : "Automatic points"
-            }
-            body={
-              L === "fr"
-                ? "Dès qu'un match est terminé, le moteur lit le score et clôture tes pronostics — aucun admin à attendre. Barème ci-dessous."
-                : "As soon as a match ends, the engine reads the score and settles your predictions — no admin wait. Scoring below."
-            }
-          />
-        </Reveal>
-      </ol>
-
-      {/* Scoring breakdown */}
-      <section className="mt-10">
-        <h2 className="mb-4 flex items-center gap-2 font-display text-xl font-semibold text-text-primary">
-          <ListOrdered className="size-5 text-primary-400" strokeWidth={1.7} />
-          {L === "fr" ? "Barème de points" : "Points breakdown"}
+        {/* ── STEPS (vertical timeline) ────────────────────────────────── */}
+        <h2 className="mb-5 flex items-center gap-2 font-display text-xl font-semibold text-text-primary">
+          <Sparkles className="size-5 text-primary-400" strokeWidth={1.9} />
+          {fr ? "En 4 étapes" : "In 4 steps"}
         </h2>
-
-        <div className="grid gap-3 sm:grid-cols-2">
-          <ScoreCard
-            icon={MousePointerClick}
-            title={L === "fr" ? "Vainqueur du match" : "Match winner"}
-            value="+3"
-            sub={L === "fr" ? "par bon 1/N/2" : "per correct 1/N/2"}
-            accent="primary"
-          />
-          <ScoreCard
-            icon={Target}
-            title={L === "fr" ? "Total de buts" : "Total goals"}
-            value="+5"
-            sub={L === "fr" ? "si exact · +2 si ±1" : "exact · +2 if within 1"}
-            accent="gold"
-          />
-          <ScoreCard
-            icon={Zap}
-            title={L === "fr" ? "Score exact" : "Exact score"}
-            value="+5"
-            sub={L === "fr" ? "le score pile" : "the exact scoreline"}
-            accent="violet"
-          />
-        </div>
-
-        <div className="mt-4 space-y-3">
-          {/* Cumulative model */}
-          <div className="rounded-[10px] border border-primary-500/25 bg-primary-500/[0.07] p-4 text-xs leading-6 text-text-secondary backdrop-blur-xl">
-            <p className="mb-1 font-semibold text-text-primary">
-              {L === "fr"
-                ? "Un seul pronostic de score = jusqu'à 3 gains cumulés"
-                : "One score pick = up to 3 stacked rewards"}
-            </p>
-            {L === "fr"
-              ? "Quand tu pronostiques un score (ex. 2-1), dès que le match est terminé tu marques tout ce qui est juste, en même temps : le bon vainqueur (+3), le bon total de buts (+5 si exact, +2 à ±1), et le score exact (+5). Cumulés, jusqu'à +13 points sur un seul match — pas besoin de tomber pile pour marquer."
-              : "When you predict a score (e.g. 2-1), once the match ends you earn everything that's right, all at once: the correct winner (+3), the correct total goals (+5 exact, +2 within 1), and the exact score (+5). Stacked, up to +13 on a single match — you don't need the exact score to score."}
-          </div>
-
-          {/* Worked example */}
-          <div className="rounded-[10px] border border-white/[0.08] bg-surface-1/[0.5] p-4 backdrop-blur-xl">
-            <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
-              {L === "fr"
-                ? "Exemple — tu pronostiques 2-1"
-                : "Example — you predict 2-1"}
-            </p>
-            <ul className="space-y-1.5 text-xs leading-5 text-text-secondary">
-              <li className="flex items-baseline justify-between gap-3">
-                <span>{L === "fr" ? "Résultat 2-1 — vainqueur + total + exact" : "Result 2-1 — winner + total + exact"}</span>
-                <b className="shrink-0 tabular-nums text-primary-300">13 pts</b>
-              </li>
-              <li className="flex items-baseline justify-between gap-3">
-                <span>{L === "fr" ? "Résultat 3-0 — vainqueur + total (3)" : "Result 3-0 — winner + total (3)"}</span>
-                <b className="shrink-0 tabular-nums text-primary-300">8 pts</b>
-              </li>
-              <li className="flex items-baseline justify-between gap-3">
-                <span>{L === "fr" ? "Résultat 1-0 — bon vainqueur seulement" : "Result 1-0 — winner only"}</span>
-                <b className="shrink-0 tabular-nums text-primary-300">3 pts</b>
-              </li>
-              <li className="flex items-baseline justify-between gap-3">
-                <span>{L === "fr" ? "Résultat 0-1 — mauvais vainqueur, total trop loin" : "Result 0-1 — wrong winner, total too far"}</span>
-                <b className="shrink-0 tabular-nums text-text-tertiary">0 pt</b>
-              </li>
-            </ul>
-          </div>
-
-          {/* Knockout (bracket) scoring */}
-          <div className="rounded-[10px] border border-gold-500/25 bg-gold-500/[0.06] p-4 text-xs leading-6 text-text-secondary backdrop-blur-xl">
-            <p className="mb-1 flex items-center gap-1.5 font-semibold text-text-primary">
-              <Trophy className="size-3.5 text-gold-400" strokeWidth={2} />
-              {L === "fr"
-                ? "Phase finale — ton arbre est aussi noté"
-                : "Knockouts — your bracket is scored too"}
-            </p>
-            {L === "fr"
-              ? "Pour chaque équipe que tu envoies au bon tour : 8ᵉˢ +1 · quarts +3 · demies +6 · finale +10. Et le gros lot du podium : champion +30 · finaliste +20 · 3ᵉ place +15. Plus ton arbre colle à la réalité, plus tu marques."
-              : "For each team you send to the right round: Round of 16 +1 · quarters +3 · semis +6 · final +10. Plus the podium jackpot: champion +30 · runner-up +20 · 3rd place +15. The closer your bracket is to reality, the more you score."}
-          </div>
-
-        </div>
-      </section>
-
-      {/* Detailed worked example — a full run to the trophy */}
-      <section className="relative mt-10 overflow-hidden rounded-[14px] border border-gold-500/30 bg-abyss/[0.7] p-5 shadow-[0_28px_90px_rgba(0,0,0,0.4)] sm:p-7">
-        <Image
-          src="/assets/lucarne/world-cup-2026/04-argentina-net-shot.png"
-          alt=""
-          fill
-          sizes="100vw"
-          className="absolute inset-0 -z-20 object-cover object-[72%_28%] opacity-[0.16]"
-        />
-        <div className="absolute inset-0 -z-10 bg-[linear-gradient(118deg,rgba(5,6,5,0.96)_0%,rgba(5,6,5,0.82)_52%,rgba(5,6,5,0.58)_100%)]" />
-
-        <div className="relative">
-          <div className="mb-2 inline-flex items-center gap-1.5 rounded-sm border border-gold-500/35 bg-gold-500/[0.1] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-gold-300">
-            <Trophy className="size-3.5" strokeWidth={1.7} />
-            {L === "fr" ? "Exemple complet" : "Full example"}
-          </div>
-          <h2 className="font-display text-xl font-semibold leading-tight text-text-primary sm:text-2xl">
-            {L === "fr"
-              ? "Un pronostic, du 1ᵉʳ match au sacre"
-              : "One run, from kickoff to the trophy"}
-          </h2>
-          <p className="mt-1.5 max-w-xl text-sm leading-6 text-text-secondary">
-            {L === "fr"
-              ? "Suis un pronostic type et regarde les points s'empiler, tour après tour, jusqu'à la finale. Chiffres donnés à titre d'exemple."
-              : "Follow a typical run and watch the points stack, round after round, all the way to the final. Numbers shown as an example."}
-          </p>
-
-          <div className="mt-5 space-y-3">
-            <JourneyStage
-              icon={Sparkles}
-              accent="primary"
-              title={L === "fr" ? "Phase de groupes" : "Group stage"}
-              sub={
-                L === "fr"
-                  ? "tes scores, match par match"
-                  : "your scores, match by match"
-              }
-              rows={
-                L === "fr"
-                  ? [
-                      { label: "Argentine 2–1 → résultat 2–1", note: "vainqueur + total + score exact", pts: 13 },
-                      { label: "Brésil 3–0 → résultat 3–1", note: "vainqueur + total à ±1", pts: 5 },
-                      { label: "France 1–0 → résultat 1–0", note: "bon vainqueur", pts: 3 },
-                    ]
-                  : [
-                      { label: "Argentina 2–1 → result 2–1", note: "winner + total + exact score", pts: 13 },
-                      { label: "Brazil 3–0 → result 3–1", note: "winner + total within 1", pts: 5 },
-                      { label: "France 1–0 → result 1–0", note: "correct winner", pts: 3 },
-                    ]
-              }
-              subtotalLabel={L === "fr" ? "sur 3 matchs montrés" : "across 3 shown matches"}
-              subtotal={21}
-            />
-
-            <JourneyStage
-              icon={ListOrdered}
-              accent="violet"
-              title={L === "fr" ? "Ta phase finale" : "Your bracket"}
-              sub={
-                L === "fr"
-                  ? "points par équipe envoyée au bon tour"
-                  : "points per team you send to the right round"
-              }
-              rows={
-                L === "fr"
-                  ? [
-                      { label: "8ᵉˢ de finale — 12 bonnes équipes", note: "+1 par équipe", pts: 12 },
-                      { label: "Quarts — 6 bonnes équipes", note: "+3 par équipe", pts: 18 },
-                      { label: "Demies — 3 bonnes équipes", note: "+6 par équipe", pts: 18 },
-                      { label: "Finale — tes 2 finalistes y sont", note: "+10 par équipe", pts: 20 },
-                    ]
-                  : [
-                      { label: "Round of 16 — 12 correct teams", note: "+1 per team", pts: 12 },
-                      { label: "Quarters — 6 correct teams", note: "+3 per team", pts: 18 },
-                      { label: "Semis — 3 correct teams", note: "+6 per team", pts: 18 },
-                      { label: "Final — both your finalists made it", note: "+10 per team", pts: 20 },
-                    ]
-              }
-              subtotalLabel={L === "fr" ? "parcours" : "run"}
-              subtotal={68}
-            />
-
-            <JourneyStage
-              icon={Crown}
+        <ol className="space-y-0">
+          <Reveal>
+            <TimelineStep
+              n={1}
+              icon={Ticket}
               accent="gold"
-              title={L === "fr" ? "Le podium" : "The podium"}
-              sub={L === "fr" ? "le gros lot" : "the jackpot"}
-              rows={
-                L === "fr"
+              title={fr ? "Achète ta place" : "Buy your seat"}
+              body={
+                fr
+                  ? `Une seule fois. ${buyInLabel} via Stripe, et tu débloques tous les pronos sur les 104 matchs. Pas d'abonnement. Vente ouverte jusqu'au ${lockLabel}.`
+                  : `One-time. ${buyInLabel} via Stripe unlocks every pick across the 104 matches. No subscription. Sales open until ${lockLabel}.`
+              }
+              cta={{
+                href: "/buy-in",
+                label: fr ? "Acheter ma place" : "Buy my seat",
+              }}
+            />
+          </Reveal>
+          <Reveal delayMs={90}>
+            <TimelineStep
+              n={2}
+              icon={MousePointerClick}
+              accent="primary"
+              title={fr ? "Pronostique les groupes" : "Predict the groups"}
+              body={
+                fr
+                  ? "Entre le score de chaque match (ex. 2-1). Le classement de chaque groupe se calcule tout seul à partir de tes résultats."
+                  : "Enter each match score (e.g. 2-1). Every group's standings compute themselves from your results."
+              }
+              cta={{
+                href: "/predict?tab=groupes",
+                label: fr ? "Pronostiquer les groupes" : "Predict groups",
+              }}
+              bullets={
+                fr
                   ? [
-                      { label: "🏆 Champion exact — Argentine", note: "le sacre", pts: 30 },
-                      { label: "🥈 Finaliste exact", note: "le 2ᵉ", pts: 20 },
-                      { label: "🥉 3ᵉ place exacte", note: "le 3ᵉ", pts: 15 },
+                      "Les 2 premiers de chaque groupe se qualifient",
+                      "Plus les 8 meilleurs 3ᵉ (repêchage)",
+                      "Égalités tranchées au goal-average",
                     ]
                   : [
-                      { label: "🏆 Exact champion — Argentina", note: "the title", pts: 30 },
-                      { label: "🥈 Exact runner-up", note: "2nd place", pts: 20 },
-                      { label: "🥉 Exact 3rd place", note: "3rd place", pts: 15 },
+                      "Top 2 of each group qualify",
+                      "Plus the 8 best third-placed (playoff)",
+                      "Ties broken on goal difference",
                     ]
               }
-              subtotalLabel={L === "fr" ? "podium" : "podium"}
-              subtotal={65}
+            />
+          </Reveal>
+          <Reveal delayMs={180}>
+            <TimelineStep
+              n={3}
+              icon={Trophy}
+              accent="violet"
+              title={fr ? "Bâtis ta phase finale" : "Build your bracket"}
+              body={
+                fr
+                  ? "L'arbre se remplit depuis tes groupes. Tape l'équipe qui passe à chaque tour, jusqu'à ton champion. C'est noté : des points par bonne équipe + un gros lot pour le podium."
+                  : "The bracket fills from your groups. Tap the team that advances each round, up to your champion. It's scored: points per correct team + a big bonus for the podium."
+              }
+              cta={{
+                href: "/predict?tab=finale",
+                label: fr ? "Ouvrir la phase finale" : "Open knockouts",
+              }}
+            />
+          </Reveal>
+          <Reveal delayMs={270}>
+            <TimelineStep
+              n={4}
+              icon={Target}
+              accent="gold"
+              title={fr ? "Les points tombent seuls" : "Points land on their own"}
+              body={
+                fr
+                  ? "Dès qu'un match est terminé, le moteur lit le score et clôture tes pronos — aucun admin à attendre. Tout est verrouillé une seule fois, 1 h avant le 1ᵉʳ match."
+                  : "As soon as a match ends, the engine reads the score and settles your picks — no admin wait. Everything locks once, 1 h before the first match."
+              }
+              last
+            />
+          </Reveal>
+        </ol>
+
+        {/* ── BARÈME ───────────────────────────────────────────────────── */}
+        <section className="mt-12">
+          <h2 className="mb-4 flex items-center gap-2 font-display text-xl font-semibold text-text-primary">
+            <ListOrdered className="size-5 text-primary-400" strokeWidth={1.9} />
+            {fr ? "Le barème" : "The scoring"}
+          </h2>
+
+          <p className="mb-4 text-xs font-bold uppercase tracking-wider text-text-tertiary">
+            {fr ? "Phase de groupes — par match" : "Group stage — per match"}
+          </p>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <ScoreCard
+              icon={MousePointerClick}
+              title={fr ? "Bon vainqueur" : "Right winner"}
+              value="+3"
+              accent="primary"
+            />
+            <ScoreCard
+              icon={Target}
+              title={fr ? "Total de buts" : "Total goals"}
+              value="+5"
+              sub={fr ? "exact · +2 à ±1" : "exact · +2 within 1"}
+              accent="gold"
+            />
+            <ScoreCard
+              icon={Zap}
+              title={fr ? "Score exact" : "Exact score"}
+              value="+5"
+              accent="violet"
             />
           </div>
-
-          {/* Grand total */}
-          <div className="mt-4 flex items-center justify-between gap-3 rounded-[10px] border border-gold-500/40 bg-gold-500/[0.12] px-4 py-3.5 shadow-glow-gold">
-            <span className="flex items-center gap-2 font-display text-sm font-semibold text-gold-200">
-              <Crown className="size-4 text-gold-300" strokeWidth={1.9} />
-              {L === "fr" ? "Total de l'exemple" : "Example total"}
+          <div className="mt-3 rounded-[10px] border border-primary-500/25 bg-primary-500/[0.07] p-4 text-xs leading-6 text-text-secondary backdrop-blur-xl">
+            <span className="font-semibold text-text-primary">
+              {fr ? "Ça se cumule. " : "It stacks. "}
             </span>
-            <span className="font-display text-2xl font-bold tabular-nums text-gold-200">
-              154{" "}
-              <span className="text-sm font-semibold text-gold-300/80">pts</span>
-            </span>
+            {fr
+              ? "Un seul pronostic de score peut rapporter le vainqueur + le total + le score exact en même temps — jusqu'à +13 sur un match."
+              : "A single score pick can earn winner + total + exact score at once — up to +13 on one match."}
           </div>
-          <p className="mt-2 text-[11px] leading-4 text-text-tertiary">
-            {L === "fr"
-              ? "21 (poules, extrait) + 68 (parcours) + 65 (podium). Ton total réel dépend de tous tes matchs et de ton arbre."
-              : "21 (groups, excerpt) + 68 (run) + 65 (podium). Your real total depends on all your matches and your bracket."}
+
+          <p className="mb-3 mt-6 text-xs font-bold uppercase tracking-wider text-text-tertiary">
+            {fr ? "Phase finale — par équipe bien placée" : "Knockouts — per correctly placed team"}
           </p>
-        </div>
-      </section>
-
-      {/* Pot + payout */}
-      <section className="mt-10 rounded-[14px] border border-gold-500/35 bg-gradient-to-br from-gold-500/[0.12] via-primary-500/[0.04] to-transparent p-5 backdrop-blur-xl sm:p-6">
-        <div className="flex items-start gap-3">
-          <span className="flex size-12 shrink-0 items-center justify-center rounded-[10px] border border-gold-500/40 bg-gold-500/15 text-gold-300 shadow-glow-gold">
-            <Crown className="size-6" strokeWidth={1.7} />
-          </span>
-          <div className="min-w-0">
-            <h2 className="font-display text-xl font-semibold text-text-primary">
-              {L === "fr"
-                ? "Le pot du groupe récompense les meilleurs"
-                : "The group pot rewards the best"}
-            </h2>
-            <p className="mt-1 text-sm leading-6 text-text-secondary">
-              {L === "fr"
-                ? `À la fin du tournoi (${tournamentEnd}), le pot commun (les accès, moins ${settings.prize_distribution.house_rake_pct}% de frais Stripe et d'hébergement) peut être réparti entre les membres les mieux classés — à l'amiable, à la discrétion de l'organisateur. À titre indicatif : ${settings.prize_distribution.description_fr || `${settings.prize_distribution.shares.join("% / ")}%`}.`
-                : `When the tournament ends (${tournamentEnd}), the group pot (access fees, minus ${settings.prize_distribution.house_rake_pct}% Stripe and hosting costs) may be shared among the top-ranked members — informally, at the organizer's discretion. As a guide: ${settings.prize_distribution.description_en || `${settings.prize_distribution.shares.join("% / ")}%`}.`}
-            </p>
-            <Link
-              href="/leaderboard/global"
-              className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-gold-300 underline-offset-4 hover:underline"
-            >
-              {L === "fr" ? "Voir le classement live" : "View live leaderboard"}
-              <ArrowRight className="size-3" strokeWidth={2.5} />
-            </Link>
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+            <RoundChip label={fr ? "8ᵉˢ" : "R16"} value="+1" />
+            <RoundChip label={fr ? "Quarts" : "QF"} value="+3" />
+            <RoundChip label={fr ? "Demies" : "SF"} value="+6" />
+            <RoundChip label={fr ? "Finale" : "Final"} value="+10" />
           </div>
-        </div>
-      </section>
+          <div className="mt-2.5 grid grid-cols-3 gap-2.5">
+            <PodiumChip medal="🥇" label={fr ? "Champion" : "Champion"} value="+30" />
+            <PodiumChip medal="🥈" label={fr ? "Finaliste" : "Runner-up"} value="+20" />
+            <PodiumChip medal="🥉" label={fr ? "3ᵉ place" : "3rd place"} value="+15" />
+          </div>
+        </section>
 
-      {/* Lock + safety */}
-      <section className="mt-10 grid gap-3 sm:grid-cols-2">
-        <NoteCard
-          icon={CalendarClock}
-          title={L === "fr" ? "Un seul verrou" : "One single lock"}
-          body={
-            L === "fr"
-              ? `Tout — scores de poule ET arbre — reste modifiable jusqu'à 1 h avant le coup d'envoi du 1ᵉʳ match (${lockLabel}). Ensuite, plus aucune modification. Les payeurs qui n'ont rien rempli reçoivent un pronostic aléatoire.`
-              : `Everything — group scores AND bracket — stays editable until 1 h before the first match (${lockLabel}). After that, no more changes. Paying members who left it empty get a random prediction.`
-          }
-        />
-        <NoteCard
-          icon={ShieldCheck}
-          title={L === "fr" ? "Validation 100% auto" : "100% auto-validation"}
-          body={
-            L === "fr"
-              ? "Aucun admin ne valide tes paris : dès que le résultat tombe, le scoring engine attribue les points et tu reçois une notif."
-              : "No admin validates your bets: once results are in, the scoring engine awards points and pings you."
-          }
-        />
-      </section>
+        {/* ── WORKED EXAMPLE — the scorecard ledger ────────────────────── */}
+        <section className="relative mt-12 overflow-hidden rounded-[18px] border border-gold-500/30 shadow-[0_34px_110px_rgba(0,0,0,0.5)]">
+          <Image
+            src="/assets/lucarne/world-cup-2026/04-argentina-net-shot.png"
+            alt=""
+            fill
+            sizes="100vw"
+            className="absolute inset-0 -z-20 object-cover object-[75%_25%] opacity-[0.28]"
+          />
+          <div className="absolute inset-0 -z-10 bg-[linear-gradient(125deg,rgba(5,6,5,0.96)_0%,rgba(5,6,5,0.88)_45%,rgba(5,6,5,0.62)_100%)]" />
+
+          <div className="relative p-5 sm:p-7">
+            <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-gold-500/40 bg-gold-500/[0.14] px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-gold-200">
+              <Trophy className="size-3.5" strokeWidth={1.9} />
+              {fr ? "Exemple complet" : "Full example"}
+            </div>
+            <h2 className="font-display text-xl font-bold leading-tight text-white sm:text-2xl">
+              {fr
+                ? "Un parcours, du 1ᵉʳ match au titre"
+                : "One run, from kickoff to the title"}
+            </h2>
+            <p className="mt-1.5 max-w-xl text-sm leading-6 text-white/80">
+              {fr
+                ? "Comment les points s'additionnent, étape par étape. Chiffres donnés à titre d'exemple."
+                : "How the points add up, step by step. Numbers shown as an example."}
+            </p>
+
+            {/* The ledger */}
+            <div className="mt-5 overflow-hidden rounded-[12px] border border-white/[0.1] bg-abyss/[0.66] backdrop-blur-xl">
+              {/* Group stage */}
+              <LedgerSection
+                title={fr ? "Phase de groupes" : "Group stage"}
+                hint={fr ? "tes scores" : "your scores"}
+                accent="primary"
+                subtotal={21}
+                subtotalLabel={fr ? "3 matchs montrés" : "3 shown matches"}
+              >
+                <LedgerRow
+                  lead={<Flag isoCode="ar" size="sm" rounded />}
+                  main="Argentine · 2-1 → 2-1"
+                  sub={fr ? "vainqueur + total + score exact" : "winner + total + exact score"}
+                  pts={13}
+                  accent="primary"
+                />
+                <LedgerRow
+                  lead={<Flag isoCode="br" size="sm" rounded />}
+                  main="Brésil · 3-0 → 3-1"
+                  sub={fr ? "bon vainqueur + total à ±1" : "right winner + total within 1"}
+                  pts={5}
+                  accent="primary"
+                />
+                <LedgerRow
+                  lead={<Flag isoCode="fr" size="sm" rounded />}
+                  main="France · 1-0 → 2-1"
+                  sub={fr ? "bon vainqueur seulement" : "right winner only"}
+                  pts={3}
+                  accent="primary"
+                />
+              </LedgerSection>
+
+              {/* Knockouts */}
+              <LedgerSection
+                title={fr ? "Ta phase finale" : "Your bracket"}
+                hint={fr ? "par équipe bien placée" : "per correct team"}
+                accent="violet"
+                subtotal={68}
+                subtotalLabel={fr ? "parcours" : "run"}
+              >
+                <LedgerRow
+                  lead={<RoundBadge>{fr ? "8ᵉˢ" : "R16"}</RoundBadge>}
+                  main={fr ? "12 bonnes équipes" : "12 correct teams"}
+                  sub="12 × +1"
+                  pts={12}
+                  accent="violet"
+                />
+                <LedgerRow
+                  lead={<RoundBadge>{fr ? "Quarts" : "QF"}</RoundBadge>}
+                  main={fr ? "6 bonnes équipes" : "6 correct teams"}
+                  sub="6 × +3"
+                  pts={18}
+                  accent="violet"
+                />
+                <LedgerRow
+                  lead={<RoundBadge>{fr ? "Demies" : "SF"}</RoundBadge>}
+                  main={fr ? "3 bonnes équipes" : "3 correct teams"}
+                  sub="3 × +6"
+                  pts={18}
+                  accent="violet"
+                />
+                <LedgerRow
+                  lead={<RoundBadge>{fr ? "Finale" : "Final"}</RoundBadge>}
+                  main={fr ? "tes 2 finalistes y sont" : "both your finalists made it"}
+                  sub="2 × +10"
+                  pts={20}
+                  accent="violet"
+                />
+              </LedgerSection>
+
+              {/* Podium */}
+              <LedgerSection
+                title={fr ? "Le podium" : "The podium"}
+                hint={fr ? "le gros lot" : "the jackpot"}
+                accent="gold"
+                subtotal={65}
+                subtotalLabel="podium"
+              >
+                <LedgerRow
+                  lead={<span className="text-lg leading-none">🥇</span>}
+                  main={fr ? "Champion exact · Argentine" : "Exact champion · Argentina"}
+                  pts={30}
+                  accent="gold"
+                />
+                <LedgerRow
+                  lead={<span className="text-lg leading-none">🥈</span>}
+                  main={fr ? "Finaliste exact" : "Exact runner-up"}
+                  pts={20}
+                  accent="gold"
+                />
+                <LedgerRow
+                  lead={<span className="text-lg leading-none">🥉</span>}
+                  main={fr ? "3ᵉ place exacte" : "Exact 3rd place"}
+                  pts={15}
+                  accent="gold"
+                />
+              </LedgerSection>
+            </div>
+
+            {/* Grand total */}
+            <div className="mt-4 flex items-center justify-between gap-3 rounded-[12px] border border-gold-500/45 bg-gold-500/[0.14] px-5 py-4 shadow-glow-gold">
+              <span className="flex items-center gap-2.5 font-display text-base font-semibold text-gold-100">
+                <Crown className="size-5 text-gold-300" strokeWidth={1.9} />
+                {fr ? "Total de l'exemple" : "Example total"}
+              </span>
+              <span className="font-display text-3xl font-bold tabular-nums text-gold-100">
+                154
+                <span className="ml-1 text-base font-semibold text-gold-300/80">
+                  pts
+                </span>
+              </span>
+            </div>
+            <p className="mt-2 text-[11px] leading-4 text-white/55">
+              {fr
+                ? "21 (poules, extrait) + 68 (parcours) + 65 (podium). Ton total réel dépend de tous tes matchs et de ton arbre."
+                : "21 (groups, excerpt) + 68 (run) + 65 (podium). Your real total depends on all your matches and your bracket."}
+            </p>
+          </div>
+        </section>
+
+        {/* ── POT ──────────────────────────────────────────────────────── */}
+        <section className="relative mt-12 overflow-hidden rounded-[14px] border border-gold-500/35 bg-gradient-to-br from-gold-500/[0.12] via-primary-500/[0.04] to-transparent p-5 backdrop-blur-xl sm:p-6">
+          <div className="flex items-start gap-3">
+            <span className="flex size-12 shrink-0 items-center justify-center rounded-[10px] border border-gold-500/40 bg-gold-500/15 text-gold-300 shadow-glow-gold">
+              <Crown className="size-6" strokeWidth={1.7} />
+            </span>
+            <div className="min-w-0">
+              <h2 className="font-display text-xl font-semibold text-text-primary">
+                {fr
+                  ? "Le pot du groupe récompense les meilleurs"
+                  : "The group pot rewards the best"}
+              </h2>
+              <p className="mt-1 text-sm leading-6 text-text-secondary">
+                {fr
+                  ? `À la fin du tournoi (${tournamentEnd}), le pot commun (les accès, moins ${settings.prize_distribution.house_rake_pct}% de frais Stripe et d'hébergement) peut être réparti entre les mieux classés — à l'amiable, à la discrétion de l'organisateur. À titre indicatif : ${settings.prize_distribution.description_fr || `${settings.prize_distribution.shares.join("% / ")}%`}.`
+                  : `When the tournament ends (${tournamentEnd}), the group pot (access fees, minus ${settings.prize_distribution.house_rake_pct}% Stripe and hosting costs) may be shared among the top-ranked members — informally, at the organizer's discretion. As a guide: ${settings.prize_distribution.description_en || `${settings.prize_distribution.shares.join("% / ")}%`}.`}
+              </p>
+              <Link
+                href="/leaderboard/global"
+                className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-gold-300 underline-offset-4 hover:underline"
+              >
+                {fr ? "Voir le classement live" : "View live leaderboard"}
+                <ArrowRight className="size-3" strokeWidth={2.5} />
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* ── LOCK + SAFETY ────────────────────────────────────────────── */}
+        <section className="mt-10 grid gap-3 sm:grid-cols-2">
+          <NoteCard
+            icon={CalendarClock}
+            title={fr ? "Un seul verrou" : "One single lock"}
+            body={
+              fr
+                ? `Tout — scores de poule ET arbre — reste modifiable jusqu'à 1 h avant le coup d'envoi du 1ᵉʳ match (${lockLabel}). Ensuite, plus aucune modification. Les payeurs qui n'ont rien rempli reçoivent un pronostic aléatoire.`
+                : `Everything — group scores AND bracket — stays editable until 1 h before the first match (${lockLabel}). After that, no more changes. Paying members who left it empty get a random prediction.`
+            }
+          />
+          <NoteCard
+            icon={ShieldCheck}
+            title={fr ? "Validation 100% auto" : "100% auto-validation"}
+            body={
+              fr
+                ? "Aucun admin ne valide tes paris : dès que le résultat tombe, le moteur attribue les points et tu reçois une notif."
+                : "No admin validates your bets: once results are in, the engine awards points and pings you."
+            }
+          />
+        </section>
       </div>
     </main>
   );
 }
 
-function Step({
+/* -------------------------------------------------------------------------- */
+
+const TONE: Record<
+  "gold" | "primary" | "violet",
+  { ring: string; chip: string; text: string }
+> = {
+  gold: {
+    ring: "border-gold-500/40 bg-gold-500/[0.12]",
+    chip: "border-gold-500/30 bg-gold-500/[0.07]",
+    text: "text-gold-300",
+  },
+  primary: {
+    ring: "border-primary-500/40 bg-primary-500/[0.12]",
+    chip: "border-primary-500/30 bg-primary-500/[0.07]",
+    text: "text-primary-300",
+  },
+  violet: {
+    ring: "border-violet-500/40 bg-violet-500/[0.12]",
+    chip: "border-violet-500/30 bg-violet-500/[0.07]",
+    text: "text-violet-300",
+  },
+};
+
+function TimelineStep({
   n,
   icon: Icon,
   accent,
@@ -459,6 +497,7 @@ function Step({
   body,
   bullets,
   cta,
+  last,
 }: {
   n: number;
   icon: LucideIcon;
@@ -467,52 +506,57 @@ function Step({
   body: string;
   bullets?: string[];
   cta?: { href: string; label: string };
+  last?: boolean;
 }) {
-  const tone = {
-    gold: "border-gold-500/30 bg-gold-500/[0.06] text-gold-300",
-    primary: "border-primary-500/30 bg-primary-500/[0.06] text-primary-300",
-    violet: "border-violet-500/30 bg-violet-500/[0.06] text-violet-300",
-  }[accent];
+  const tone = TONE[accent];
   return (
-    <li
-      className={`relative rounded-md border bg-surface-1/[0.6] p-5 backdrop-blur-xl ${tone.split(" ").slice(0, 1).join(" ")}`}
-    >
-      <div className="flex items-start gap-4">
+    <li className="relative flex gap-4">
+      {/* Rail: numbered node + connector */}
+      <div className="flex flex-col items-center">
         <span
-          className={`flex size-12 shrink-0 items-center justify-center rounded-[10px] border ${tone}`}
+          className={`relative z-10 flex size-11 shrink-0 items-center justify-center rounded-full border font-display text-base font-bold tabular-nums ${tone.ring} ${tone.text} shadow-[0_4px_18px_rgba(0,0,0,0.4)]`}
         >
-          <Icon className="size-5" strokeWidth={1.7} />
+          {n}
         </span>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-baseline gap-2">
-            <span className="font-display text-xs font-bold tabular-nums text-text-tertiary">
-              {String(n).padStart(2, "0")}
-            </span>
-            <h2 className="font-display text-lg font-semibold text-text-primary sm:text-xl">
-              {title}
-            </h2>
-          </div>
-          <p className="mt-1 text-sm leading-6 text-text-secondary">{body}</p>
-          {bullets && (
-            <ul className="mt-3 space-y-1 text-xs leading-5 text-text-tertiary">
-              {bullets.map((b) => (
-                <li key={b} className="flex items-start gap-2">
-                  <span className="mt-1 size-1 shrink-0 rounded-full bg-text-tertiary" />
-                  <span>{b}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-          {cta && (
-            <Link
-              href={cta.href}
-              className="mt-3 inline-flex items-center gap-1.5 rounded-sm border border-white/[0.12] bg-white/[0.05] px-3 py-1.5 text-xs font-semibold text-text-primary transition hover:border-white/[0.2] hover:bg-white/[0.08]"
-            >
-              {cta.label}
-              <ArrowRight className="size-3" strokeWidth={2.5} />
-            </Link>
-          )}
+        {!last && (
+          <span className="mt-1 w-px flex-1 bg-gradient-to-b from-white/[0.18] to-white/[0.04]" />
+        )}
+      </div>
+
+      {/* Content card */}
+      <div className="mb-4 min-w-0 flex-1 rounded-md border border-white/[0.09] bg-surface-1/[0.62] p-5 backdrop-blur-xl">
+        <div className="flex items-center gap-2">
+          <Icon className={`size-4 ${tone.text}`} strokeWidth={1.9} />
+          <h3 className="font-display text-lg font-semibold text-text-primary">
+            {title}
+          </h3>
         </div>
+        <p className="mt-1.5 text-sm leading-6 text-text-secondary">{body}</p>
+        {bullets && (
+          <ul className="mt-3 space-y-1.5">
+            {bullets.map((b) => (
+              <li
+                key={b}
+                className="flex items-start gap-2 text-xs leading-5 text-text-tertiary"
+              >
+                <CheckCircle2
+                  className={`mt-0.5 size-3.5 shrink-0 ${tone.text}`}
+                  strokeWidth={2}
+                />
+                <span>{b}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        {cta && (
+          <Link
+            href={cta.href}
+            className="mt-3 inline-flex items-center gap-1.5 rounded-sm border border-white/[0.12] bg-white/[0.05] px-3 py-1.5 text-xs font-semibold text-text-primary transition hover:border-white/[0.2] hover:bg-white/[0.08]"
+          >
+            {cta.label}
+            <ArrowRight className="size-3" strokeWidth={2.5} />
+          </Link>
+        )}
       </div>
     </li>
   );
@@ -528,35 +572,140 @@ function ScoreCard({
   icon: LucideIcon;
   title: string;
   value: string;
-  sub: string;
+  sub?: string;
   accent: "gold" | "primary" | "violet";
 }) {
-  const tone = {
-    gold: "border-gold-500/30 text-gold-300",
-    primary: "border-primary-500/30 text-primary-300",
-    violet: "border-violet-500/30 text-violet-300",
-  }[accent];
+  const tone = TONE[accent];
   return (
     <div className="rounded-[10px] border border-white/[0.08] bg-surface-1/[0.55] p-4 backdrop-blur-xl">
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <span
-            className={`flex size-8 items-center justify-center rounded-sm border ${tone}`}
-          >
-            <Icon className="size-4" strokeWidth={1.7} />
-          </span>
-          <span className="text-sm font-semibold text-text-primary">
+        <span
+          className={`flex size-8 items-center justify-center rounded-sm border ${tone.chip} ${tone.text}`}
+        >
+          <Icon className="size-4" strokeWidth={1.8} />
+        </span>
+        <span
+          className={`font-display text-2xl font-bold tabular-nums ${tone.text}`}
+        >
+          {value}
+        </span>
+      </div>
+      <div className="mt-2 text-sm font-semibold text-text-primary">{title}</div>
+      {sub && <div className="text-[11px] text-text-tertiary">{sub}</div>}
+    </div>
+  );
+}
+
+function RoundChip({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-2 rounded-[10px] border border-violet-500/25 bg-violet-500/[0.07] px-3 py-2.5 backdrop-blur-xl">
+      <span className="text-xs font-semibold text-text-secondary">{label}</span>
+      <span className="font-display text-base font-bold tabular-nums text-violet-300">
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function PodiumChip({
+  medal,
+  label,
+  value,
+}: {
+  medal: string;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-0.5 rounded-[10px] border border-gold-500/30 bg-gold-500/[0.08] px-2 py-2.5 text-center backdrop-blur-xl">
+      <span className="text-lg leading-none">{medal}</span>
+      <span className="text-[11px] font-semibold text-text-secondary">
+        {label}
+      </span>
+      <span className="font-display text-base font-bold tabular-nums text-gold-300">
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function RoundBadge({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex h-5 min-w-[2.4rem] items-center justify-center rounded-full border border-violet-500/30 bg-violet-500/[0.12] px-1.5 text-[10px] font-bold uppercase tracking-wide text-violet-200">
+      {children}
+    </span>
+  );
+}
+
+function LedgerSection({
+  title,
+  hint,
+  accent,
+  subtotal,
+  subtotalLabel,
+  children,
+}: {
+  title: string;
+  hint: string;
+  accent: "gold" | "primary" | "violet";
+  subtotal: number;
+  subtotalLabel: string;
+  children: React.ReactNode;
+}) {
+  const tone = TONE[accent];
+  return (
+    <div className="border-b border-white/[0.08] last:border-0">
+      <div className="flex items-center justify-between gap-2 bg-white/[0.03] px-4 py-2">
+        <div className="flex items-baseline gap-2">
+          <span className={`size-1.5 rounded-full ${tone.text} bg-current`} />
+          <span className="text-xs font-bold uppercase tracking-wider text-text-secondary">
             {title}
           </span>
+          <span className="text-[10px] text-text-tertiary">· {hint}</span>
         </div>
-        <div className="text-right">
-          <div className="font-display text-xl font-bold tabular-nums text-text-primary">
-            {value}
-          </div>
-        </div>
+        <span className={`font-display text-sm font-bold tabular-nums ${tone.text}`}>
+          +{subtotal}
+          <span className="ml-1 text-[9px] font-medium uppercase text-text-tertiary">
+            {subtotalLabel}
+          </span>
+        </span>
       </div>
-      <div className="mt-1 pl-10 text-[11px] text-text-tertiary">{sub}</div>
+      <ul>{children}</ul>
     </div>
+  );
+}
+
+function LedgerRow({
+  lead,
+  main,
+  sub,
+  pts,
+  accent,
+}: {
+  lead: React.ReactNode;
+  main: string;
+  sub?: string;
+  pts: number;
+  accent: "gold" | "primary" | "violet";
+}) {
+  const tone = TONE[accent];
+  return (
+    <li className="flex items-center gap-3 border-t border-white/[0.05] px-4 py-2.5 first:border-0">
+      <span className="flex w-7 shrink-0 justify-center">{lead}</span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-medium text-text-primary">
+          {main}
+        </span>
+        {sub && (
+          <span className="block truncate text-[11px] text-text-tertiary">
+            {sub}
+          </span>
+        )}
+      </span>
+      <span className={`shrink-0 font-mono text-sm font-bold tabular-nums ${tone.text}`}>
+        +{pts}
+      </span>
+    </li>
   );
 }
 
@@ -572,85 +721,10 @@ function NoteCard({
   return (
     <div className="rounded-[10px] border border-white/[0.08] bg-surface-1/[0.5] p-4 backdrop-blur-xl">
       <div className="mb-1.5 flex items-center gap-2">
-        <Icon
-          className="size-4 text-text-tertiary"
-          strokeWidth={1.7}
-        />
+        <Icon className="size-4 text-text-tertiary" strokeWidth={1.7} />
         <span className="text-sm font-semibold text-text-primary">{title}</span>
       </div>
       <p className="text-xs leading-5 text-text-secondary">{body}</p>
-    </div>
-  );
-}
-
-function JourneyStage({
-  icon: Icon,
-  accent,
-  title,
-  sub,
-  rows,
-  subtotalLabel,
-  subtotal,
-}: {
-  icon: LucideIcon;
-  accent: "gold" | "primary" | "violet";
-  title: string;
-  sub: string;
-  rows: { label: string; note: string; pts: number }[];
-  subtotalLabel: string;
-  subtotal: number;
-}) {
-  const tone = {
-    gold: "border-gold-500/30 bg-gold-500/[0.06] text-gold-300",
-    primary: "border-primary-500/30 bg-primary-500/[0.06] text-primary-300",
-    violet: "border-violet-500/30 bg-violet-500/[0.06] text-violet-300",
-  }[accent];
-  const ptsTone = {
-    gold: "text-gold-300",
-    primary: "text-primary-300",
-    violet: "text-violet-300",
-  }[accent];
-  return (
-    <div className="rounded-[10px] border border-white/[0.08] bg-surface-1/[0.55] p-4 backdrop-blur-xl">
-      <div className="mb-3 flex items-center gap-2.5">
-        <span
-          className={`flex size-9 shrink-0 items-center justify-center rounded-[10px] border ${tone}`}
-        >
-          <Icon className="size-5" strokeWidth={1.7} />
-        </span>
-        <div className="min-w-0">
-          <div className="font-display text-sm font-semibold text-text-primary">
-            {title}
-          </div>
-          <div className="text-[11px] text-text-tertiary">{sub}</div>
-        </div>
-      </div>
-      <ul className="space-y-1.5">
-        {rows.map((r) => (
-          <li
-            key={r.label}
-            className="flex items-baseline justify-between gap-3 border-t border-white/[0.05] pt-1.5 first:border-0 first:pt-0"
-          >
-            <span className="min-w-0 text-xs leading-5 text-text-secondary">
-              {r.label}
-              <span className="ml-1.5 text-[10px] text-text-tertiary">
-                · {r.note}
-              </span>
-            </span>
-            <b className={`shrink-0 font-mono text-sm tabular-nums ${ptsTone}`}>
-              +{r.pts}
-            </b>
-          </li>
-        ))}
-      </ul>
-      <div className="mt-2.5 flex items-baseline justify-between gap-3 border-t border-white/[0.1] pt-2">
-        <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
-          {subtotalLabel}
-        </span>
-        <b className={`font-display text-base font-bold tabular-nums ${ptsTone}`}>
-          +{subtotal}
-        </b>
-      </div>
     </div>
   );
 }
