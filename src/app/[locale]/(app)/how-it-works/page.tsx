@@ -277,7 +277,7 @@ export default async function HowItWorksPage({
             </p>
 
             {/* The ledger */}
-            <div className="mt-5 overflow-hidden rounded-[12px] border border-white/[0.1] bg-abyss/[0.66] backdrop-blur-xl">
+            <div className="mt-5 overflow-hidden rounded-[12px] border border-white/[0.1] bg-surface-1/[0.55] backdrop-blur-xl">
               {/* Group stage */}
               <LedgerSection
                 title={fr ? "Phase de groupes" : "Group stage"}
