@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { setRequestLocale } from "next-intl/server";
 import { listMatches, groupMatchesByDate } from "@/lib/matches/queries";
 import { getGroupStandings } from "@/lib/matches/group-standings";
@@ -68,14 +67,6 @@ export default async function MatchesPage({
       )}
       {/* Header with tournament summary */}
       <header className="relative mb-6 overflow-hidden rounded-sm border border-white/[0.12] bg-surface-1/[0.7] p-5 shadow-[0_26px_85px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl sm:p-6">
-        <Image
-          src="/assets/lucarne/world-cup-2026/14-canada-winter-toronto-sprint.png"
-          alt=""
-          fill
-          sizes="100vw"
-          className="absolute inset-0 -z-20 object-cover object-[65%_30%] opacity-[0.3]"
-        />
-        <div className="absolute inset-0 -z-10 bg-[linear-gradient(100deg,rgba(5,6,5,0.96)_0%,rgba(5,6,5,0.78)_55%,rgba(5,6,5,0.58)_100%)]" />
         <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <div>
             <div className="mb-3 inline-flex items-center gap-1.5 rounded-sm border border-gold-500/30 bg-gold-500/[0.1] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-gold-400 shadow-glow-gold">
