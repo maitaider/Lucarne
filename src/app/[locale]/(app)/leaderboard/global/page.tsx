@@ -164,6 +164,8 @@ export default async function GlobalLeaderboardPage({
         kicker={L === "fr" ? "Course au trophée" : "Trophy race"}
         kickerIcon={Trophy}
         accent="gold"
+        backgroundSrc="/assets/lucarne/world-cup-2026/14-canada-winter-toronto-sprint.png"
+        backgroundClassName="object-[62%_28%] opacity-[0.32]"
         title={
           L === "fr" ? "Classement global" : "Global leaderboard"
         }
