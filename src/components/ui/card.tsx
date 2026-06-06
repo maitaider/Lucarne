@@ -2,9 +2,11 @@ import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 /**
- * The standard content surface. SOLID background + crisp 1px border +
- * elevation shadow — readable hierarchy without stacking backdrop-blur
- * on every panel (blur is reserved for true overlays).
+ * The standard content surface. Translucent frosted glass (semi-transparent
+ * surface + backdrop-blur) so page background imagery (nation photo / stadium
+ * atmosphere) reads softly through the cards, with a crisp 1px border +
+ * elevation shadow for hierarchy. Only the dashboard + predict surfaces use
+ * this primitive, so the blur cost is bounded.
  *
  * Use this instead of ad-hoc `rounded-[Npx] border bg-surface-1/[0.x]
  * backdrop-blur-xl` divs. Renders a Link when `href` is set.
@@ -15,14 +17,14 @@ import { cn } from "@/lib/utils";
 type Accent = "neutral" | "primary" | "gold" | "violet";
 type Padded = "none" | "sm" | "md" | "lg";
 
-const BASE = "rounded-md border bg-surface-1 shadow-card";
+const BASE = "rounded-md border bg-surface-1/[0.55] shadow-card backdrop-blur-md";
 
 const ACCENT: Record<Accent, string> = {
   neutral: "border-border-subtle",
   primary: "border-primary-500/25",
-  gold: "border-gold-500/30 bg-gradient-to-br from-gold-500/[0.08] via-surface-1 to-surface-1",
+  gold: "border-gold-500/30 bg-gradient-to-br from-gold-500/[0.12] via-surface-1/[0.55] to-surface-1/[0.55]",
   violet:
-    "border-violet-500/25 bg-gradient-to-br from-violet-500/[0.08] via-surface-1 to-surface-1",
+    "border-violet-500/25 bg-gradient-to-br from-violet-500/[0.12] via-surface-1/[0.55] to-surface-1/[0.55]",
 };
 
 const PADDED: Record<Padded, string> = {
