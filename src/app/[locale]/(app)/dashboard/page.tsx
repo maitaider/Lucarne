@@ -164,16 +164,7 @@ export default async function DashboardPage({
       )}
 
       {/* ============================ HERO ============================ */}
-      <section className="relative overflow-hidden rounded-lg border border-border-subtle shadow-raised">
-        <Image
-          src="/assets/lucarne/world-cup-2026/11-algeria-2026-home-celebration.png"
-          alt=""
-          fill
-          priority
-          sizes="(max-width: 1024px) 100vw, 1700px"
-          className="absolute inset-0 -z-20 object-cover object-[62%_30%] opacity-40"
-        />
-        <div className="absolute inset-0 -z-10 bg-[linear-gradient(105deg,rgba(5,6,5,0.94)_0%,rgba(5,6,5,0.82)_44%,rgba(5,6,5,0.6)_72%,rgba(8,14,9,0.72)_100%)]" />
+      <section className="relative overflow-hidden rounded-lg border border-border-subtle bg-surface-1/[0.62] shadow-raised backdrop-blur-2xl">
         <div
           aria-hidden
           className="pointer-events-none absolute -right-24 -top-24 -z-10 size-[420px] rounded-full bg-primary-500/10 blur-3xl"
