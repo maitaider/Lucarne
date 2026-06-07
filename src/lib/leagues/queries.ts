@@ -206,6 +206,16 @@ async function withLiveIdentities(
   });
 }
 
+/**
+ * Renumber ranks 1..N over the final (already-filtered, already-ordered) list.
+ * The DB rank is computed including hidden accounts (e.g. the salon-bot), so
+ * filtering one out leaves a gap (…1, 2, 4, 5). Re-ranking closes the gap AND
+ * keeps the table in sync with the podium, which uses array order.
+ */
+function rerank(rows: StandingEntry[]): StandingEntry[] {
+  return rows.map((r, i) => ({ ...r, rank: i + 1 }));
+}
+
 export async function getLeagueStandings(
   leagueId: string,
 ): Promise<StandingEntry[]> {
@@ -221,7 +231,9 @@ export async function getLeagueStandings(
     console.error("[leagues:getLeagueStandings]", error);
     return [];
   }
-  return withLiveIdentities(supabase, (data ?? []).map(toStanding));
+  return rerank(
+    await withLiveIdentities(supabase, (data ?? []).map(toStanding)),
+  );
 }
 
 export async function getGlobalStandings(limit = 100): Promise<StandingEntry[]> {
@@ -234,7 +246,9 @@ export async function getGlobalStandings(limit = 100): Promise<StandingEntry[]> 
     .order("rank", { ascending: true })
     .limit(limit);
   if (error) return [];
-  return withLiveIdentities(supabase, (data ?? []).map(toStanding));
+  return rerank(
+    await withLiveIdentities(supabase, (data ?? []).map(toStanding)),
+  );
 }
 
 /**
@@ -254,9 +268,11 @@ export async function getStageStandings(
     p_matchday: matchday ?? undefined,
   });
   if (error || !data) return [];
-  return data
-    .filter((r) => r.user_id !== CHAT_BOT_USER_ID) // hide the salon-bot
-    .map(toStanding);
+  return rerank(
+    data
+      .filter((r) => r.user_id !== CHAT_BOT_USER_ID) // hide the salon-bot
+      .map(toStanding),
+  );
 }
 
 export async function listLeagueInvitations(leagueId: string): Promise<Invitation[]> {
