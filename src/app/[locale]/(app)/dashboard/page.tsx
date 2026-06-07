@@ -248,32 +248,17 @@ export default async function DashboardPage({
       {/* Quick actions */}
       <QuickActions locale={L} />
 
-      {/* Feature row: champion · pot · tournament.
-          On mobile it drops below the actionable content (featured match,
-          leaderboard, salon) so those surface first; restored to source order
-          on lg where there's room side-by-side. */}
-      <div className="order-last grid grid-cols-1 gap-5 md:grid-cols-3 lg:order-none">
-        <ChampionCard team={championTeam} canBet={buyIn.can_bet} locale={L} />
-        <CagnotteCard
-          amountCents={buyIn.amount_cents}
-          currency={buyIn.settings.currency}
-          shares={buyIn.settings.prize_distribution.shares ?? []}
-          rakePct={buyIn.settings.prize_distribution.house_rake_pct ?? 0}
-          locale={L}
-        />
-        <TournamentCard startAt={buyIn.settings.tournament_start_at} locale={L} />
-      </div>
-
-      {/* ===================== MAIN: 2fr / 1fr ======================
-          `grid-cols-1` base + `min-w-0` on both columns are load-bearing on
-          mobile: without an explicit single track the grid uses an implicit
-          `auto` column that grows to its widest child's min-content (the
-          featured match + its 80px flags), and grid items default to
-          `min-width:auto` (won't shrink) — together they pushed the whole grid
-          (and every card in it) past the viewport → cards clipped on the right. */}
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-        {/* Left column */}
-        <div className="flex min-w-0 flex-col gap-5 lg:col-span-2">
+      {/* ===================== MAIN — act first =====================
+          Left = your matches (the daily action). Right rail = where you stand
+          + your circle. `grid-cols-1` base + `min-w-0` on both columns are
+          load-bearing on mobile (an implicit `auto` column would grow to the
+          featured match's 80px flags and clip the grid). */}
+      <div className="grid grid-cols-1 gap-x-5 gap-y-4 lg:grid-cols-3">
+        {/* Left — your matches */}
+        <div className="flex min-w-0 flex-col gap-4 lg:col-span-2">
+          <SectionLabel icon={CalendarDays}>
+            {L === "fr" ? "Tes matchs" : "Your matches"}
+          </SectionLabel>
           <FeaturedMatch
             match={featured}
             myPicks={featured ? myPicksByMatch.get(featured.id) : undefined}
@@ -284,9 +269,11 @@ export default async function DashboardPage({
           <FollowedMatchesPanel matches={followedMatches} locale={L} />
         </div>
 
-        {/* Right rail */}
-        <aside className="flex min-w-0 flex-col gap-5">
-          <PlayerBadges achievements={achievements} locale={L} />
+        {/* Right rail — standings + your circle */}
+        <aside className="flex min-w-0 flex-col gap-4">
+          <SectionLabel icon={Trophy}>
+            {L === "fr" ? "Classement & cercle" : "Standings & circle"}
+          </SectionLabel>
           <MiniLeaderboard
             top5={top5}
             myRow={showMyRow ? (myRow ?? null) : null}
@@ -294,12 +281,55 @@ export default async function DashboardPage({
             total={standings.length}
             locale={L}
           />
-          <ChatPreviewCard locale={L} />
           <LeaguesCard leagues={myLeagues} locale={L} />
+          <ChatPreviewCard locale={L} />
+          <PlayerBadges achievements={achievements} locale={L} />
           <TicketsCard bets={myBets} locale={L} />
         </aside>
       </div>
+
+      {/* ===================== LE TOURNOI — ambient, last ===================== */}
+      <section className="flex flex-col gap-4">
+        <SectionLabel icon={Sparkles}>
+          {L === "fr" ? "Le tournoi" : "The tournament"}
+        </SectionLabel>
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+          <ChampionCard team={championTeam} canBet={buyIn.can_bet} locale={L} />
+          <CagnotteCard
+            amountCents={buyIn.amount_cents}
+            currency={buyIn.settings.currency}
+            shares={buyIn.settings.prize_distribution.shares ?? []}
+            rakePct={buyIn.settings.prize_distribution.house_rake_pct ?? 0}
+            locale={L}
+          />
+          <TournamentCard startAt={buyIn.settings.tournament_start_at} locale={L} />
+        </div>
+      </section>
     </main>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Section label — gives the dashboard a scannable structure                 */
+/* -------------------------------------------------------------------------- */
+
+function SectionLabel({
+  icon: Icon,
+  children,
+}: {
+  icon: LucideIcon;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-2.5 pt-1">
+      <span className="flex size-7 shrink-0 items-center justify-center rounded-md border border-white/[0.1] bg-white/[0.04] text-primary-300">
+        <Icon className="size-4" strokeWidth={1.9} />
+      </span>
+      <h2 className="font-display text-[13px] font-bold uppercase tracking-wider text-text-secondary">
+        {children}
+      </h2>
+      <span className="h-px flex-1 bg-gradient-to-r from-white/[0.1] to-transparent" />
+    </div>
   );
 }
 
