@@ -76,7 +76,10 @@ export default async function HowItWorksPage({
             <h1 className="font-display text-[2.1rem] font-bold leading-[1.05] text-white drop-shadow-lg sm:text-5xl">
               {fr ? "Comment marche Lucarne" : "How Lucarne works"}
             </h1>
-            <p className="mt-3 max-w-xl text-sm leading-6 text-white drop-shadow-md sm:text-base">
+            <p
+              className="mt-3 max-w-xl text-sm leading-6 drop-shadow-md sm:text-base"
+              style={{ color: "rgb(255 255 255 / 0.92)" }}
+            >
               {fr
                 ? `Un paiement pour l'accès, deux niveaux de pronostic, un pot commun qui récompense les meilleurs. Du ${tournamentStart} au ${tournamentEnd}.`
                 : `One payment for access, two levels of prediction, a group pot that rewards the best. From ${tournamentStart} to ${tournamentEnd}.`}
