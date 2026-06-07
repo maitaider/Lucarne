@@ -2,6 +2,7 @@ import { setRequestLocale } from "next-intl/server";
 import { listMatches, groupMatchesByDate } from "@/lib/matches/queries";
 import { getGroupStandings } from "@/lib/matches/group-standings";
 import { getMyPicksByMatch, type MyPick } from "@/lib/bets/my-picks";
+import { listMyFollowedMatchIds } from "@/lib/matches/follows";
 import { getMyBuyInStatus } from "@/lib/profile/buy-in";
 import { BuyInBanner } from "@/components/paywall/buy-in-banner";
 import { MatchCard } from "@/components/match/match-card";
@@ -41,12 +42,15 @@ export default async function MatchesPage({
   const currentView: View =
     view === "groups" ? "groups" : view === "knockout" ? "knockout" : "calendar";
 
-  const [allMatches, groups, myPicksByMatch, buyIn] = await Promise.all([
-    listMatches(),
-    currentView === "groups" ? getGroupStandings() : Promise.resolve([]),
-    getMyPicksByMatch(),
-    getMyBuyInStatus(),
-  ]);
+  const [allMatches, groups, myPicksByMatch, buyIn, followedIdsArr] =
+    await Promise.all([
+      listMatches(),
+      currentView === "groups" ? getGroupStandings() : Promise.resolve([]),
+      getMyPicksByMatch(),
+      getMyBuyInStatus(),
+      listMyFollowedMatchIds(),
+    ]);
+  const followedIds = new Set(followedIdsArr);
 
   const liveCount = allMatches.filter((m) => m.status === "live").length;
   const finishedCount = allMatches.filter((m) => m.status === "finished").length;
@@ -148,6 +152,7 @@ export default async function MatchesPage({
           locale={L}
           myPicksByMatch={myPicksByMatch}
           canBet={buyIn.can_bet}
+          followedIds={followedIds}
         />
       )}
 
@@ -157,6 +162,7 @@ export default async function MatchesPage({
           locale={L}
           myPicksByMatch={myPicksByMatch}
           canBet={buyIn.can_bet}
+          followedIds={followedIds}
         />
       )}
     </main>
@@ -377,6 +383,7 @@ function CalendarView({
   locale,
   myPicksByMatch,
   canBet,
+  followedIds,
 }: {
   matches: Awaited<ReturnType<typeof listMatches>>;
   stage?: string;
@@ -384,6 +391,7 @@ function CalendarView({
   locale: Locale;
   myPicksByMatch: Map<string, MyPick[]>;
   canBet: boolean;
+  followedIds: Set<string>;
 }) {
   let filtered = matches;
   if (stage && stage !== "all") filtered = filtered.filter((m) => m.stage === stage);
@@ -418,6 +426,7 @@ function CalendarView({
                     locale={locale}
                     myPicks={myPicksByMatch.get(m.id)}
                     canBet={canBet}
+                    following={followedIds.has(m.id)}
                   />
                 ))}
               </div>
@@ -476,11 +485,13 @@ function KnockoutView({
   locale,
   myPicksByMatch,
   canBet,
+  followedIds,
 }: {
   matches: Awaited<ReturnType<typeof listMatches>>;
   locale: Locale;
   myPicksByMatch: Map<string, MyPick[]>;
   canBet: boolean;
+  followedIds: Set<string>;
 }) {
   const knockoutMatches = matches.filter(
     (m) => m.stage !== "group" && m.stage !== "third_place",
@@ -515,6 +526,7 @@ function KnockoutView({
                 locale={locale}
                 myPicks={myPicksByMatch.get(m.id)}
                 canBet={canBet}
+                following={followedIds.has(m.id)}
               />
             ))}
           </div>

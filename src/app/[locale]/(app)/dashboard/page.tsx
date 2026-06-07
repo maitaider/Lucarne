@@ -6,6 +6,8 @@ import { getPlayerAchievements } from "@/lib/profile/achievements";
 import { PlayerBadges } from "@/components/profile/player-badges";
 import { getMyStats } from "@/lib/profile/stats";
 import { listMatches, type MatchListItem } from "@/lib/matches/queries";
+import { getFollowedMatches } from "@/lib/matches/follows";
+import { FollowedMatchesPanel } from "@/components/dashboard/followed-matches-panel";
 import { listMyBets } from "@/lib/bets/queries";
 import {
   getGlobalStandings,
@@ -70,6 +72,7 @@ export default async function DashboardPage({
     buyIn,
     prediction,
     achievements,
+    followedMatches,
   ] = await Promise.all([
     getCurrentUser(),
     getMyStats(),
@@ -84,6 +87,7 @@ export default async function DashboardPage({
       const u = await getCurrentUser();
       return u?.username ? getPlayerAchievements(u.username) : null;
     })(),
+    getFollowedMatches(),
   ]);
 
   // Resolve the user's predicted champion from the teams present in the
@@ -277,6 +281,7 @@ export default async function DashboardPage({
             locale={L}
           />
           <UpcomingCard matches={upcoming} locale={L} />
+          <FollowedMatchesPanel matches={followedMatches} locale={L} />
         </div>
 
         {/* Right rail */}

@@ -1820,6 +1820,13 @@ export type Database = {
       }
       lock_all_tournament_predictions: { Args: never; Returns: number }
       recompute_bracket_points: { Args: never; Returns: undefined }
+      follow_match: { Args: { p_match_id: string }; Returns: undefined }
+      unfollow_match: { Args: { p_match_id: string }; Returns: undefined }
+      my_followed_match_ids: { Args: never; Returns: string[] }
+      cron_notify_followed_kickoffs: {
+        Args: { p_within_minutes?: number }
+        Returns: number
+      }
       match_consensus: {
         Args: { p_match_id: string }
         Returns: {
@@ -2094,6 +2101,7 @@ export type Database = {
         | "comment_received"
         | "chat_mention"
         | "poll_vote"
+        | "match_result"
       payment_method:
         | "cash"
         | "transfer"
@@ -2623,6 +2631,7 @@ export const Constants = {
         "comment_received",
         "chat_mention",
         "poll_vote",
+        "match_result",
       ],
       payment_method: [
         "cash",

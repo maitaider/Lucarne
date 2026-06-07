@@ -32,6 +32,7 @@ const ICONS: Record<string, LucideIcon> = {
   reaction_received: Flame,
   league_position: TrendingDown,
   daily_challenge: Megaphone,
+  match_result: Trophy,
 };
 
 const RXN_EMOJI: Record<string, string> = {
@@ -269,6 +270,12 @@ function summarize(n: NotificationRow, locale: Locale): string {
         ? "⏰ Un match arrive — pronostique avant le coup d'envoi !"
         : "⏰ A match is coming up — predict before kickoff!";
     }
+    case "match_result": {
+      const score = `${p.home_score ?? 0}–${p.away_score ?? 0}`;
+      return locale === "fr"
+        ? `🏁 Un match que tu suis est terminé — score final ${score}.`
+        : `🏁 A match you follow has ended — final score ${score}.`;
+    }
     default:
       return n.type;
   }
@@ -293,6 +300,8 @@ function linkFor(n: NotificationRow): string | null {
       return "/leaderboard/global";
     case "match_kickoff":
       return p.match_id ? `/matches/${p.match_id}` : "/predict";
+    case "match_result":
+      return p.match_id ? `/matches/${p.match_id}` : null;
     default:
       return null;
   }
