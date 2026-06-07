@@ -233,10 +233,11 @@ function summarize(n: NotificationRow, locale: Locale): string {
       return locale === "fr"
         ? `Nouveau message dans la ligue : « ${String(p.preview ?? "").slice(0, 80)} »`
         : `New league post: "${String(p.preview ?? "").slice(0, 80)}"`;
-    case "daily_challenge":
-      return locale === "fr"
-        ? `📰 ${String(p.title ?? "Nouvelle actualité")}`
-        : `📰 ${String(p.title ?? "New post")}`;
+    case "daily_challenge": {
+      const icon = p.reason === "predict_deadline" ? "⏰" : "📰";
+      const fallback = locale === "fr" ? "Nouvelle actualité" : "New post";
+      return `${icon} ${String(p.title ?? fallback)}`;
+    }
     case "reaction_received": {
       const emoji = RXN_EMOJI[String(p.reaction)] ?? "👏";
       const what =
@@ -291,7 +292,7 @@ function linkFor(n: NotificationRow): string | null {
     case "comment_reply":
       return "/leagues";
     case "daily_challenge":
-      return "/news";
+      return typeof p.link === "string" && p.link ? p.link : "/news";
     case "reaction_received":
       return p.match_id ? `/matches/${p.match_id}` : null;
     case "comment_received":
