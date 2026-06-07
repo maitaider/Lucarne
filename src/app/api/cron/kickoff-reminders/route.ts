@@ -42,5 +42,19 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, within, sent: data ?? 0 });
+  // Kickoff reminders for matches the user explicitly follows (their calendar).
+  const { data: followed, error: followErr } = await admin.rpc(
+    "cron_notify_followed_kickoffs",
+    { p_within_minutes: within },
+  );
+  if (followErr) {
+    console.error("[cron:kickoff-reminders] followed failed:", followErr.message);
+  }
+
+  return NextResponse.json({
+    ok: true,
+    within,
+    sent: data ?? 0,
+    followed: followed ?? 0,
+  });
 }

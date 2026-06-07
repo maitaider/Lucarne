@@ -16,7 +16,7 @@ const CATEGORIES: Category[] = [
   { key: "polls", fr: "Votes sur mes sondages", en: "Votes on my polls", types: ["poll_vote"] },
   { key: "bets", fr: "Mes pronostics (validés/résolus)", en: "My predictions (validated/settled)", types: ["bet_validated", "bet_settled", "bet_rejected"] },
   { key: "standings", fr: "Classement (dépassements)", en: "Standings (overtakes)", types: ["league_position"] },
-  { key: "matches", fr: "Matchs (rappels, buts)", en: "Matches (reminders, goals)", types: ["match_kickoff", "match_goal"] },
+  { key: "matches", fr: "Matchs suivis (rappels, résultats)", en: "Followed matches (reminders, results)", types: ["match_kickoff", "match_goal", "match_result"] },
   { key: "news", fr: "Actus & annonces", en: "News & announcements", types: ["daily_challenge"] },
 ];
 

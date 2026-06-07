@@ -3,6 +3,7 @@ import { Link } from "@/i18n/navigation";
 import { Flag } from "@/components/team/flag";
 import { QuickBetButton } from "@/components/bet/quick-bet-button";
 import { MyPickBadge } from "@/components/bet/my-pick-badge";
+import { FollowMatchButton } from "@/components/match/follow-match-button";
 import { picksToExisting } from "@/lib/bets/picks-to-existing";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
@@ -13,12 +14,15 @@ export function MatchCard({
   locale,
   myPicks,
   canBet = true,
+  following,
 }: {
   match: MatchListItem;
   locale: Locale;
   myPicks?: MyPick[];
   /** When false, the bet-strip CTA becomes a paywall link to /buy-in. */
   canBet?: boolean;
+  /** Undefined → no follow bell; boolean → show the bell in that state. */
+  following?: boolean;
 }) {
   const isLive = match.status === "live";
   const isFinished = match.status === "finished";
@@ -48,6 +52,7 @@ export function MatchCard({
     match.away_score > match.home_score;
 
   return (
+    <div className="relative">
     <Link
       href={`/matches/${match.id}`}
       className={cn(
@@ -65,7 +70,12 @@ export function MatchCard({
       )}
 
       {/* Header */}
-      <div className="mb-3 flex items-center justify-between gap-2 text-xs">
+      <div
+        className={cn(
+          "mb-3 flex items-center justify-between gap-2 text-xs",
+          following !== undefined && "pr-8",
+        )}
+      >
         <div className="flex min-w-0 items-center gap-1.5 text-text-tertiary">
           <StageLabel stage={match.stage} group={match.group_label} locale={locale} />
           {match.venue && (
@@ -133,7 +143,18 @@ export function MatchCard({
           canBet={canBet}
         />
       )}
-    </Link>
+      </Link>
+      {following !== undefined && (
+        <div className="absolute right-2.5 top-2.5 z-20">
+          <FollowMatchButton
+            matchId={match.id}
+            initialFollowing={following}
+            locale={locale}
+            variant="icon"
+          />
+        </div>
+      )}
+    </div>
   );
 }
 

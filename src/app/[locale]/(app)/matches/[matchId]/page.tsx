@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { getMatchById, type MatchListItem } from "@/lib/matches/queries";
 import { getMyPicksByMatch } from "@/lib/bets/my-picks";
+import { listMyFollowedMatchIds } from "@/lib/matches/follows";
+import { FollowMatchButton } from "@/components/match/follow-match-button";
 import { OthersPredictions } from "@/components/match/others-predictions";
 import { CommunityConsensus } from "@/components/match/community-consensus";
 import { listPlayersForTeams, type PlayerRow } from "@/lib/players/queries";
@@ -49,7 +51,7 @@ export default async function MatchDetailPage({
   const teamIds = [match.home_team?.id, match.away_team?.id].filter(
     (id): id is string => Boolean(id),
   );
-  const [comments, myPicks, currentUserId, roster, groupTables] =
+  const [comments, myPicks, currentUserId, roster, groupTables, followedIds] =
     await Promise.all([
       listComments("match", matchId, 50),
       getMyPicksByMatch(),
@@ -65,7 +67,9 @@ export default async function MatchDetailPage({
       match.stage === "group"
         ? getGroupStandings()
         : Promise.resolve([] as GroupTable[]),
+      listMyFollowedMatchIds(),
     ]);
+  const isFollowing = followedIds.includes(matchId);
 
   const groupTable =
     match.stage === "group" && match.group_label
@@ -163,6 +167,16 @@ export default async function MatchDetailPage({
           </div>
         )}
       </section>
+
+      {/* Follow this match → adds it to your calendar + notifications */}
+      <div className="flex items-center justify-end">
+        <FollowMatchButton
+          matchId={matchId}
+          initialFollowing={isFollowing}
+          locale={L}
+          variant="full"
+        />
+      </div>
 
       {/* ── My prediction (synced) ─────────────────────────────────────── */}
       <Reveal className="mt-6">
