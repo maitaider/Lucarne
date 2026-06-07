@@ -13,11 +13,18 @@ import { usePathname } from "next/navigation";
  * Rendered as a direct child of the layout's `relative isolate` container, so
  * it sits behind ALL page content.
  */
-const NATION_BACKDROPS: { test: RegExp; src: string; position: string }[] = [
+const NATION_BACKDROPS: {
+  test: RegExp;
+  src: string;
+  position: string;
+  /** Content-dense page → keep the photo as faint ambiance, not a loud backdrop. */
+  dim?: boolean;
+}[] = [
   {
     test: /\/dashboard(\/|$)/,
     src: "/assets/lucarne/world-cup-2026/11-algeria-2026-home-celebration.png",
-    position: "object-[58%_26%]",
+    position: "object-[58%_22%]",
+    dim: true,
   },
   {
     test: /\/matches(\/|$)/,
@@ -91,10 +98,18 @@ export function AppAtmosphere() {
             fill
             priority
             sizes="100vw"
-            className={`object-cover ${nation.position} opacity-[0.88]`}
+            className={`object-cover ${nation.position} ${
+              nation.dim ? "opacity-[0.16]" : "opacity-[0.88]"
+            }`}
           />
         </div>
-        <div className="pointer-events-none fixed inset-0 -z-20 bg-[linear-gradient(180deg,rgba(5,6,5,0.22)_0%,rgba(5,6,5,0.4)_45%,rgba(5,6,5,0.62)_100%)]" />
+        <div
+          className={`pointer-events-none fixed inset-0 -z-20 ${
+            nation.dim
+              ? "bg-[linear-gradient(180deg,rgba(5,6,5,0.78)_0%,rgba(5,6,5,0.9)_48%,rgba(5,6,5,0.97)_100%)]"
+              : "bg-[linear-gradient(180deg,rgba(5,6,5,0.22)_0%,rgba(5,6,5,0.4)_45%,rgba(5,6,5,0.62)_100%)]"
+          }`}
+        />
         <AtmosphereGrid />
       </>
     );
