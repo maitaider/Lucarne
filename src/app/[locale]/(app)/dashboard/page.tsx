@@ -269,9 +269,8 @@ export default async function DashboardPage({
           <FollowedMatchesPanel matches={followedMatches} locale={L} />
         </div>
 
-        {/* Right rail — standings + your circle. Sticky on desktop so it tracks
-            the taller left column instead of leaving a void beside it. */}
-        <aside className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-[76px] lg:self-start">
+        {/* Right rail — standings + your circle */}
+        <aside className="flex min-w-0 flex-col gap-4">
           <SectionLabel icon={Trophy}>
             {L === "fr" ? "Classement & cercle" : "Standings & circle"}
           </SectionLabel>
@@ -635,8 +634,8 @@ function FeaturedTeam({
         align === "right" ? "items-end text-right" : "items-start text-left",
       )}
     >
-      <Flag isoCode={iso} size="xl" />
-      <span className="line-clamp-2 font-display text-base font-semibold leading-tight text-text-primary sm:text-lg">
+      <Flag isoCode={iso} size="2xl" />
+      <span className="line-clamp-2 font-display text-base font-semibold leading-tight text-text-primary sm:text-xl">
         {name}
       </span>
     </div>
