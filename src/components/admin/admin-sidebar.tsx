@@ -6,6 +6,7 @@ import {
   Goal,
   LayoutDashboard,
   LifeBuoy,
+  Megaphone,
   MessagesSquare,
   ScrollText,
   Settings,
@@ -32,6 +33,7 @@ const ITEMS: {
   { href: "/admin/users", icon: Users, fr: "Usagers", en: "Users" },
   { href: "/admin/chat", icon: MessagesSquare, fr: "Salon", en: "Lounge" },
   { href: "/admin/support", icon: LifeBuoy, fr: "Support", en: "Support" },
+  { href: "/admin/broadcast", icon: Megaphone, fr: "Diffusion", en: "Broadcast" },
   { href: "/admin/audit", icon: ScrollText, fr: "Audit", en: "Audit" },
   { href: "/admin/settings", icon: Settings, fr: "Réglages", en: "Settings" },
 ];

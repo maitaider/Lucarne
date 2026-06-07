@@ -1767,6 +1767,10 @@ export type Database = {
         Args: { p_within_minutes?: number }
         Returns: number
       }
+      cron_send_predict_reminders: {
+        Args: { p_within_days?: number }
+        Returns: string[]
+      }
       cron_sync_match: {
         Args: {
           p_away?: number
