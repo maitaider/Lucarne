@@ -1,5 +1,6 @@
 import "server-only";
 import { getSupabaseServer } from "@/lib/supabase/server";
+import { CHAT_BOT_USER_ID } from "@/lib/chat/constants";
 
 export type RecentSignup = {
   id: string;
@@ -41,6 +42,7 @@ export async function listRecentSignups(limit = 30): Promise<{
       "id, username, display_name, avatar_url, created_at, balance_cents, role",
     )
     .is("deleted_at", null)
+    .neq("id", CHAT_BOT_USER_ID) // exclude the salon-bot system account
     .order("created_at", { ascending: false })
     .limit(limit);
 

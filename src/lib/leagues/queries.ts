@@ -1,5 +1,6 @@
 import "server-only";
 import { getSupabaseServer } from "@/lib/supabase/server";
+import { CHAT_BOT_USER_ID } from "@/lib/chat/constants";
 
 /**
  * A `league_members` row's embedded `profiles` join is non-null only for an
@@ -214,6 +215,7 @@ export async function getLeagueStandings(
     .from("mv_league_standings")
     .select("*")
     .eq("league_id", leagueId)
+    .neq("user_id", CHAT_BOT_USER_ID) // hide the salon-bot system account
     .order("rank", { ascending: true });
   if (error) {
     console.error("[leagues:getLeagueStandings]", error);
@@ -228,6 +230,7 @@ export async function getGlobalStandings(limit = 100): Promise<StandingEntry[]> 
   const { data, error } = await supabase
     .from("mv_global_standings")
     .select("*")
+    .neq("user_id", CHAT_BOT_USER_ID) // hide the salon-bot system account
     .order("rank", { ascending: true })
     .limit(limit);
   if (error) return [];
@@ -251,7 +254,9 @@ export async function getStageStandings(
     p_matchday: matchday ?? undefined,
   });
   if (error || !data) return [];
-  return data.map(toStanding);
+  return data
+    .filter((r) => r.user_id !== CHAT_BOT_USER_ID) // hide the salon-bot
+    .map(toStanding);
 }
 
 export async function listLeagueInvitations(leagueId: string): Promise<Invitation[]> {
