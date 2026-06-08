@@ -148,11 +148,16 @@ export default async function DashboardPage({
       m.status === "scheduled" &&
       new Date(m.kickoff_at).getTime() - now > 60 * 60_000,
   ).length;
-  const picksDone = Array.from(myPicksByMatch.values()).filter((picks) =>
+  const groupPicksDone = Array.from(myPicksByMatch.values()).filter((picks) =>
     picks.some(
       (p) => p.bet_type === "exact_score" && p.status === "validated",
     ),
   ).length;
+  // Knockout ties are predicted via the bracket (tournament_predictions),
+  // not score bets — count them too so a finished bracket reads as complete
+  // (mirrors the /predict progress: group scores + knockout picks).
+  const knockoutPicksDone = Object.keys(prediction.knockout_winners).length;
+  const picksDone = Math.min(groupPicksDone + knockoutPicksDone, openCount);
 
   return (
     <main className="lk-stagger mx-auto flex w-full max-w-[1700px] flex-col gap-5 overflow-x-clip px-4 pb-24 pt-6 sm:px-6 lg:px-8">
