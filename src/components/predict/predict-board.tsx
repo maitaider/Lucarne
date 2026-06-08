@@ -705,7 +705,7 @@ export function PredictBoard({
         <ProgressBar
           className="mt-3"
           value={matchWinnersCount + knockoutPickedCount}
-          max={totalMatches + totalKnockouts}
+          max={totalMatches}
           accent="primary"
           label={
             locale === "fr"
