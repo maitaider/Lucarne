@@ -10,6 +10,7 @@ import {
   Loader2,
   Mail,
   Megaphone,
+  MessagesSquare,
   Send,
   AlertTriangle,
   CheckCircle2,
@@ -26,22 +27,29 @@ export function BroadcastForm({ locale, emailReady, recipientCount }: Props) {
   const fr = locale === "fr";
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
+  const [salon, setSalon] = useState(true);
   const [inApp, setInApp] = useState(true);
-  const [email, setEmail] = useState(false);
+  // Default email ON when a provider is configured — otherwise a configured
+  // provider sits unused and broadcasts silently skip email.
+  const [email, setEmail] = useState(emailReady);
   const [confirming, setConfirming] = useState(false);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const toast = useToast();
 
   const canSend =
-    subject.trim().length >= 3 && message.trim().length >= 3 && (inApp || email);
+    subject.trim().length >= 3 &&
+    message.trim().length >= 3 &&
+    (salon || inApp || email);
 
   function submit() {
     startTransition(async () => {
-      const res = await sendAdminBroadcast({ subject, message, inApp, email });
+      const res = await sendAdminBroadcast({ subject, message, salon, inApp, email });
       setConfirming(false);
       if (res.ok) {
         const parts: string[] = [];
+        if (salon && res.salon)
+          parts.push(fr ? "posté dans le salon" : "posted to lounge");
         if (res.inApp)
           parts.push(fr ? "notification in-app envoyée" : "in-app sent");
         if (email && !res.emailSkipped)
@@ -130,6 +138,18 @@ export function BroadcastForm({ locale, emailReady, recipientCount }: Props) {
           {fr ? "Canaux" : "Channels"}
         </h3>
         <div className="space-y-2.5">
+          <ChannelToggle
+            icon={MessagesSquare}
+            on={salon}
+            onToggle={() => setSalon((v) => !v)}
+            title={fr ? "Salon" : "Lounge"}
+            desc={
+              fr
+                ? "Le bot poste l'annonce dans le salon (chat), visible par tous."
+                : "The bot posts the announcement in the lounge (chat), visible to all."
+            }
+            available
+          />
           <ChannelToggle
             icon={Bell}
             on={inApp}
