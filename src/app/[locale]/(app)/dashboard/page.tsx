@@ -171,19 +171,20 @@ export default async function DashboardPage({
       ),
     );
 
-  // First lock: the earliest open match still missing a pick — past that
-  // moment the prediction set can no longer be completed in full. Hidden for
-  // non-payers (they can't pick; BuyInBanner carries their deadline).
-  const nextUnpicked = openMatches
-    .filter((m) => !isCovered(m))
-    .sort(
-      (a, b) =>
-        new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime(),
-    )[0];
+  // Next lock: the earliest open match still missing a pick (past that
+  // moment the prediction set can no longer be completed in full) — or, when
+  // everything is covered, the earliest open match, since picks stay
+  // editable until each match locks. Hidden for non-payers (they can't
+  // pick; BuyInBanner carries their deadline).
+  const byKickoff = (a: MatchListItem, b: MatchListItem) =>
+    new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime();
+  const nextToLock =
+    openMatches.filter((m) => !isCovered(m)).sort(byKickoff)[0] ??
+    [...openMatches].sort(byKickoff)[0];
   const nextLockAt =
-    buyIn.can_bet && nextUnpicked
+    buyIn.can_bet && nextToLock
       ? new Date(
-          new Date(nextUnpicked.kickoff_at).getTime() - 60 * 60_000,
+          new Date(nextToLock.kickoff_at).getTime() - 60 * 60_000,
         ).toISOString()
       : null;
 
