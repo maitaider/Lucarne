@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import { isAdmin } from "@/lib/admin/queries";
+import { getCurrentUser, isAdminRole } from "@/lib/profile/queries";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { listAllRecipients } from "./recipients";
 import { sendBroadcastEmail } from "@/lib/email/resend";
@@ -42,7 +42,8 @@ export async function sendAdminBroadcast(
   if (!parsed.success) {
     return { ok: false, message: parsed.error.issues[0]?.message ?? "Invalide" };
   }
-  if (!(await isAdmin())) {
+  const me = await getCurrentUser();
+  if (!me || !isAdminRole(me.role)) {
     return { ok: false, message: "Accès refusé" };
   }
   const admin = getSupabaseAdmin();
@@ -108,6 +109,22 @@ export async function sendAdminBroadcast(
       return { ok: false, message: `Courriel : ${res.error}` };
     }
   }
+
+  // Journalise la diffusion (historique admin). Non-bloquant.
+  const channels = [
+    salon ? "salon" : null,
+    inApp ? "in_app" : null,
+    email ? "email" : null,
+  ].filter((c): c is string => c !== null);
+  const { error: logError } = await admin.from("broadcasts").insert({
+    subject,
+    body: message,
+    channels,
+    recipient_count: recipientCount,
+    emailed,
+    sent_by: me.id,
+  });
+  if (logError) console.error("[broadcast] log insert failed:", logError.message);
 
   revalidatePath("/admin/broadcast");
   return { ok: true, inApp, salon: salonPosted, emailed, emailSkipped, recipientCount };

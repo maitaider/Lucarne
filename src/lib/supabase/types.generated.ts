@@ -196,6 +196,47 @@ export type Database = {
           },
         ]
       }
+      broadcasts: {
+        Row: {
+          id: string
+          subject: string
+          body: string
+          channels: string[]
+          recipient_count: number
+          emailed: number
+          sent_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          subject: string
+          body: string
+          channels?: string[]
+          recipient_count?: number
+          emailed?: number
+          sent_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          subject?: string
+          body?: string
+          channels?: string[]
+          recipient_count?: number
+          emailed?: number
+          sent_by?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "broadcasts_sent_by_fkey"
+            columns: ["sent_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_mutes: {
         Row: {
           created_at: string
