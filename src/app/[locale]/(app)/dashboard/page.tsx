@@ -142,22 +142,50 @@ export default async function DashboardPage({
   const myRow = user ? standings.find((s) => s.user_id === user.id) : null;
   const showMyRow = myRow && top5.every((r) => r.user_id !== myRow.user_id);
 
-  // Prediction progress for the next-step panel.
-  const openCount = allMatches.filter(
+  // Prediction progress for the next-step panel. "Open" mirrors the predict
+  // UI lock: a match is editable until kickoff − 1h. A match is covered by a
+  // confirmed score pick or — knockout ties are predicted via the bracket
+  // (tournament_predictions), not score bets — by a bracket winner (mirrors
+  // the /predict progress: group scores + knockout picks). Both sides of the
+  // progress are scoped to open matches so the panel can't claim "all picks
+  // in" while an open match is still missing one.
+  const isCovered = (m: MatchListItem) =>
+    (myPicksByMatch.get(m.id) ?? []).some(
+      (p) => p.bet_type === "exact_score" && p.status === "validated",
+    ) ||
+    (m.stage !== "group" &&
+      m.match_number != null &&
+      Boolean(prediction.knockout_winners[String(m.match_number)]));
+  const openMatches = allMatches.filter(
     (m) =>
       m.status === "scheduled" &&
       new Date(m.kickoff_at).getTime() - now > 60 * 60_000,
-  ).length;
-  const groupPicksDone = Array.from(myPicksByMatch.values()).filter((picks) =>
-    picks.some(
-      (p) => p.bet_type === "exact_score" && p.status === "validated",
-    ),
-  ).length;
-  // Knockout ties are predicted via the bracket (tournament_predictions),
-  // not score bets — count them too so a finished bracket reads as complete
-  // (mirrors the /predict progress: group scores + knockout picks).
-  const knockoutPicksDone = Object.keys(prediction.knockout_winners).length;
-  const picksDone = Math.min(groupPicksDone + knockoutPicksDone, openCount);
+  );
+  const openCount = openMatches.length;
+  const picksDone = openMatches.filter(isCovered).length;
+  const hasAnyPick =
+    Object.keys(prediction.knockout_winners).length > 0 ||
+    Array.from(myPicksByMatch.values()).some((picks) =>
+      picks.some(
+        (p) => p.bet_type === "exact_score" && p.status === "validated",
+      ),
+    );
+
+  // First lock: the earliest open match still missing a pick — past that
+  // moment the prediction set can no longer be completed in full. Hidden for
+  // non-payers (they can't pick; BuyInBanner carries their deadline).
+  const nextUnpicked = openMatches
+    .filter((m) => !isCovered(m))
+    .sort(
+      (a, b) =>
+        new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime(),
+    )[0];
+  const nextLockAt =
+    buyIn.can_bet && nextUnpicked
+      ? new Date(
+          new Date(nextUnpicked.kickoff_at).getTime() - 60 * 60_000,
+        ).toISOString()
+      : null;
 
   return (
     <main className="lk-stagger mx-auto flex w-full max-w-[1700px] flex-col gap-5 overflow-x-clip px-4 pb-24 pt-6 sm:px-6 lg:px-8">
@@ -187,12 +215,16 @@ export default async function DashboardPage({
                 <WorldTrophyMark className="size-3.5" />
                 {L === "fr" ? "Coupe du Monde 2026" : "FIFA World Cup 2026"}
               </Badge>
-              <LockCountdown
-                targetAt={buyIn.settings.tournament_start_at}
-                locale={L}
-                prefix={{ fr: "Coup d'envoi dans", en: "Kicks off in" }}
-                pastLabel={{ fr: "Tournoi en cours", en: "Tournament live" }}
-              />
+              {/* The next-step panel's lock pill takes over when actionable —
+                  avoid two countdowns in the same hero. */}
+              {!nextLockAt && (
+                <LockCountdown
+                  targetAt={buyIn.settings.tournament_start_at}
+                  locale={L}
+                  prefix={{ fr: "Coup d'envoi dans", en: "Kicks off in" }}
+                  pastLabel={{ fr: "Tournoi en cours", en: "Tournament live" }}
+                />
+              )}
             </div>
             <h1 className="font-display text-3xl font-semibold leading-[1.05] text-text-primary sm:text-4xl lg:text-[2.9rem]">
               {L === "fr" ? "Salut" : "Hey"}
@@ -246,6 +278,8 @@ export default async function DashboardPage({
             currency={buyIn.settings.currency}
             openCount={openCount}
             picksDone={picksDone}
+            hasAnyPick={hasAnyPick}
+            nextLockAt={nextLockAt}
           />
         </div>
       </section>
@@ -349,13 +383,21 @@ function NextStepPanel({
   currency,
   openCount,
   picksDone,
+  hasAnyPick,
+  nextLockAt,
 }: {
   locale: Locale;
   canBet: boolean;
   amountCents: number;
   currency: string;
+  /** Matches still editable (kickoff more than 1h away). */
   openCount: number;
+  /** Open matches covered by a score pick or a bracket winner. */
   picksDone: number;
+  /** True if the user ever placed a score pick or a bracket winner. */
+  hasAnyPick: boolean;
+  /** When the earliest still-unpicked match locks (kickoff − 1h), or null. */
+  nextLockAt: string | null;
 }) {
   const fr = locale === "fr";
   const remaining = Math.max(openCount - picksDone, 0);
@@ -379,7 +421,7 @@ function NextStepPanel({
       : `${amount} once to predict all 104 matches.`;
     ctaLabel = fr ? "Acheter ma place" : "Buy my seat";
     ctaHref = "/buy-in";
-  } else if (picksDone === 0) {
+  } else if (!hasAnyPick) {
     kicker = fr ? "On commence" : "Let's go";
     title = fr ? "Fais ton premier prono" : "Make your first pick";
     body = fr
@@ -421,8 +463,19 @@ function NextStepPanel({
         className="pointer-events-none absolute -right-3 -top-3 size-24 opacity-25"
       />
       <div className="relative">
-        <div className="text-[10px] font-bold uppercase tracking-wider text-gold-300">
-          {kicker}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-gold-300">
+            {kicker}
+          </div>
+          {nextLockAt && (
+            <LockCountdown
+              targetAt={nextLockAt}
+              locale={locale}
+              urgentWithinHours={3}
+              prefix={{ fr: "Prochain verrou dans", en: "Next lock in" }}
+              pastLabel={{ fr: "Verrou passé", en: "Lock passed" }}
+            />
+          )}
         </div>
         <h2 className="mt-1 font-display text-xl font-bold leading-tight text-text-primary">
           {title}
