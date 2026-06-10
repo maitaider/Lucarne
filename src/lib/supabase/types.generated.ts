@@ -1879,6 +1879,7 @@ export type Database = {
           won_count: number
         }[]
       }
+      predictions_locked: { Args: never; Returns: boolean }
       profile_recent_bets: {
         Args: { p_limit?: number; p_username: string }
         Returns: {
