@@ -1,5 +1,6 @@
 import "server-only";
 import { getSupabaseServer } from "@/lib/supabase/server";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 export type AppSettings = {
   token_price_cents: number;
@@ -171,6 +172,35 @@ export async function getOverviewStats(): Promise<OverviewStats> {
     // `confirmed` (its status flipped), so subtracting `refunded` again would
     // double-count and push net negative — it must NOT be subtracted.
     net_cents: collected,
+  };
+}
+
+export type PotTotal = {
+  /** Sum of CONFIRMED real_payments across all players (money in hand). */
+  total_collected_cents: number;
+  /** Distinct players with a confirmed payment. */
+  paying_users_count: number;
+};
+
+/**
+ * Global prize pool collected to date — read with the SERVICE-ROLE client
+ * because `admin_overview_stats` is `security_invoker`, so a regular player
+ * would only see their own payment rows (RLS). Exposes only the aggregate
+ * (no per-user data), so it is safe to surface on the player dashboard.
+ * Returns zeros when the service-role key is absent.
+ */
+export async function getPotTotal(): Promise<PotTotal> {
+  const empty: PotTotal = { total_collected_cents: 0, paying_users_count: 0 };
+  const admin = getSupabaseAdmin();
+  if (!admin) return empty;
+  const { data } = await admin
+    .from("admin_overview_stats")
+    .select("total_collected_cents, paying_users_count")
+    .maybeSingle();
+  if (!data) return empty;
+  return {
+    total_collected_cents: Number(data.total_collected_cents ?? 0),
+    paying_users_count: Number(data.paying_users_count ?? 0),
   };
 }
 
