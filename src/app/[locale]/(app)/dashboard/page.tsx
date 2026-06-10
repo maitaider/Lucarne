@@ -196,6 +196,15 @@ export default async function DashboardPage({
       )}`
     : null;
 
+  // Bracket completion for the hero brief — knockout winners chosen vs the
+  // number of knockout fixtures (fallback 32 if KO rounds aren't seeded yet).
+  const bracketTotal =
+    allMatches.filter((m) => m.stage !== "group").length || 32;
+  const bracketDone = Math.min(
+    Object.keys(prediction.knockout_winners).length,
+    bracketTotal,
+  );
+
   return (
     <main className="lk-stagger mx-auto flex w-full max-w-[1700px] flex-col gap-5 overflow-x-clip px-4 pb-24 pt-6 sm:px-6 lg:px-8">
       <LiveRefresh />
@@ -216,9 +225,10 @@ export default async function DashboardPage({
           className="pointer-events-none absolute -right-24 -top-24 -z-10 size-[420px] rounded-full bg-primary-500/10 blur-3xl"
         />
 
-        <div className="relative grid grid-cols-1 gap-6 p-4 sm:p-8 lg:grid-cols-[1.3fr_0.7fr] lg:items-center lg:gap-10">
+        <div className="relative p-4 sm:p-8">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.3fr_0.7fr] lg:items-stretch lg:gap-10">
           {/* Left — greeting + KPIs */}
-          <div className="min-w-0">
+          <div className="flex min-w-0 flex-col">
             <div className="mb-4 flex flex-wrap items-center gap-2">
               <Badge tone="gold" size="lg">
                 <WorldTrophyMark className="size-3.5" />
@@ -277,6 +287,19 @@ export default async function DashboardPage({
                 href={myRank ? "/leaderboard/global" : "/leagues"}
               />
             </div>
+
+            {/* Brief — personal at-a-glance, fills the column to match the
+                next-step panel height (lg:mt-auto) and removes the void. */}
+            <HeroBrief
+              championTeam={championTeam}
+              amountCents={buyIn.amount_cents}
+              currency={buyIn.settings.currency}
+              leagues={myLeagues}
+              bracketDone={bracketDone}
+              bracketTotal={bracketTotal}
+              canBet={buyIn.can_bet}
+              locale={L}
+            />
           </div>
 
           {/* Right — the one next step */}
@@ -291,6 +314,12 @@ export default async function DashboardPage({
             nextLockAt={nextLockAt}
             nextLockLabel={nextLockLabel}
           />
+          </div>
+
+          {/* Marquee — the next kickoff, spanning the full hero width */}
+          {featured && (
+            <HeroNextMatch match={featured} locale={L} className="mt-5" />
+          )}
         </div>
       </section>
 
@@ -379,6 +408,269 @@ function SectionLabel({
       </h2>
       <span className="h-px flex-1 bg-gradient-to-r from-white/[0.1] to-transparent" />
     </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Hero brief — personal at-a-glance row (champion · pot · league)           */
+/* -------------------------------------------------------------------------- */
+
+function HeroBrief({
+  championTeam,
+  amountCents,
+  currency,
+  leagues,
+  bracketDone,
+  bracketTotal,
+  canBet,
+  locale,
+}: {
+  championTeam: { name_fr: string; name_en: string; iso_code: string | null } | null;
+  amountCents: number;
+  currency: string;
+  leagues: Awaited<ReturnType<typeof listMyLeagues>>;
+  bracketDone: number;
+  bracketTotal: number;
+  canBet: boolean;
+  locale: Locale;
+}) {
+  const fr = locale === "fr";
+  const amount = (amountCents / 100).toLocaleString(fr ? "fr-CA" : "en-CA", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  });
+  const league = leagues[0] ?? null;
+  const bracketComplete = bracketTotal > 0 && bracketDone >= bracketTotal;
+
+  return (
+    <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:mt-auto lg:pt-6">
+      {/* Champion */}
+      <BriefTile
+        href={canBet ? "/predict?tab=finale" : "/buy-in"}
+        leading={
+          championTeam ? (
+            <Flag isoCode={championTeam.iso_code} size="md" />
+          ) : (
+            <BriefIcon icon={Crown} accent="gold" />
+          )
+        }
+        label={fr ? "Ton champion" : "Your champion"}
+        value={
+          championTeam
+            ? fr
+              ? championTeam.name_fr
+              : championTeam.name_en
+            : fr
+              ? "À désigner"
+              : "Pick one"
+        }
+        muted={!championTeam}
+      />
+      {/* Pot */}
+      <BriefTile
+        href="/how-it-works"
+        leading={<BriefIcon icon={Coins} accent="primary" />}
+        label={fr ? "Cagnotte" : "The pot"}
+        value={amount}
+        detail={fr ? "/ joueur" : "/ player"}
+      />
+      {/* League */}
+      <BriefTile
+        href={league ? `/leagues/${league.slug}` : "/leagues/new"}
+        leading={<BriefIcon icon={Users} accent="violet" />}
+        label={fr ? "Ta ligue" : "Your league"}
+        value={league ? league.name : fr ? "Créer" : "Create"}
+        detail={
+          league
+            ? `${league.member_count} ${fr ? "membres" : "members"}`
+            : fr
+              ? "entre amis"
+              : "with friends"
+        }
+        muted={!league}
+      />
+      {/* Bracket */}
+      <BriefTile
+        href={canBet ? "/predict?tab=finale" : "/buy-in"}
+        leading={<BriefIcon icon={Trophy} accent="gold" />}
+        label={fr ? "Phase finale" : "Bracket"}
+        value={`${bracketDone}/${bracketTotal}`}
+        detail={
+          bracketComplete
+            ? fr
+              ? "complète"
+              : "complete"
+            : fr
+              ? "vainqueurs"
+              : "winners"
+        }
+        muted={bracketDone === 0}
+      />
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Hero next-match marquee — the next kickoff, full hero width               */
+/* -------------------------------------------------------------------------- */
+
+function HeroNextMatch({
+  match,
+  locale,
+  className,
+}: {
+  match: MatchListItem;
+  locale: Locale;
+  className?: string;
+}) {
+  const fr = locale === "fr";
+  const isLive = match.status === "live";
+  const home = teamName(match.home_team, match.home_placeholder, locale);
+  const away = teamName(match.away_team, match.away_placeholder, locale);
+  const kickoff = new Date(match.kickoff_at);
+  const dateLabel = kickoff.toLocaleDateString(fr ? "fr-CA" : "en-CA", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  });
+  const timeLabel = kickoff.toLocaleTimeString(fr ? "fr-CA" : "en-CA", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "America/Toronto",
+  });
+  const city = match.venue
+    ? fr
+      ? match.venue.city_fr
+      : match.venue.city_en
+    : null;
+
+  return (
+    <Link
+      href={isLive ? "/live" : `/matches/${match.id}`}
+      className={cn(
+        "group flex flex-col gap-3 rounded-md border px-4 py-3 transition sm:flex-row sm:items-center sm:gap-4",
+        isLive
+          ? "border-violet-500/30 bg-violet-500/[0.06] hover:border-violet-500/50"
+          : "border-border-subtle bg-white/[0.025] hover:border-white/[0.14] hover:bg-white/[0.04]",
+        className,
+      )}
+    >
+      <Badge
+        tone={isLive ? "violet" : "primary"}
+        icon={isLive ? undefined : CalendarClock}
+        pulse={isLive}
+      >
+        {isLive
+          ? fr
+            ? "En direct"
+            : "Live now"
+          : fr
+            ? "Prochain coup d'envoi"
+            : "Next kickoff"}
+      </Badge>
+
+      <div className="flex min-w-0 flex-1 items-center gap-2.5">
+        <Flag isoCode={match.home_team?.iso_code ?? null} size="sm" />
+        <span className="truncate font-display text-sm font-semibold text-text-primary">
+          {home}
+        </span>
+        {isLive || match.status === "finished" ? (
+          <span className="shrink-0 font-display text-sm font-bold tabular-nums text-violet-200">
+            {match.home_score ?? 0}–{match.away_score ?? 0}
+          </span>
+        ) : (
+          <span className="shrink-0 text-xs font-medium text-text-tertiary">
+            vs
+          </span>
+        )}
+        <span className="truncate font-display text-sm font-semibold text-text-primary">
+          {away}
+        </span>
+        <Flag isoCode={match.away_team?.iso_code ?? null} size="sm" />
+      </div>
+
+      <div className="flex shrink-0 items-center gap-2 text-xs text-text-tertiary">
+        <span className="font-mono tabular-nums text-text-secondary">
+          {dateLabel} · {timeLabel}
+        </span>
+        {city && <span className="hidden sm:inline">· {city}</span>}
+        <ArrowRight
+          className="size-4 text-text-tertiary transition group-hover:translate-x-0.5 group-hover:text-text-primary"
+          strokeWidth={1.8}
+        />
+      </div>
+    </Link>
+  );
+}
+
+const BRIEF_ICON_ACCENT: Record<"gold" | "primary" | "violet", string> = {
+  gold: "bg-gold-500/12 text-gold-300 ring-gold-500/25",
+  primary: "bg-primary-500/12 text-primary-300 ring-primary-500/25",
+  violet: "bg-violet-500/12 text-violet-300 ring-violet-500/25",
+};
+
+function BriefIcon({
+  icon: Icon,
+  accent,
+}: {
+  icon: LucideIcon;
+  accent: "gold" | "primary" | "violet";
+}) {
+  return (
+    <span
+      className={cn(
+        "flex size-8 shrink-0 items-center justify-center rounded-md ring-1",
+        BRIEF_ICON_ACCENT[accent],
+      )}
+    >
+      <Icon className="size-4" strokeWidth={1.9} />
+    </span>
+  );
+}
+
+function BriefTile({
+  href,
+  leading,
+  label,
+  value,
+  detail,
+  muted,
+}: {
+  href: string;
+  leading: React.ReactNode;
+  label: string;
+  value: string;
+  detail?: string;
+  muted?: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group flex items-center gap-2.5 rounded-md border border-border-subtle bg-white/[0.02] px-2.5 py-2.5 transition hover:border-white/[0.14] hover:bg-white/[0.04]"
+    >
+      {leading}
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
+          {label}
+        </div>
+        <div
+          className={cn(
+            "truncate font-display text-sm font-semibold leading-tight",
+            muted ? "text-text-secondary" : "text-text-primary",
+          )}
+        >
+          {value}
+        </div>
+        {detail && (
+          <div className="truncate text-[10px] text-text-tertiary">{detail}</div>
+        )}
+      </div>
+      <ArrowRight
+        className="size-3.5 shrink-0 text-text-tertiary opacity-0 transition group-hover:translate-x-0.5 group-hover:opacity-100"
+        strokeWidth={2}
+      />
+    </Link>
   );
 }
 
