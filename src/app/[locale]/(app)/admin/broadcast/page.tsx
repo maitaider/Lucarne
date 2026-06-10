@@ -32,8 +32,8 @@ export default async function AdminBroadcastPage({
           </h2>
           <p className="mt-0.5 text-xs leading-5 text-text-secondary">
             {fr
-              ? "Envoie un message à tous les membres (notification in-app et/ou courriel)."
-              : "Send a message to all members (in-app notification and/or email)."}
+              ? "Envoie un message à tous les membres (salon, notification in-app et/ou courriel)."
+              : "Send a message to all members (lounge, in-app notification and/or email)."}
           </p>
         </div>
       </header>

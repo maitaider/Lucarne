@@ -6,18 +6,21 @@ import { isAdmin } from "@/lib/admin/queries";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { listAllRecipients } from "./recipients";
 import { sendBroadcastEmail } from "@/lib/email/resend";
+import { CHAT_BOT_USER_ID, GLOBAL_CHAT_ID } from "@/lib/chat/constants";
 
 const broadcastSchema = z.object({
   subject: z.string().trim().min(3).max(120),
   message: z.string().trim().min(3).max(4000),
   inApp: z.boolean().default(true),
   email: z.boolean().default(false),
+  salon: z.boolean().default(true),
 });
 
 export type BroadcastResult =
   | {
       ok: true;
       inApp: boolean;
+      salon: boolean;
       emailed: number;
       emailSkipped: boolean;
       recipientCount: number;
@@ -47,9 +50,27 @@ export async function sendAdminBroadcast(
     return { ok: false, message: "Service indisponible (service-role manquant)" };
   }
 
-  const { subject, message, inApp, email } = parsed.data;
-  if (!inApp && !email) {
-    return { ok: false, message: "Choisis au moins un canal (in-app ou courriel)." };
+  const { subject, message, inApp, email, salon } = parsed.data;
+  if (!inApp && !email && !salon) {
+    return {
+      ok: false,
+      message: "Choisis au moins un canal (salon, in-app ou courriel).",
+    };
+  }
+
+  // Salon: the system bot posts the announcement in the global chat. Capped to
+  // the 280-char comment limit; non-blocking so it can't sink the other channels.
+  let salonPosted = false;
+  if (salon) {
+    const body = `📣 ${subject}\n${message}`.slice(0, 280);
+    const { error } = await admin.from("comments").insert({
+      user_id: CHAT_BOT_USER_ID,
+      parent_type: "global",
+      parent_id: GLOBAL_CHAT_ID,
+      body,
+    });
+    salonPosted = !error;
+    if (error) console.error("[broadcast] salon post failed:", error.message);
   }
 
   // In-app: announcement post + notification to all active profiles.
@@ -89,5 +110,5 @@ export async function sendAdminBroadcast(
   }
 
   revalidatePath("/admin/broadcast");
-  return { ok: true, inApp, emailed, emailSkipped, recipientCount };
+  return { ok: true, inApp, salon: salonPosted, emailed, emailSkipped, recipientCount };
 }
