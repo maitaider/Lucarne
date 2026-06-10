@@ -36,7 +36,7 @@ export function Stat({
   const inner = (
     <div
       className={cn(
-        "flex items-center gap-2.5 rounded-sm border border-border-subtle bg-surface-1 p-2.5 shadow-card transition",
+        "flex items-center gap-2.5 rounded-md border border-border-subtle bg-surface-1/[0.45] p-2.5 shadow-card backdrop-blur-md transition",
         href && "group-hover:border-white/[0.18] group-hover:bg-surface-2",
         className,
       )}

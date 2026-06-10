@@ -647,7 +647,7 @@ function BriefTile({
   return (
     <Link
       href={href}
-      className="group flex items-center gap-2.5 rounded-md border border-border-subtle bg-white/[0.02] px-2.5 py-2.5 transition hover:border-white/[0.14] hover:bg-white/[0.04]"
+      className="group flex items-center gap-2.5 rounded-md border border-border-subtle bg-surface-1/[0.45] px-2.5 py-2.5 backdrop-blur-md transition hover:border-white/[0.14] hover:bg-surface-1/[0.6]"
     >
       {leading}
       <div className="min-w-0 flex-1">
