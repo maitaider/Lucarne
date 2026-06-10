@@ -23,6 +23,7 @@ import { getMyBuyInStatus } from "@/lib/profile/buy-in";
 import { getMyTournamentPrediction } from "@/lib/predictions/queries";
 import { BuyInBanner } from "@/components/paywall/buy-in-banner";
 import { LockCountdown } from "@/components/ui/lock-countdown";
+import { CountdownTimer } from "@/components/ui/countdown-timer";
 import { WorldTrophyMark } from "@/components/brand/sport-icons";
 import { BetStatusBadge } from "@/components/bet/bet-status-badge";
 import { QuickBetButton } from "@/components/bet/quick-bet-button";
@@ -187,6 +188,13 @@ export default async function DashboardPage({
           new Date(nextToLock.kickoff_at).getTime() - 60 * 60_000,
         ).toISOString()
       : null;
+  const nextLockLabel = nextToLock
+    ? `${teamName(nextToLock.home_team, nextToLock.home_placeholder, L)} – ${teamName(
+        nextToLock.away_team,
+        nextToLock.away_placeholder,
+        L,
+      )}`
+    : null;
 
   return (
     <main className="lk-stagger mx-auto flex w-full max-w-[1700px] flex-col gap-5 overflow-x-clip px-4 pb-24 pt-6 sm:px-6 lg:px-8">
@@ -281,6 +289,7 @@ export default async function DashboardPage({
             picksDone={picksDone}
             hasAnyPick={hasAnyPick}
             nextLockAt={nextLockAt}
+            nextLockLabel={nextLockLabel}
           />
         </div>
       </section>
@@ -386,6 +395,7 @@ function NextStepPanel({
   picksDone,
   hasAnyPick,
   nextLockAt,
+  nextLockLabel,
 }: {
   locale: Locale;
   canBet: boolean;
@@ -399,6 +409,8 @@ function NextStepPanel({
   hasAnyPick: boolean;
   /** When the earliest still-unpicked match locks (kickoff − 1h), or null. */
   nextLockAt: string | null;
+  /** Teams of that match, e.g. "Mexique – Afrique du Sud". */
+  nextLockLabel: string | null;
 }) {
   const fr = locale === "fr";
   const remaining = Math.max(openCount - picksDone, 0);
@@ -464,24 +476,26 @@ function NextStepPanel({
         className="pointer-events-none absolute -right-3 -top-3 size-24 opacity-25"
       />
       <div className="relative">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-gold-300">
-            {kicker}
-          </div>
-          {nextLockAt && (
-            <LockCountdown
-              targetAt={nextLockAt}
-              locale={locale}
-              urgentWithinHours={3}
-              prefix={{ fr: "Prochain verrou dans", en: "Next lock in" }}
-              pastLabel={{ fr: "Verrou passé", en: "Lock passed" }}
-            />
-          )}
+        <div className="text-[10px] font-bold uppercase tracking-wider text-gold-300">
+          {kicker}
         </div>
         <h2 className="mt-1 font-display text-xl font-bold leading-tight text-text-primary">
           {title}
         </h2>
         <p className="mt-1.5 text-sm leading-6 text-text-secondary">{body}</p>
+
+        {nextLockAt && (
+          <CountdownTimer
+            targetAt={nextLockAt}
+            locale={locale}
+            title={fr ? "Prochain verrou" : "Next lock"}
+            subtitle={nextLockLabel ?? undefined}
+            href="/predict"
+            urgentWithinHours={3}
+            pastLabel={fr ? "Verrou passé" : "Lock passed"}
+            className="mt-4"
+          />
+        )}
 
         {canBet && openCount > 0 && (
           <ProgressBar
