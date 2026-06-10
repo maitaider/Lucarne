@@ -15,9 +15,11 @@ import {
   XCircle,
   Minus,
   Clock,
+  Lock,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { getCurrentUser } from "@/lib/profile/queries";
+import { getCurrentUser, isAdminRole } from "@/lib/profile/queries";
+import { arePredictionsLocked } from "@/lib/predictions/queries";
 import {
   getPublicProfile,
   getProfileRecentBets,
@@ -53,9 +55,10 @@ export default async function PublicProfilePage({
 
   // A null profile means "not found OR not a viewable co-member" — 404 for both
   // so a non-member can't probe which usernames exist.
-  const [profile, me] = await Promise.all([
+  const [profile, me, predictionsLocked] = await Promise.all([
     getPublicProfile(username),
     getCurrentUser(),
+    arePredictionsLocked(),
   ]);
   if (!profile) notFound();
 
@@ -66,6 +69,11 @@ export default async function PublicProfilePage({
 
   const isSelf = me?.id === profile.user_id;
   const isAdmin = profile.role === "admin" || profile.role === "super_admin";
+  // Anti-copy: a player's picks are hidden until everything is locked (frozen,
+  // nothing left to copy). The viewer (self / admin) and a fired global lock
+  // lift the veil — matching the profile_recent_bets RPC's own gate.
+  const canSeeAllPicks =
+    isSelf || (me ? isAdminRole(me.role) : false) || predictionsLocked;
   const initials = (profile.display_name || profile.username)
     .split(/\s+/)
     .map((s) => s[0])
@@ -179,10 +187,15 @@ export default async function PublicProfilePage({
         badge={recent.length || undefined}
       >
         {recent.length === 0 ? (
-          <p className="py-6 text-center text-sm text-text-tertiary">
-            {fr
-              ? "Aucun pronostic pour le moment."
-              : "No predictions yet."}
+          <p className="flex items-center justify-center gap-2 py-6 text-center text-sm text-text-tertiary">
+            {!canSeeAllPicks && <Lock className="size-4 shrink-0" strokeWidth={1.8} />}
+            {canSeeAllPicks
+              ? fr
+                ? "Aucun pronostic pour le moment."
+                : "No predictions yet."
+              : fr
+                ? "Les pronostics de ce joueur seront visibles après le verrouillage (1 h avant le 1er match)."
+                : "This player's predictions become visible after the lock (1h before the first match)."}
           </p>
         ) : (
           <ul className="space-y-2">

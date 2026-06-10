@@ -24,6 +24,18 @@ export function emptyPrediction(): TournamentPrediction {
 }
 
 /**
+ * Server-only: are predictions globally locked (now ≥ the single deadline)?
+ * Mirrors the `predictions_locked()` RPC — true once everyone's picks are
+ * frozen, which gates revealing other players' predictions on their profile.
+ */
+export async function arePredictionsLocked(): Promise<boolean> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return false;
+  const supabase = await getSupabaseServer();
+  const { data } = await supabase.rpc("predictions_locked");
+  return data === true;
+}
+
+/**
  * Server-only: read the signed-in user's current bracket prediction.
  * Returns a fresh empty shell when none exists, so the UI doesn't have to
  * special-case the "no row yet" path.
