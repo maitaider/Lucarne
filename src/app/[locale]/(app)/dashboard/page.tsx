@@ -219,7 +219,7 @@ export default async function DashboardPage({
       )}
 
       {/* ============================ HERO ============================ */}
-      <section className="relative overflow-hidden rounded-lg border border-border-subtle bg-surface-1/[0.32] shadow-raised backdrop-blur-2xl">
+      <section className="relative overflow-hidden rounded-lg border border-border-subtle bg-surface-1/[0.2] shadow-raised backdrop-blur-2xl">
         <div
           aria-hidden
           className="pointer-events-none absolute -right-24 -top-24 -z-10 size-[420px] rounded-full bg-primary-500/10 blur-3xl"
