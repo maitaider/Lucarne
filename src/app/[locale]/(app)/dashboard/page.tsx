@@ -21,6 +21,7 @@ import { getMyPicksByMatch, type MyPick } from "@/lib/bets/my-picks";
 import { picksToExisting } from "@/lib/bets/picks-to-existing";
 import { getMyBuyInStatus } from "@/lib/profile/buy-in";
 import { getMyTournamentPrediction } from "@/lib/predictions/queries";
+import { getPotTotal } from "@/lib/admin/economy";
 import { BuyInBanner } from "@/components/paywall/buy-in-banner";
 import { LockCountdown } from "@/components/ui/lock-countdown";
 import { CountdownTimer } from "@/components/ui/countdown-timer";
@@ -74,6 +75,7 @@ export default async function DashboardPage({
     prediction,
     achievements,
     followedMatches,
+    potTotal,
   ] = await Promise.all([
     getCurrentUser(),
     getMyStats(),
@@ -89,6 +91,7 @@ export default async function DashboardPage({
       return u?.username ? getPlayerAchievements(u.username) : null;
     })(),
     getFollowedMatches(),
+    getPotTotal(),
   ]);
 
   // Resolve the user's predicted champion from the teams present in the
@@ -288,12 +291,25 @@ export default async function DashboardPage({
               />
             </div>
 
-            {/* Brief — personal at-a-glance, fills the column to match the
-                next-step panel height (lg:mt-auto) and removes the void. */}
+            {/* Season at-a-glance — fills the gap between the KPIs and the
+                brief tiles with the player's running performance. */}
+            <SeasonStrip
+              winRatePct={winRatePct}
+              exactCount={achievements?.exact_count ?? 0}
+              currentStreak={achievements?.current_streak ?? 0}
+              wonCount={achievements?.won_count ?? 0}
+              settledBets={stats.settled_bets}
+              locale={L}
+            />
+
+            {/* Brief — champion, pot, league, bracket — bottom-aligned with
+                the next-step panel (lg:mt-auto). */}
             <HeroBrief
               championTeam={championTeam}
               amountCents={buyIn.amount_cents}
               currency={buyIn.settings.currency}
+              potTotalCents={potTotal.total_collected_cents}
+              payingUsers={potTotal.paying_users_count}
               leagues={myLeagues}
               bracketDone={bracketDone}
               bracketTotal={bracketTotal}
@@ -371,15 +387,7 @@ export default async function DashboardPage({
         <SectionLabel icon={Sparkles}>
           {L === "fr" ? "Le tournoi" : "The tournament"}
         </SectionLabel>
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
-          <ChampionCard team={championTeam} canBet={buyIn.can_bet} locale={L} />
-          <CagnotteCard
-            amountCents={buyIn.amount_cents}
-            currency={buyIn.settings.currency}
-            shares={buyIn.settings.prize_distribution.shares ?? []}
-            rakePct={buyIn.settings.prize_distribution.house_rake_pct ?? 0}
-            locale={L}
-          />
+        <div className="grid grid-cols-1 gap-5">
           <TournamentCard startAt={buyIn.settings.tournament_start_at} locale={L} />
         </div>
       </section>
@@ -412,6 +420,62 @@ function SectionLabel({
 }
 
 /* -------------------------------------------------------------------------- */
+/*  Season strip — running performance, fills the hero's left column          */
+/* -------------------------------------------------------------------------- */
+
+function SeasonStrip({
+  winRatePct,
+  exactCount,
+  currentStreak,
+  wonCount,
+  settledBets,
+  locale,
+}: {
+  winRatePct: number;
+  exactCount: number;
+  currentStreak: number;
+  wonCount: number;
+  settledBets: number;
+  locale: Locale;
+}) {
+  const fr = locale === "fr";
+  const started = settledBets > 0;
+  const items: { label: string; value: string }[] = [
+    { label: fr ? "Réussite" : "Win rate", value: started ? `${winRatePct}%` : "—" },
+    { label: fr ? "Scores exacts" : "Exact", value: started ? `${exactCount}` : "—" },
+    { label: fr ? "Série" : "Streak", value: started ? `${currentStreak}` : "—" },
+    { label: fr ? "Victoires" : "Wins", value: started ? `${wonCount}` : "—" },
+  ];
+  return (
+    <div className="mt-4 rounded-md border border-border-subtle bg-surface-1/[0.45] px-3.5 py-3 backdrop-blur-md">
+      <div className="flex items-center justify-between">
+        <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
+          <Sparkles className="size-3 text-primary-300" strokeWidth={2} />
+          {fr ? "Ta saison" : "Your season"}
+        </span>
+        {!started && (
+          <span className="text-[10px] text-text-tertiary">
+            {fr ? "dès le coup d'envoi" : "from kickoff"}
+          </span>
+        )}
+      </div>
+      <div className="mt-2.5 grid grid-cols-4 gap-2">
+        {items.map((it) => (
+          <div key={it.label} className="min-w-0">
+            <div className="font-display text-lg font-bold tabular-nums leading-none text-text-primary">
+              {it.value}
+            </div>
+            <div className="mt-1 truncate text-[10px] text-text-tertiary">
+              {it.label}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
 /*  Hero brief — personal at-a-glance row (champion · pot · league)           */
 /* -------------------------------------------------------------------------- */
 
@@ -419,6 +483,8 @@ function HeroBrief({
   championTeam,
   amountCents,
   currency,
+  potTotalCents,
+  payingUsers,
   leagues,
   bracketDone,
   bracketTotal,
@@ -428,6 +494,8 @@ function HeroBrief({
   championTeam: { name_fr: string; name_en: string; iso_code: string | null } | null;
   amountCents: number;
   currency: string;
+  potTotalCents: number;
+  payingUsers: number;
   leagues: Awaited<ReturnType<typeof listMyLeagues>>;
   bracketDone: number;
   bracketTotal: number;
@@ -436,6 +504,11 @@ function HeroBrief({
 }) {
   const fr = locale === "fr";
   const amount = (amountCents / 100).toLocaleString(fr ? "fr-CA" : "en-CA", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  });
+  const potAmount = (potTotalCents / 100).toLocaleString(fr ? "fr-CA" : "en-CA", {
     style: "currency",
     currency,
     maximumFractionDigits: 0,
@@ -467,13 +540,20 @@ function HeroBrief({
         }
         muted={!championTeam}
       />
-      {/* Pot */}
+      {/* Pot — total collected to date (falls back to the per-seat price
+          before anyone has paid). */}
       <BriefTile
         href="/how-it-works"
         leading={<BriefIcon icon={Coins} accent="primary" />}
         label={fr ? "Cagnotte" : "The pot"}
-        value={amount}
-        detail={fr ? "/ joueur" : "/ player"}
+        value={potTotalCents > 0 ? potAmount : amount}
+        detail={
+          potTotalCents > 0
+            ? `${payingUsers} ${fr ? "joueurs" : "players"}`
+            : fr
+              ? "/ joueur"
+              : "/ player"
+        }
       />
       {/* League */}
       <BriefTile
@@ -656,7 +736,7 @@ function BriefTile({
         </div>
         <div
           className={cn(
-            "truncate font-display text-sm font-semibold leading-tight",
+            "truncate font-display text-[15px] font-bold leading-tight",
             muted ? "text-text-secondary" : "text-text-primary",
           )}
         >
