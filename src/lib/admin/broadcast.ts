@@ -59,11 +59,12 @@ export async function sendAdminBroadcast(
     };
   }
 
-  // Salon: the system bot posts the announcement in the global chat. Capped to
-  // the 280-char comment limit; non-blocking so it can't sink the other channels.
+  // Salon: the system bot posts the announcement in the global chat. The bot is
+  // allowed up to 4200 chars (vs 280 for players) so the full message shows;
+  // non-blocking so it can't sink the other channels.
   let salonPosted = false;
   if (salon) {
-    const body = `📣 ${subject}\n${message}`.slice(0, 280);
+    const body = `📣 ${subject}\n${message}`.slice(0, 4200);
     const { error } = await admin.from("comments").insert({
       user_id: CHAT_BOT_USER_ID,
       parent_type: "global",
