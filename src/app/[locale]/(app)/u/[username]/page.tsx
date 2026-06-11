@@ -222,6 +222,7 @@ export default async function PublicProfilePage({
                 title={fr ? "Résultats" : "Results"}
                 bets={settledBets}
                 locale={L}
+                accent="primary"
               />
             )}
             {upcomingBets.length > 0 && (
@@ -229,6 +230,7 @@ export default async function PublicProfilePage({
                 title={fr ? "À venir" : "Upcoming"}
                 bets={upcomingBets}
                 locale={L}
+                accent="violet"
               />
             )}
           </div>
@@ -243,14 +245,21 @@ function PredGroup({
   title,
   bets,
   locale,
+  accent,
 }: {
   title: string;
   bets: ProfileBet[];
   locale: Locale;
+  accent: "primary" | "violet";
 }) {
   return (
     <div>
-      <h3 className="mb-2.5 flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+      <h3
+        className={cn(
+          "mb-2.5 flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider",
+          accent === "primary" ? "text-primary-300" : "text-violet-300",
+        )}
+      >
         {title}
         <span className="rounded-full bg-white/[0.07] px-1.5 py-0.5 font-mono tabular-nums text-text-tertiary">
           {bets.length}
@@ -347,43 +356,62 @@ function RecentBetRow({ bet, locale }: { bet: ProfileBet; locale: Locale }) {
     bet.match_id !== null && (bet.home.name_fr !== null || bet.away.name_fr !== null);
   const predicted = parseScore(bet.payload);
 
+  const finished = bet.home.score !== null || bet.away.score !== null;
+  const stripTone =
+    bet.result === "won"
+      ? "bg-primary-400"
+      : bet.result === "lost"
+        ? "bg-error"
+        : bet.result === null && bet.match_status !== "finished"
+          ? "bg-violet-400"
+          : "bg-white/15";
+
   const inner = (
-    <div className="flex items-center gap-3 rounded-sm border border-white/[0.06] bg-white/[0.025] px-3 py-2.5 transition hover:border-white/[0.12] hover:bg-white/[0.045]">
-      <div className="flex min-w-0 flex-1 items-center gap-2">
-        {hasMatch ? (
-          <>
-            <Flag isoCode={bet.home.iso} size="sm" />
-            <span className="min-w-0 flex-1 truncate text-right text-sm font-semibold text-text-primary">
-              {teamName(bet.home, fr)}
+    <div className="overflow-hidden rounded-md border border-white/[0.06] bg-white/[0.025] transition hover:border-white/[0.12] hover:bg-white/[0.045]">
+      <div className="flex items-stretch">
+        <span aria-hidden className={cn("w-1 shrink-0", stripTone)} />
+        <div className="flex min-w-0 flex-1 items-center gap-2 px-3 py-2.5">
+          {hasMatch ? (
+            <>
+              <Flag isoCode={bet.home.iso} size="sm" />
+              <span className="min-w-0 flex-1 truncate text-right text-sm font-semibold text-text-primary">
+                {teamName(bet.home, fr)}
+              </span>
+              {finished ? (
+                <span className="shrink-0 font-display text-sm font-bold tabular-nums text-text-secondary">
+                  {fmtScore(bet.home.score)}
+                  <span className="mx-0.5 text-text-tertiary">:</span>
+                  {fmtScore(bet.away.score)}
+                </span>
+              ) : (
+                <span className="shrink-0 text-xs font-medium text-text-tertiary">
+                  vs
+                </span>
+              )}
+              <span className="min-w-0 flex-1 truncate text-sm font-semibold text-text-primary">
+                {teamName(bet.away, fr)}
+              </span>
+              <Flag isoCode={bet.away.iso} size="sm" />
+            </>
+          ) : (
+            <span className="truncate text-sm font-semibold text-text-primary">
+              {betTypeLabel(bet.bet_type, fr)}
             </span>
-            <span className="shrink-0 font-display text-sm font-bold tabular-nums text-text-secondary">
-              {fmtScore(bet.home.score)}
-              <span className="mx-0.5 text-text-tertiary">:</span>
-              {fmtScore(bet.away.score)}
+          )}
+        </div>
+        <div className="flex shrink-0 items-center gap-2 pr-3">
+          {predicted && (
+            <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[11px] tabular-nums text-text-secondary">
+              {fr ? "Prono" : "Pick"} {predicted.home}–{predicted.away}
             </span>
-            <span className="min-w-0 flex-1 truncate text-sm font-semibold text-text-primary">
-              {teamName(bet.away, fr)}
-            </span>
-            <Flag isoCode={bet.away.iso} size="sm" />
-          </>
-        ) : (
-          <span className="truncate text-sm font-semibold text-text-primary">
-            {betTypeLabel(bet.bet_type, fr)}
-          </span>
-        )}
-      </div>
-      <div className="flex shrink-0 items-center gap-2">
-        {predicted && (
-          <span className="hidden rounded-full border border-white/10 px-2 py-0.5 text-[11px] tabular-nums text-text-tertiary sm:inline">
-            {fr ? "Prono" : "Pick"} {predicted.home}–{predicted.away}
-          </span>
-        )}
-        <ResultBadge
-          result={bet.result}
-          points={bet.points}
-          matchStatus={bet.match_status}
-          fr={fr}
-        />
+          )}
+          <ResultBadge
+            result={bet.result}
+            points={bet.points}
+            matchStatus={bet.match_status}
+            fr={fr}
+          />
+        </div>
       </div>
     </div>
   );

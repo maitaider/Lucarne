@@ -89,7 +89,10 @@ export function SectionPanel({
               </span>
             )}
             <div className="min-w-0">
-              <h2 className="font-display text-sm font-semibold text-text-primary sm:text-base">
+              <h2
+                className="font-display text-base font-bold leading-tight sm:text-lg"
+                style={{ color: "var(--color-text-primary)" }}
+              >
                 {title}
               </h2>
               {description && (
