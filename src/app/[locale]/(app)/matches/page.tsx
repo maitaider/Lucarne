@@ -2,6 +2,7 @@ import { setRequestLocale } from "next-intl/server";
 import { listMatches, groupMatchesByDate } from "@/lib/matches/queries";
 import { getGroupStandings } from "@/lib/matches/group-standings";
 import { getMyPicksByMatch, type MyPick } from "@/lib/bets/my-picks";
+import { getCommunityOdds, type CommunityOdds } from "@/lib/bets/community-odds";
 import { listMyFollowedMatchIds } from "@/lib/matches/follows";
 import { getMyBuyInStatus } from "@/lib/profile/buy-in";
 import { BuyInBanner } from "@/components/paywall/buy-in-banner";
@@ -51,6 +52,10 @@ export default async function MatchesPage({
       listMyFollowedMatchIds(),
     ]);
   const followedIds = new Set(followedIdsArr);
+
+  // Group consensus per match (anonymous % home/draw/away) — shown on every
+  // calendar card now that group picks are public (anti-cheat dropped).
+  const consensus = await getCommunityOdds(allMatches.map((m) => m.id));
 
   const liveCount = allMatches.filter((m) => m.status === "live").length;
   const finishedCount = allMatches.filter((m) => m.status === "finished").length;
@@ -153,6 +158,7 @@ export default async function MatchesPage({
           myPicksByMatch={myPicksByMatch}
           canBet={buyIn.can_bet}
           followedIds={followedIds}
+          consensus={consensus}
         />
       )}
 
@@ -163,6 +169,7 @@ export default async function MatchesPage({
           myPicksByMatch={myPicksByMatch}
           canBet={buyIn.can_bet}
           followedIds={followedIds}
+          consensus={consensus}
         />
       )}
     </main>
@@ -384,6 +391,7 @@ function CalendarView({
   myPicksByMatch,
   canBet,
   followedIds,
+  consensus,
 }: {
   matches: Awaited<ReturnType<typeof listMatches>>;
   stage?: string;
@@ -392,6 +400,7 @@ function CalendarView({
   myPicksByMatch: Map<string, MyPick[]>;
   canBet: boolean;
   followedIds: Set<string>;
+  consensus: Map<string, CommunityOdds>;
 }) {
   let filtered = matches;
   if (stage && stage !== "all") filtered = filtered.filter((m) => m.stage === stage);
@@ -427,6 +436,7 @@ function CalendarView({
                     myPicks={myPicksByMatch.get(m.id)}
                     canBet={canBet}
                     following={followedIds.has(m.id)}
+                    odds={consensus.get(m.id)}
                   />
                 ))}
               </div>
@@ -486,12 +496,14 @@ function KnockoutView({
   myPicksByMatch,
   canBet,
   followedIds,
+  consensus,
 }: {
   matches: Awaited<ReturnType<typeof listMatches>>;
   locale: Locale;
   myPicksByMatch: Map<string, MyPick[]>;
   canBet: boolean;
   followedIds: Set<string>;
+  consensus: Map<string, CommunityOdds>;
 }) {
   const knockoutMatches = matches.filter(
     (m) => m.stage !== "group" && m.stage !== "third_place",
@@ -527,6 +539,7 @@ function KnockoutView({
                 myPicks={myPicksByMatch.get(m.id)}
                 canBet={canBet}
                 following={followedIds.has(m.id)}
+                odds={consensus.get(m.id)}
               />
             ))}
           </div>

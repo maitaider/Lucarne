@@ -8,6 +8,7 @@ import { picksToExisting } from "@/lib/bets/picks-to-existing";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
 import type { MyPick } from "@/lib/bets/my-picks";
+import type { CommunityOdds } from "@/lib/bets/community-odds";
 
 export function MatchCard({
   match,
@@ -15,6 +16,7 @@ export function MatchCard({
   myPicks,
   canBet = true,
   following,
+  odds,
 }: {
   match: MatchListItem;
   locale: Locale;
@@ -23,6 +25,8 @@ export function MatchCard({
   canBet?: boolean;
   /** Undefined → no follow bell; boolean → show the bell in that state. */
   following?: boolean;
+  /** Group consensus (% home/draw/away). Strip hidden when no picks yet. */
+  odds?: CommunityOdds;
 }) {
   const isLive = match.status === "live";
   const isFinished = match.status === "finished";
@@ -129,6 +133,15 @@ export function MatchCard({
         />
       </div>
 
+      {/* Group consensus — anonymous % of the pool, now shown on every card
+         (anti-cheat reveal dropped). Hidden until at least one pick exists. */}
+      <ConsensusStrip
+        odds={odds}
+        homeTeam={match.home_team}
+        awayTeam={match.away_team}
+        locale={locale}
+      />
+
       {/* Bet CTA bottom strip (scheduled only, opens QuickBet sheet).
          Pre-fills with existing picks so user can edit instead of duplicating. */}
       {isScheduled && (
@@ -154,6 +167,66 @@ export function MatchCard({
           />
         </div>
       )}
+    </div>
+  );
+}
+
+/** Compact 3-segment group-consensus bar (home win / draw / away win). */
+function ConsensusStrip({
+  odds,
+  homeTeam,
+  awayTeam,
+  locale,
+}: {
+  odds?: CommunityOdds;
+  homeTeam: { fifa_code?: string; name_fr: string; name_en: string } | null;
+  awayTeam: { fifa_code?: string; name_fr: string; name_en: string } | null;
+  locale: Locale;
+}) {
+  if (!odds || odds.total < 1) return null;
+  const fr = locale === "fr";
+  const homeCode =
+    homeTeam?.fifa_code ?? (fr ? "DOM" : "HOME");
+  const awayCode =
+    awayTeam?.fifa_code ?? (fr ? "EXT" : "AWAY");
+
+  const segs = [
+    { pct: odds.home, label: homeCode, cls: "bg-primary-500/70" },
+    { pct: odds.draw, label: fr ? "Nul" : "Draw", cls: "bg-white/25" },
+    { pct: odds.away, label: awayCode, cls: "bg-violet-500/70" },
+  ];
+
+  return (
+    <div className="mt-3 border-t border-white/[0.06] pt-2.5">
+      <div className="mb-1.5 flex items-center justify-between text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
+        <span>{fr ? "Le groupe penche" : "Group leans"}</span>
+        <span className="tabular-nums">
+          {odds.total} {fr ? "pronos" : "picks"}
+        </span>
+      </div>
+      <div className="flex h-1.5 overflow-hidden rounded-full bg-white/[0.05]">
+        {segs.map((s, i) =>
+          s.pct > 0 ? (
+            <span
+              key={i}
+              className={s.cls}
+              style={{ width: `${s.pct}%` }}
+              aria-hidden
+            />
+          ) : null,
+        )}
+      </div>
+      <div className="mt-1.5 flex items-center justify-between text-[10px] tabular-nums text-text-secondary">
+        <span className="font-semibold text-primary-300">
+          {homeCode} {odds.home}%
+        </span>
+        <span className="text-text-tertiary">
+          {fr ? "Nul" : "Draw"} {odds.draw}%
+        </span>
+        <span className="font-semibold text-violet-300">
+          {odds.away}% {awayCode}
+        </span>
+      </div>
     </div>
   );
 }
