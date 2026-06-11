@@ -89,6 +89,15 @@ export default async function PublicProfilePage({
     0,
   );
 
+  // Split predictions into settled (with results) and upcoming, shown as two
+  // grouped grids rather than one long flat list.
+  const settledBets = recent.filter(
+    (b) => b.result === "won" || b.result === "lost",
+  );
+  const upcomingBets = recent.filter(
+    (b) => b.result !== "won" && b.result !== "lost",
+  );
+
   return (
     <AppPageShell width="wide">
       <div>
@@ -179,16 +188,25 @@ export default async function PublicProfilePage({
       {/* ── Badges & streaks ─────────────────────────────────────────────── */}
       <PlayerBadges achievements={achievements} locale={L} />
 
-      {/* ── Recent predictions (validated + settled) ─────────────────────── */}
+      {/* ── Predictions — grouped: results + upcoming ────────────────────── */}
       <SectionPanel
         icon={History}
         accent="violet"
-        title={fr ? "Derniers pronostics" : "Latest predictions"}
+        title={fr ? "Pronostics" : "Predictions"}
         badge={recent.length || undefined}
+        description={
+          recent.length > 0
+            ? fr
+              ? `${upcomingBets.length} à venir · ${settledBets.length} terminé${settledBets.length > 1 ? "s" : ""}`
+              : `${upcomingBets.length} upcoming · ${settledBets.length} settled`
+            : undefined
+        }
       >
         {recent.length === 0 ? (
-          <p className="flex items-center justify-center gap-2 py-6 text-center text-sm text-text-tertiary">
-            {!canSeeAllPicks && <Lock className="size-4 shrink-0" strokeWidth={1.8} />}
+          <p className="flex items-center justify-center gap-2 py-8 text-center text-sm text-text-secondary">
+            {!canSeeAllPicks && (
+              <Lock className="size-4 shrink-0 text-text-tertiary" strokeWidth={1.8} />
+            )}
             {canSeeAllPicks
               ? fr
                 ? "Aucun pronostic pour le moment."
@@ -198,14 +216,52 @@ export default async function PublicProfilePage({
                 : "This player's predictions become visible after the lock (1h before the first match)."}
           </p>
         ) : (
-          <ul className="space-y-2">
-            {recent.map((bet) => (
-              <RecentBetRow key={bet.bet_id} bet={bet} locale={L} />
-            ))}
-          </ul>
+          <div className="space-y-6">
+            {settledBets.length > 0 && (
+              <PredGroup
+                title={fr ? "Résultats" : "Results"}
+                bets={settledBets}
+                locale={L}
+              />
+            )}
+            {upcomingBets.length > 0 && (
+              <PredGroup
+                title={fr ? "À venir" : "Upcoming"}
+                bets={upcomingBets}
+                locale={L}
+              />
+            )}
+          </div>
         )}
       </SectionPanel>
     </AppPageShell>
+  );
+}
+
+/** A labelled group of predictions, laid out as a responsive 2-column grid. */
+function PredGroup({
+  title,
+  bets,
+  locale,
+}: {
+  title: string;
+  bets: ProfileBet[];
+  locale: Locale;
+}) {
+  return (
+    <div>
+      <h3 className="mb-2.5 flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-text-secondary">
+        {title}
+        <span className="rounded-full bg-white/[0.07] px-1.5 py-0.5 font-mono tabular-nums text-text-tertiary">
+          {bets.length}
+        </span>
+      </h3>
+      <ul className="grid gap-2 lg:grid-cols-2">
+        {bets.map((bet) => (
+          <RecentBetRow key={bet.bet_id} bet={bet} locale={locale} />
+        ))}
+      </ul>
+    </div>
   );
 }
 

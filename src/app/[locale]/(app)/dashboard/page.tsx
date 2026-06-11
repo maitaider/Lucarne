@@ -325,6 +325,7 @@ export default async function DashboardPage({
           <NextStepPanel
             locale={L}
             canBet={buyIn.can_bet}
+            deadlinePassed={buyIn.deadline_passed}
             amountCents={buyIn.amount_cents}
             currency={buyIn.settings.currency}
             openCount={openCount}
@@ -765,6 +766,7 @@ function BriefTile({
 function NextStepPanel({
   locale,
   canBet,
+  deadlinePassed,
   amountCents,
   currency,
   openCount,
@@ -775,6 +777,8 @@ function NextStepPanel({
 }: {
   locale: Locale;
   canBet: boolean;
+  /** Access window closed (tournament started) — read-only, no buy CTA. */
+  deadlinePassed: boolean;
   amountCents: number;
   currency: string;
   /** Matches still editable (kickoff more than 1h away). */
@@ -797,7 +801,22 @@ function NextStepPanel({
   let ctaLabel: string;
   let ctaHref: string;
 
-  if (!canBet) {
+  if (!canBet && deadlinePassed) {
+    // Access window closed (tournament started) — read-only, NO buy CTA.
+    kicker = fr ? "Tournoi en cours" : "Tournament live";
+    title = hasAnyPick
+      ? fr
+        ? "Suis le tournoi"
+        : "Follow the tournament"
+      : fr
+        ? "Accès fermé"
+        : "Access closed";
+    body = fr
+      ? "Les pronostics sont verrouillés. Suis les matchs et le classement en direct."
+      : "Predictions are locked. Follow the matches and standings live.";
+    ctaLabel = fr ? "Voir le classement" : "View standings";
+    ctaHref = "/leaderboard/global";
+  } else if (!canBet) {
     const amount = (amountCents / 100).toLocaleString(fr ? "fr-CA" : "en-CA", {
       style: "currency",
       currency,
