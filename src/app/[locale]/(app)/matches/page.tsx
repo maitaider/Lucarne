@@ -54,8 +54,12 @@ export default async function MatchesPage({
   const followedIds = new Set(followedIdsArr);
 
   // Group consensus per match (anonymous % home/draw/away) — shown on every
-  // calendar card now that group picks are public (anti-cheat dropped).
-  const consensus = await getCommunityOdds(allMatches.map((m) => m.id));
+  // calendar/knockout card now that group picks are public (anti-cheat
+  // dropped). Skipped on the groups tab, which renders no MatchCard.
+  const consensus =
+    currentView === "groups"
+      ? new Map<string, CommunityOdds>()
+      : await getCommunityOdds(allMatches.map((m) => m.id));
 
   const liveCount = allMatches.filter((m) => m.status === "live").length;
   const finishedCount = allMatches.filter((m) => m.status === "finished").length;

@@ -171,6 +171,11 @@ export function MatchCard({
   );
 }
 
+// Below this many picks we don't show a "group leans" bar — too few to read
+// as a trend (matches the detail-page CommunityConsensus threshold so the two
+// surfaces never disagree). Not anti-cheat: individual picks are public.
+const CONSENSUS_MIN_SAMPLE = 3;
+
 /** Compact 3-segment group-consensus bar (home win / draw / away win). */
 function ConsensusStrip({
   odds,
@@ -183,17 +188,25 @@ function ConsensusStrip({
   awayTeam: { fifa_code?: string; name_fr: string; name_en: string } | null;
   locale: Locale;
 }) {
-  if (!odds || odds.total < 1) return null;
+  if (!odds || odds.total < CONSENSUS_MIN_SAMPLE) return null;
   const fr = locale === "fr";
-  const homeCode =
-    homeTeam?.fifa_code ?? (fr ? "DOM" : "HOME");
-  const awayCode =
-    awayTeam?.fifa_code ?? (fr ? "EXT" : "AWAY");
+  const homeCode = homeTeam?.fifa_code ?? (fr ? "DOM" : "HOME");
+  const awayCode = awayTeam?.fifa_code ?? (fr ? "EXT" : "AWAY");
+
+  // Independently-rounded shares can sum to 99/101 — absorb the drift into the
+  // largest segment so the bar and legend always total 100.
+  const shares = [odds.home, odds.draw, odds.away];
+  const drift = 100 - (shares[0] + shares[1] + shares[2]);
+  if (drift !== 0) {
+    const maxIdx = shares.indexOf(Math.max(...shares));
+    shares[maxIdx] += drift;
+  }
+  const [home, draw, away] = shares;
 
   const segs = [
-    { pct: odds.home, label: homeCode, cls: "bg-primary-500/70" },
-    { pct: odds.draw, label: fr ? "Nul" : "Draw", cls: "bg-white/25" },
-    { pct: odds.away, label: awayCode, cls: "bg-violet-500/70" },
+    { pct: home, cls: "bg-primary-500/70" },
+    { pct: draw, cls: "bg-white/25" },
+    { pct: away, cls: "bg-violet-500/70" },
   ];
 
   return (
@@ -201,7 +214,7 @@ function ConsensusStrip({
       <div className="mb-1.5 flex items-center justify-between text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
         <span>{fr ? "Le groupe penche" : "Group leans"}</span>
         <span className="tabular-nums">
-          {odds.total} {fr ? "pronos" : "picks"}
+          {odds.total} {fr ? (odds.total === 1 ? "prono" : "pronos") : odds.total === 1 ? "pick" : "picks"}
         </span>
       </div>
       <div className="flex h-1.5 overflow-hidden rounded-full bg-white/[0.05]">
@@ -218,13 +231,13 @@ function ConsensusStrip({
       </div>
       <div className="mt-1.5 flex items-center justify-between text-[10px] tabular-nums text-text-secondary">
         <span className="font-semibold text-primary-300">
-          {homeCode} {odds.home}%
+          {homeCode} {home}%
         </span>
-        <span className="text-text-tertiary">
-          {fr ? "Nul" : "Draw"} {odds.draw}%
+        <span className={cn("text-text-tertiary", draw === 0 && "opacity-40")}>
+          {fr ? "Nul" : "Draw"} {draw}%
         </span>
         <span className="font-semibold text-violet-300">
-          {odds.away}% {awayCode}
+          {away}% {awayCode}
         </span>
       </div>
     </div>

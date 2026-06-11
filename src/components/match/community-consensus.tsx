@@ -6,11 +6,11 @@ import type { Locale } from "@/i18n/routing";
 /**
  * Aggregate "what the group thinks" for a match: % predicting a home win / draw
  * / away win, derived from everyone's active predictions (exact_score winners
- * included). Pure aggregate — no individual pick is revealed — so it can show
- * before kickoff, unlike <OthersPredictions> (nominative, gated to post-kickoff).
+ * included). A quick summary that sits above <OthersPredictions> (the full
+ * nominative list, also always visible since the anti-cheat reveal was dropped).
  *
- * Hidden below MIN_SAMPLE to avoid trivial inference in a small friends pool
- * (e.g. total = 1 would expose that one person's pick).
+ * Hidden below MIN_SAMPLE: too few picks to read as a trend (the calendar
+ * ConsensusStrip uses the same threshold so both surfaces agree).
  */
 const MIN_SAMPLE = 3;
 
