@@ -13,6 +13,8 @@ const upsertSchema = z.object({
   knockout_winners: z.record(z.string().regex(/^\d+$/), uuid),
   champion_team_id: uuid.nullable(),
   top_scorer_player_id: uuid.nullable().optional(),
+  /** "<matchNumber>-home"|"-away" → 3rd-placed team uuid (repêchage). */
+  third_place_assignments: z.record(z.string(), uuid).optional(),
 });
 
 export type UpsertPredictionResult =
@@ -51,6 +53,7 @@ export async function upsertTournamentPrediction(
     p_knockout_winners: parsed.data.knockout_winners,
     p_champion_team_id: parsed.data.champion_team_id,
     p_top_scorer_player_id: parsed.data.top_scorer_player_id ?? null,
+    p_third_place_assignments: parsed.data.third_place_assignments ?? {},
   } as never);
 
   if (error) {
@@ -93,6 +96,7 @@ const resetSchema = z.object({
   /** Existing prediction state to mutate; sent back atomically. */
   group_standings: z.record(z.string(), z.array(uuid).length(4)),
   knockout_winners: z.record(z.string(), uuid),
+  third_place_assignments: z.record(z.string(), uuid).optional(),
   /** Match numbers per stage, indexed by stage key. Provided by the client. */
   stage_match_numbers: z.record(z.string(), z.array(z.number().int())),
 });
@@ -111,6 +115,7 @@ export async function resetTournamentPrediction(
 
   let groups = { ...parsed.data.group_standings };
   let knockouts = { ...parsed.data.knockout_winners };
+  let thirdAssign = { ...(parsed.data.third_place_assignments ?? {}) };
 
   const STAGE_ORDER: Array<keyof typeof input.stage_match_numbers> = [
     "r32",
@@ -124,6 +129,7 @@ export async function resetTournamentPrediction(
   if (parsed.data.scope === "all" || parsed.data.scope === "groups") {
     groups = {};
     knockouts = {};
+    thirdAssign = {};
   } else {
     // Clear this stage AND everything downstream.
     const idx = STAGE_ORDER.indexOf(parsed.data.scope);
@@ -135,6 +141,8 @@ export async function resetTournamentPrediction(
       const nums = parsed.data.stage_match_numbers[stage] ?? [];
       for (const n of nums) {
         delete knockouts[String(n)];
+        delete thirdAssign[`${n}-home`];
+        delete thirdAssign[`${n}-away`];
       }
     }
   }
@@ -143,6 +151,7 @@ export async function resetTournamentPrediction(
     group_standings: groups,
     knockout_winners: knockouts,
     champion_team_id: null,
+    third_place_assignments: thirdAssign,
   });
 }
 

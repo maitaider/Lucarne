@@ -220,7 +220,9 @@ export function PredictBoard({
   const [knockouts, setKnockouts] = useState<KnockoutWinners>(() => ({
     ...initialPrediction.knockout_winners,
   }));
-  const [thirdAssign, setThirdAssign] = useState<Record<string, string>>({});
+  const [thirdAssign, setThirdAssign] = useState<Record<string, string>>(
+    () => ({ ...initialPrediction.third_place_assignments }),
+  );
 
   // A team can occupy only ONE knockout slot. `thirdAssign` is a loose map the
   // user fills via dropdowns; sanitize it before resolving so a 3rd-placed team
@@ -300,6 +302,7 @@ export function PredictBoard({
     groups: GroupStandings;
     knockouts: KnockoutWinners;
     championId: string | null;
+    thirdAssign: Record<string, string>;
   }) {
     if (!canEdit) return;
     startTransition(async () => {
@@ -307,6 +310,7 @@ export function PredictBoard({
         group_standings: next.groups,
         knockout_winners: next.knockouts,
         champion_team_id: next.championId,
+        third_place_assignments: next.thirdAssign,
       });
       if (!res.ok) toast.error(res.message);
     });
@@ -331,6 +335,7 @@ export function PredictBoard({
     setThirdAssign(nextAssign);
     setKnockouts(pruned);
     saveBracket({
+      thirdAssign: nextAssign,
       groups: nextGroups,
       knockouts: pruned,
       championId: finalMatch
@@ -357,6 +362,7 @@ export function PredictBoard({
     );
     setKnockouts(pruned);
     saveBracket({
+      thirdAssign: cleanThird,
       groups,
       knockouts: pruned,
       championId: finalMatch
@@ -393,6 +399,7 @@ export function PredictBoard({
     );
     setKnockouts(pruned);
     saveBracket({
+      thirdAssign: nextAssign,
       groups,
       knockouts: pruned,
       championId: finalMatch
@@ -516,6 +523,7 @@ export function PredictBoard({
         scope,
         group_standings: groups,
         knockout_winners: knockouts,
+        third_place_assignments: thirdAssign,
         stage_match_numbers: stageMatchNumbers,
       });
       if (!res.ok) {
