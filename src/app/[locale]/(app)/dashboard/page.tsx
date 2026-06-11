@@ -26,6 +26,7 @@ import { getProjectedPayouts } from "@/lib/leagues/projected-payouts";
 import { BuyInBanner } from "@/components/paywall/buy-in-banner";
 import { LockCountdown } from "@/components/ui/lock-countdown";
 import { CountdownTimer } from "@/components/ui/countdown-timer";
+import { MatchCountdown } from "@/components/match/match-countdown";
 import { WorldTrophyMark } from "@/components/brand/sport-icons";
 import { BetStatusBadge } from "@/components/bet/bet-status-badge";
 import { QuickBetButton } from "@/components/bet/quick-bet-button";
@@ -143,7 +144,7 @@ export default async function DashboardPage({
       (a, b) =>
         new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime(),
     )
-    .slice(0, 5);
+    .slice(0, 3);
 
   const top5 = standings.slice(0, 5);
   const myRow = user ? standings.find((s) => s.user_id === user.id) : null;
@@ -361,9 +362,14 @@ export default async function DashboardPage({
             match={featured}
             myPicks={featured ? myPicksByMatch.get(featured.id) : undefined}
             canBet={buyIn.can_bet}
+            deadlinePassed={buyIn.deadline_passed}
             locale={L}
           />
-          <UpcomingCard matches={upcoming} locale={L} />
+          <UpcomingCard
+            matches={upcoming}
+            picksByMatch={myPicksByMatch}
+            locale={L}
+          />
           <FollowedMatchesPanel matches={followedMatches} locale={L} />
         </div>
 
@@ -925,11 +931,13 @@ function FeaturedMatch({
   match,
   myPicks,
   canBet,
+  deadlinePassed,
   locale,
 }: {
   match: MatchListItem | null;
   myPicks?: MyPick[];
   canBet: boolean;
+  deadlinePassed: boolean;
   locale: Locale;
 }) {
   const fr = locale === "fr";
@@ -1048,6 +1056,21 @@ function FeaturedMatch({
         />
       </div>
 
+      {match.status === "scheduled" && (
+        <div className="mt-4 flex items-center justify-center gap-2 rounded-sm border border-white/[0.08] bg-white/[0.03] py-2">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
+            {fr ? "Coup d'envoi dans" : "Kickoff in"}
+          </span>
+          <MatchCountdown
+            targetAt={match.kickoff_at}
+            locale={locale}
+            urgentWithinHours={3}
+            showIcon={false}
+            className="text-sm"
+          />
+        </div>
+      )}
+
       {match.venue && (
         <p className="mt-4 text-center text-xs text-text-tertiary">
           {fr ? match.venue.city_fr : match.venue.city_en} · {match.venue.name}
@@ -1055,7 +1078,7 @@ function FeaturedMatch({
       )}
 
       <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:items-center">
-        {match.status === "scheduled" && (
+        {match.status === "scheduled" && !deadlinePassed && (
           <div className="flex-1">
             <QuickBetButton
               match={match}
@@ -1114,11 +1137,29 @@ function FeaturedTeam({
 /*  Upcoming list                                                             */
 /* -------------------------------------------------------------------------- */
 
+/** Predicted exact score from a match's picks, or null. */
+function predFromPicks(
+  picks: MyPick[] | undefined,
+): { home: number; away: number } | null {
+  const sp = picks?.find(
+    (p) => p.bet_type === "exact_score" && p.status === "validated",
+  );
+  if (sp?.payload && typeof sp.payload === "object") {
+    const o = sp.payload as Record<string, unknown>;
+    if (typeof o.home === "number" && typeof o.away === "number") {
+      return { home: o.home, away: o.away };
+    }
+  }
+  return null;
+}
+
 function UpcomingCard({
   matches,
+  picksByMatch,
   locale,
 }: {
   matches: MatchListItem[];
+  picksByMatch: Map<string, MyPick[]>;
   locale: Locale;
 }) {
   const fr = locale === "fr";
@@ -1143,44 +1184,35 @@ function UpcomingCard({
       ) : (
         <ul className="divide-y divide-white/[0.05]">
           {matches.map((m) => {
-            const k = new Date(m.kickoff_at);
-            const isToday = sameDay(k, new Date());
-            const when = isToday
-              ? k.toLocaleTimeString(fr ? "fr-CA" : "en-CA", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  timeZone: "America/Toronto",
-                })
-              : k.toLocaleDateString(fr ? "fr-CA" : "en-CA", {
-                  day: "2-digit",
-                  month: "short",
-                });
+            const pred = predFromPicks(picksByMatch.get(m.id));
             return (
               <li key={m.id}>
                 <Link
                   href={`/matches/${m.id}`}
-                  className="grid grid-cols-[3.25rem_minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 px-4 py-2.5 text-sm transition hover:bg-white/[0.03]"
+                  className="flex items-center gap-3 px-4 py-3 transition hover:bg-white/[0.03]"
                 >
-                  <span
-                    className={cn(
-                      "font-mono text-xs tabular-nums",
-                      isToday ? "font-bold text-primary-300" : "text-text-tertiary",
-                    )}
-                  >
-                    {when}
-                  </span>
-                  <div className="flex min-w-0 items-center justify-end gap-2">
-                    <span className="truncate font-medium text-text-secondary">
+                  <div className="flex min-w-0 flex-1 items-center gap-2">
+                    <Flag isoCode={m.home_team?.iso_code ?? null} size="sm" />
+                    <span className="min-w-0 flex-1 truncate text-right text-sm font-medium text-text-primary">
                       {teamName(m.home_team, m.home_placeholder, locale)}
                     </span>
-                    <Flag isoCode={m.home_team?.iso_code ?? null} size="sm" />
-                  </div>
-                  <span className="text-xs text-text-tertiary">vs</span>
-                  <div className="flex min-w-0 items-center gap-2">
-                    <Flag isoCode={m.away_team?.iso_code ?? null} size="sm" />
-                    <span className="truncate font-medium text-text-secondary">
+                    <span className="shrink-0 text-xs text-text-tertiary">–</span>
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary">
                       {teamName(m.away_team, m.away_placeholder, locale)}
                     </span>
+                    <Flag isoCode={m.away_team?.iso_code ?? null} size="sm" />
+                  </div>
+                  <div className="flex shrink-0 flex-col items-end gap-1">
+                    <MatchCountdown targetAt={m.kickoff_at} locale={locale} />
+                    {pred ? (
+                      <span className="rounded-full bg-primary-500/12 px-2 py-0.5 text-[10px] font-bold tabular-nums text-primary-300">
+                        {fr ? "Prono" : "Pick"} {pred.home}–{pred.away}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-text-tertiary">
+                        {fr ? "Pas de prono" : "No pick"}
+                      </span>
+                    )}
                   </div>
                 </Link>
               </li>
@@ -1750,14 +1782,6 @@ function teamName(
 ): string {
   if (team) return locale === "fr" ? team.name_fr : team.name_en;
   return placeholder ?? "—";
-}
-
-function sameDay(a: Date, b: Date): boolean {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
 }
 
 function betLabel(
