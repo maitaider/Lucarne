@@ -30,6 +30,7 @@ pnpm db:types     # régénère src/lib/supabase/types.generated.ts
 3. **`private.*` non exposé** via PostgREST (RLS + REVOKE).
 4. **Codes d'invitation** : `gen_random_bytes(16)` base32 lisible, expiration max 30j.
 5. **Pas de jetons / pas de balance gameplay** : le jeu est **gratuit, scoré en points**. Le buy-in (Stripe **ou** saisie admin manuelle) est un **accès** : les deux rails écrivent juste une ligne `real_payments` `confirmed` (`tokens_credited = 0`, aucune écriture `profiles.balance_cents`, aucune ligne `transactions`). `balance_cents` / `transactions` / `token_price_cents` sont **résiduels** (dette à retirer) — ne pas s'en servir pour débloquer une fonctionnalité ; l'accès se vérifie via `getMyBuyInStatus()` (lit `real_payments`).
+6. **Anti-triche d'affichage RETIRÉ** (décision humain 2026-06-10, PR #114). La RLS anti-copie sur `bets.SELECT` existe toujours, mais l'affichage des pronos passe par les RPC SECURITY DEFINER `match_predictions` (nominatif) et `match_consensus` (agrégé) qui **ne gardent plus le coup d'envoi** : les pronos du groupe sont visibles **à tout moment**. Ne pas réintroduire de garde `now() >= kickoff_at` sans demander. Détails : mémoire projet `lucarne-anti-cheat-removed`.
 
 ## Débogage — leçons de prod (À LIRE avant de deviner)
 
