@@ -1482,6 +1482,7 @@ export type Database = {
           group_standings: Json
           knockout_winners: Json
           locked_at: string | null
+          third_place_assignments: Json
           top_scorer_player_id: string | null
           updated_at: string
           user_id: string
@@ -1492,6 +1493,7 @@ export type Database = {
           group_standings?: Json
           knockout_winners?: Json
           locked_at?: string | null
+          third_place_assignments?: Json
           top_scorer_player_id?: string | null
           updated_at?: string
           user_id: string
@@ -1502,6 +1504,7 @@ export type Database = {
           group_standings?: Json
           knockout_winners?: Json
           locked_at?: string | null
+          third_place_assignments?: Json
           top_scorer_player_id?: string | null
           updated_at?: string
           user_id?: string
@@ -2074,6 +2077,7 @@ export type Database = {
           p_champion_team_id: string
           p_group_standings: Json
           p_knockout_winners: Json
+          p_third_place_assignments?: Json
           p_top_scorer_player_id?: string
         }
         Returns: undefined
