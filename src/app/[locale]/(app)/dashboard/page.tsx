@@ -22,6 +22,7 @@ import { picksToExisting } from "@/lib/bets/picks-to-existing";
 import { getMyBuyInStatus } from "@/lib/profile/buy-in";
 import { getMyTournamentPrediction } from "@/lib/predictions/queries";
 import { getPotTotal } from "@/lib/admin/economy";
+import { getProjectedPayouts } from "@/lib/leagues/projected-payouts";
 import { BuyInBanner } from "@/components/paywall/buy-in-banner";
 import { LockCountdown } from "@/components/ui/lock-countdown";
 import { CountdownTimer } from "@/components/ui/countdown-timer";
@@ -76,6 +77,7 @@ export default async function DashboardPage({
     achievements,
     followedMatches,
     potTotal,
+    projected,
   ] = await Promise.all([
     getCurrentUser(),
     getMyStats(),
@@ -92,6 +94,7 @@ export default async function DashboardPage({
     })(),
     getFollowedMatches(),
     getPotTotal(),
+    getProjectedPayouts(),
   ]);
 
   // Resolve the user's predicted champion from the teams present in the
@@ -308,7 +311,7 @@ export default async function DashboardPage({
               championTeam={championTeam}
               amountCents={buyIn.amount_cents}
               currency={buyIn.settings.currency}
-              potTotalCents={potTotal.total_collected_cents}
+              potTotalCents={projected.pool_cents}
               payingUsers={potTotal.paying_users_count}
               leagues={myLeagues}
               bracketDone={bracketDone}
@@ -540,12 +543,13 @@ function HeroBrief({
         }
         muted={!championTeam}
       />
-      {/* Pot — total collected to date (falls back to the per-seat price
-          before anyone has paid). */}
+      {/* Pot — projected pool after rake, the SAME value as the leaderboard's
+          "cagnotte projetée" (getProjectedPayouts.pool_cents); falls back to the
+          per-seat price before anyone has paid. */}
       <BriefTile
         href="/how-it-works"
         leading={<BriefIcon icon={Coins} accent="primary" />}
-        label={fr ? "Cagnotte" : "The pot"}
+        label={fr ? "Cagnotte projetée" : "Projected pot"}
         value={potTotalCents > 0 ? potAmount : amount}
         detail={
           potTotalCents > 0
