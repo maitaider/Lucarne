@@ -25,7 +25,6 @@ import { getPotTotal } from "@/lib/admin/economy";
 import { getProjectedPayouts } from "@/lib/leagues/projected-payouts";
 import { BuyInBanner } from "@/components/paywall/buy-in-banner";
 import { LockCountdown } from "@/components/ui/lock-countdown";
-import { CountdownTimer } from "@/components/ui/countdown-timer";
 import { MatchCountdown } from "@/components/match/match-countdown";
 import { WorldTrophyMark } from "@/components/brand/sport-icons";
 import { BetStatusBadge } from "@/components/bet/bet-status-badge";
@@ -36,7 +35,6 @@ import { Card } from "@/components/ui/card";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { Badge } from "@/components/ui/badge";
 import { Stat } from "@/components/ui/stat";
-import { ProgressBar } from "@/components/ui/progress-bar";
 import { CountUp } from "@/components/ui/count-up";
 import {
   ArrowRight,
@@ -150,59 +148,6 @@ export default async function DashboardPage({
   const myRow = user ? standings.find((s) => s.user_id === user.id) : null;
   const showMyRow = myRow && top5.every((r) => r.user_id !== myRow.user_id);
 
-  // Prediction progress for the next-step panel. "Open" mirrors the predict
-  // UI lock: a match is editable until kickoff − 1h. A match is covered by a
-  // confirmed score pick or — knockout ties are predicted via the bracket
-  // (tournament_predictions), not score bets — by a bracket winner (mirrors
-  // the /predict progress: group scores + knockout picks). Both sides of the
-  // progress are scoped to open matches so the panel can't claim "all picks
-  // in" while an open match is still missing one.
-  const isCovered = (m: MatchListItem) =>
-    (myPicksByMatch.get(m.id) ?? []).some(
-      (p) => p.bet_type === "exact_score" && p.status === "validated",
-    ) ||
-    (m.stage !== "group" &&
-      m.match_number != null &&
-      Boolean(prediction.knockout_winners[String(m.match_number)]));
-  const openMatches = allMatches.filter(
-    (m) =>
-      m.status === "scheduled" &&
-      new Date(m.kickoff_at).getTime() - now > 60 * 60_000,
-  );
-  const openCount = openMatches.length;
-  const picksDone = openMatches.filter(isCovered).length;
-  const hasAnyPick =
-    Object.keys(prediction.knockout_winners).length > 0 ||
-    Array.from(myPicksByMatch.values()).some((picks) =>
-      picks.some(
-        (p) => p.bet_type === "exact_score" && p.status === "validated",
-      ),
-    );
-
-  // Next lock: the earliest open match still missing a pick (past that
-  // moment the prediction set can no longer be completed in full) — or, when
-  // everything is covered, the earliest open match, since picks stay
-  // editable until each match locks. Hidden for non-payers (they can't
-  // pick; BuyInBanner carries their deadline).
-  const byKickoff = (a: MatchListItem, b: MatchListItem) =>
-    new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime();
-  const nextToLock =
-    openMatches.filter((m) => !isCovered(m)).sort(byKickoff)[0] ??
-    [...openMatches].sort(byKickoff)[0];
-  const nextLockAt =
-    buyIn.can_bet && nextToLock
-      ? new Date(
-          new Date(nextToLock.kickoff_at).getTime() - 60 * 60_000,
-        ).toISOString()
-      : null;
-  const nextLockLabel = nextToLock
-    ? `${teamName(nextToLock.home_team, nextToLock.home_placeholder, L)} – ${teamName(
-        nextToLock.away_team,
-        nextToLock.away_placeholder,
-        L,
-      )}`
-    : null;
-
   // Bracket completion for the hero brief — knockout winners chosen vs the
   // number of knockout fixtures (fallback 32 if KO rounds aren't seeded yet).
   const bracketTotal =
@@ -241,16 +186,12 @@ export default async function DashboardPage({
                 <WorldTrophyMark className="size-3.5" />
                 {L === "fr" ? "Coupe du Monde 2026" : "FIFA World Cup 2026"}
               </Badge>
-              {/* The next-step panel's lock pill takes over when actionable —
-                  avoid two countdowns in the same hero. */}
-              {!nextLockAt && (
-                <LockCountdown
-                  targetAt={buyIn.settings.tournament_start_at}
-                  locale={L}
-                  prefix={{ fr: "Coup d'envoi dans", en: "Kicks off in" }}
-                  pastLabel={{ fr: "Tournoi en cours", en: "Tournament live" }}
-                />
-              )}
+              <LockCountdown
+                targetAt={buyIn.settings.tournament_start_at}
+                locale={L}
+                prefix={{ fr: "Coup d'envoi dans", en: "Kicks off in" }}
+                pastLabel={{ fr: "Tournoi en cours", en: "Tournament live" }}
+              />
             </div>
             <h1 className="font-display text-3xl font-semibold leading-[1.05] text-text-primary sm:text-4xl lg:text-[2.9rem]">
               {L === "fr" ? "Salut" : "Hey"}
@@ -322,18 +263,13 @@ export default async function DashboardPage({
             />
           </div>
 
-          {/* Right — the one next step */}
-          <NextStepPanel
+          {/* Right — leaderboard preview */}
+          <MiniLeaderboard
+            top5={top5}
+            myRow={showMyRow ? (myRow ?? null) : null}
+            currentUserId={user?.id ?? null}
+            total={standings.length}
             locale={L}
-            canBet={buyIn.can_bet}
-            deadlinePassed={buyIn.deadline_passed}
-            amountCents={buyIn.amount_cents}
-            currency={buyIn.settings.currency}
-            openCount={openCount}
-            picksDone={picksDone}
-            hasAnyPick={hasAnyPick}
-            nextLockAt={nextLockAt}
-            nextLockLabel={nextLockLabel}
           />
           </div>
 
@@ -373,18 +309,11 @@ export default async function DashboardPage({
           <FollowedMatchesPanel matches={followedMatches} locale={L} />
         </div>
 
-        {/* Right rail — standings + your circle */}
+        {/* Right rail — your circle (standings now live in the hero) */}
         <aside className="flex min-w-0 flex-col gap-4">
-          <SectionLabel icon={Trophy}>
-            {L === "fr" ? "Classement & cercle" : "Standings & circle"}
+          <SectionLabel icon={Users}>
+            {L === "fr" ? "Ton cercle" : "Your circle"}
           </SectionLabel>
-          <MiniLeaderboard
-            top5={top5}
-            myRow={showMyRow ? (myRow ?? null) : null}
-            currentUserId={user?.id ?? null}
-            total={standings.length}
-            locale={L}
-          />
           <LeaguesCard leagues={myLeagues} locale={L} />
           <ChatPreviewCard locale={L} />
           <PlayerBadges achievements={achievements} locale={L} />
@@ -765,163 +694,6 @@ function BriefTile({
   );
 }
 
-/* -------------------------------------------------------------------------- */
-/*  Next step (hero right panel)                                              */
-/* -------------------------------------------------------------------------- */
-
-function NextStepPanel({
-  locale,
-  canBet,
-  deadlinePassed,
-  amountCents,
-  currency,
-  openCount,
-  picksDone,
-  hasAnyPick,
-  nextLockAt,
-  nextLockLabel,
-}: {
-  locale: Locale;
-  canBet: boolean;
-  /** Access window closed (tournament started) — read-only, no buy CTA. */
-  deadlinePassed: boolean;
-  amountCents: number;
-  currency: string;
-  /** Matches still editable (kickoff more than 1h away). */
-  openCount: number;
-  /** Open matches covered by a score pick or a bracket winner. */
-  picksDone: number;
-  /** True if the user ever placed a score pick or a bracket winner. */
-  hasAnyPick: boolean;
-  /** When the earliest still-unpicked match locks (kickoff − 1h), or null. */
-  nextLockAt: string | null;
-  /** Teams of that match, e.g. "Mexique – Afrique du Sud". */
-  nextLockLabel: string | null;
-}) {
-  const fr = locale === "fr";
-  const remaining = Math.max(openCount - picksDone, 0);
-
-  let kicker: string;
-  let title: string;
-  let body: string;
-  let ctaLabel: string;
-  let ctaHref: string;
-
-  if (!canBet && deadlinePassed) {
-    // Access window closed (tournament started) — read-only, NO buy CTA.
-    kicker = fr ? "Tournoi en cours" : "Tournament live";
-    title = hasAnyPick
-      ? fr
-        ? "Suis le tournoi"
-        : "Follow the tournament"
-      : fr
-        ? "Accès fermé"
-        : "Access closed";
-    body = fr
-      ? "Les pronostics sont verrouillés. Suis les matchs et le classement en direct."
-      : "Predictions are locked. Follow the matches and standings live.";
-    ctaLabel = fr ? "Voir le classement" : "View standings";
-    ctaHref = "/leaderboard/global";
-  } else if (!canBet) {
-    const amount = (amountCents / 100).toLocaleString(fr ? "fr-CA" : "en-CA", {
-      style: "currency",
-      currency,
-      maximumFractionDigits: 0,
-    });
-    kicker = fr ? "Étape 1" : "Step 1";
-    title = fr ? "Achète ta place" : "Buy your seat";
-    body = fr
-      ? `${amount} une fois pour pronostiquer les 104 matchs.`
-      : `${amount} once to predict all 104 matches.`;
-    ctaLabel = fr ? "Acheter ma place" : "Buy my seat";
-    ctaHref = "/buy-in";
-  } else if (!hasAnyPick) {
-    kicker = fr ? "On commence" : "Let's go";
-    title = fr ? "Fais ton premier prono" : "Make your first pick";
-    body = fr
-      ? "Classe les groupes et choisis tes vainqueurs. Un clic par match."
-      : "Rank groups and pick winners. One tap per match.";
-    ctaLabel = fr ? "Commencer" : "Start";
-    ctaHref = "/predict";
-  } else if (remaining > 0) {
-    kicker = fr ? "Continue" : "Keep going";
-    title = fr
-      ? `${remaining} match${remaining > 1 ? "s" : ""} à pronostiquer`
-      : `${remaining} match${remaining > 1 ? "es" : ""} left`;
-    body = fr
-      ? "Reprends là où tu t'es arrêté, avant le verrou."
-      : "Pick up where you left off, before the lock.";
-    ctaLabel = fr ? "Reprendre" : "Resume";
-    ctaHref = "/predict";
-  } else {
-    kicker = fr ? "Bien joué" : "Nicely done";
-    title = fr ? "Tous tes pronos sont posés" : "Every pick is in";
-    body = fr
-      ? "Ajuste-les ou invite des amis dans une ligue."
-      : "Tweak them or invite friends to a league.";
-    ctaLabel = fr ? "Voir mes pronos" : "Review picks";
-    ctaHref = "/predict";
-  }
-
-  return (
-    <Card
-      accent="gold"
-      padded="lg"
-      className="relative overflow-hidden bg-gradient-to-br from-gold-500/[0.12] via-surface-1/[0.5] to-surface-1/[0.5] backdrop-blur-xl"
-    >
-      <Image
-        src="/assets/lucarne/exports/bracket-network.png"
-        alt=""
-        width={120}
-        height={120}
-        className="pointer-events-none absolute -right-3 -top-3 size-24 opacity-25"
-      />
-      <div className="relative">
-        <div className="text-[10px] font-bold uppercase tracking-wider text-gold-300">
-          {kicker}
-        </div>
-        <h2 className="mt-1 font-display text-xl font-bold leading-tight text-text-primary">
-          {title}
-        </h2>
-        <p className="mt-1.5 text-sm leading-6 text-text-secondary">{body}</p>
-
-        {nextLockAt && (
-          <CountdownTimer
-            targetAt={nextLockAt}
-            locale={locale}
-            title={fr ? "Prochain verrou" : "Next lock"}
-            subtitle={nextLockLabel ?? undefined}
-            href="/predict"
-            urgentWithinHours={3}
-            pastLabel={fr ? "Verrou passé" : "Lock passed"}
-            className="mt-4"
-          />
-        )}
-
-        {canBet && openCount > 0 && (
-          <ProgressBar
-            value={picksDone}
-            max={openCount}
-            accent="gold"
-            label={fr ? "Pronos posés" : "Picks placed"}
-            className="mt-4"
-          />
-        )}
-
-        <Button
-          href={ctaHref}
-          variant="gold"
-          size="lg"
-          block
-          iconRight={ArrowRight}
-          className="mt-4"
-        >
-          {ctaLabel}
-        </Button>
-      </div>
-    </Card>
-  );
-}
 
 /* -------------------------------------------------------------------------- */
 /*  Featured match                                                            */
