@@ -1,22 +1,20 @@
 import { getMatchPredictions } from "@/lib/bets/match-predictions";
 import { getCurrentUser } from "@/lib/profile/queries";
 import { Link } from "@/i18n/navigation";
-import { Users, Lock, Trophy } from "lucide-react";
+import { Users, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
 
 /**
- * Group predictions for a match — only revealed AFTER kickoff (the
- * match_predictions RPC enforces the gate server-side). Before kickoff we show
- * an anti-cheat note instead of querying.
+ * Group predictions for a match — every player's score pick, shown at all
+ * times. No kickoff gate, per the product decision to drop the anti-cheat
+ * reveal on 2026-06-10 (the `match_predictions` RPC no longer gates either).
  */
 export async function OthersPredictions({
   matchId,
-  kickedOff,
   locale,
 }: {
   matchId: string;
-  kickedOff: boolean;
   locale: Locale;
 }) {
   const fr = locale === "fr";
@@ -30,16 +28,7 @@ export async function OthersPredictions({
         </h2>
       </div>
       <div className="px-5 py-5">
-        {!kickedOff ? (
-          <p className="flex items-center justify-center gap-2 rounded-md border border-white/[0.07] bg-white/[0.02] px-4 py-5 text-center text-xs leading-5 text-text-tertiary">
-            <Lock className="size-4 shrink-0 text-text-tertiary" strokeWidth={1.8} />
-            {fr
-              ? "Les pronostics des autres joueurs se dévoilent au coup d'envoi (anti-triche)."
-              : "Other players' predictions are revealed at kickoff (anti-cheat)."}
-          </p>
-        ) : (
-          <PredictionsList matchId={matchId} locale={locale} />
-        )}
+        <PredictionsList matchId={matchId} locale={locale} />
       </div>
     </section>
   );

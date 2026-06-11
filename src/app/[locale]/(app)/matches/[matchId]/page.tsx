@@ -204,9 +204,9 @@ export default async function MatchDetailPage({
         />
       </Reveal>
 
-      {/* ── Group predictions (revealed at kickoff) ─────────────────────── */}
+      {/* ── Group predictions (always visible) ──────────────────────────── */}
       <Reveal className="mt-6" delayMs={40}>
-        <OthersPredictions matchId={matchId} kickedOff={kickedOff} locale={L} />
+        <OthersPredictions matchId={matchId} locale={L} />
       </Reveal>
 
       {/* ── Group standings (live) ─────────────────────────────────────── */}

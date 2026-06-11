@@ -15,10 +15,10 @@ export type MatchPrediction = {
 };
 
 /**
- * Every player's SCORE prediction for a match — but ONLY after kickoff.
- * The `match_predictions` RPC enforces `now() >= kickoff_at` server-side
- * (anti-cheat: nobody can copy before the match starts), so this returns []
- * before kickoff or when no one predicted.
+ * Every player's SCORE prediction for a match, at all times. The
+ * `match_predictions` RPC no longer gates on kickoff (anti-cheat reveal
+ * dropped, 2026-06-10 — see migration 20260608100000); it just requires an
+ * authenticated caller. Returns [] when no one predicted.
  */
 export async function getMatchPredictions(
   matchId: string,
