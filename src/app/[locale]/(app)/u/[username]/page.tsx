@@ -63,7 +63,7 @@ export default async function PublicProfilePage({
   if (!profile) notFound();
 
   const [recent, achievements] = await Promise.all([
-    getProfileRecentBets(username, 8),
+    getProfileRecentBets(username, 104),
     getPlayerAchievements(username),
   ]);
 
