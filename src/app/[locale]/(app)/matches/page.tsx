@@ -152,6 +152,7 @@ export default async function MatchesPage({
           locale={L}
           myPicksByMatch={myPicksByMatch}
           canBet={buyIn.can_bet}
+          accessClosed={buyIn.deadline_passed}
           followedIds={followedIds}
         />
       )}
@@ -162,6 +163,7 @@ export default async function MatchesPage({
           locale={L}
           myPicksByMatch={myPicksByMatch}
           canBet={buyIn.can_bet}
+          accessClosed={buyIn.deadline_passed}
           followedIds={followedIds}
         />
       )}
@@ -383,6 +385,7 @@ function CalendarView({
   locale,
   myPicksByMatch,
   canBet,
+  accessClosed,
   followedIds,
 }: {
   matches: Awaited<ReturnType<typeof listMatches>>;
@@ -391,6 +394,7 @@ function CalendarView({
   locale: Locale;
   myPicksByMatch: Map<string, MyPick[]>;
   canBet: boolean;
+  accessClosed: boolean;
   followedIds: Set<string>;
 }) {
   let filtered = matches;
@@ -426,6 +430,7 @@ function CalendarView({
                     locale={locale}
                     myPicks={myPicksByMatch.get(m.id)}
                     canBet={canBet}
+                    accessClosed={accessClosed}
                     following={followedIds.has(m.id)}
                   />
                 ))}
@@ -485,12 +490,14 @@ function KnockoutView({
   locale,
   myPicksByMatch,
   canBet,
+  accessClosed,
   followedIds,
 }: {
   matches: Awaited<ReturnType<typeof listMatches>>;
   locale: Locale;
   myPicksByMatch: Map<string, MyPick[]>;
   canBet: boolean;
+  accessClosed: boolean;
   followedIds: Set<string>;
 }) {
   const knockoutMatches = matches.filter(
@@ -526,6 +533,7 @@ function KnockoutView({
                 locale={locale}
                 myPicks={myPicksByMatch.get(m.id)}
                 canBet={canBet}
+                accessClosed={accessClosed}
                 following={followedIds.has(m.id)}
               />
             ))}
