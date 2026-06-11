@@ -56,7 +56,7 @@ export function PlayerBadges({
         {badges.map((b, i) => (
           <span
             key={i}
-            className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.1] bg-white/[0.04] px-3 py-1.5 text-sm font-semibold text-text-secondary"
+            className="inline-flex items-center gap-1.5 rounded-full border border-gold-500/25 bg-gold-500/[0.1] px-3 py-1.5 text-sm font-semibold text-text-primary"
           >
             <span aria-hidden className="text-base leading-none">
               {b.emoji}
