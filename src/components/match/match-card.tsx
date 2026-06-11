@@ -5,6 +5,7 @@ import { QuickBetButton } from "@/components/bet/quick-bet-button";
 import { MyPickBadge } from "@/components/bet/my-pick-badge";
 import { FollowMatchButton } from "@/components/match/follow-match-button";
 import { picksToExisting } from "@/lib/bets/picks-to-existing";
+import { Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
 import type { MyPick } from "@/lib/bets/my-picks";
@@ -15,6 +16,7 @@ export function MatchCard({
   locale,
   myPicks,
   canBet = true,
+  accessClosed = false,
   following,
   odds,
 }: {
@@ -23,6 +25,9 @@ export function MatchCard({
   myPicks?: MyPick[];
   /** When false, the bet-strip CTA becomes a paywall link to /buy-in. */
   canBet?: boolean;
+  /** Buy-in sale is over (deadline passed) → no "buy my seat" CTA; the strip
+      becomes a read-only recap of the player's pick. */
+  accessClosed?: boolean;
   /** Undefined → no follow bell; boolean → show the bell in that state. */
   following?: boolean;
   /** Group consensus (% home/draw/away). Strip hidden when no picks yet. */
@@ -144,18 +149,19 @@ export function MatchCard({
 
       {/* Bet CTA bottom strip (scheduled only, opens QuickBet sheet).
          Pre-fills with existing picks so user can edit instead of duplicating. */}
-      {isScheduled && (
-        <QuickBetButton
-          match={match}
-          locale={locale}
-          variant="strip"
-          hasPick={
-            myPicks?.some((p) => p.status === "validated") ?? false
-          }
-          existing={picksToExisting(myPicks)}
-          canBet={canBet}
-        />
-      )}
+      {isScheduled &&
+        (accessClosed ? (
+          <ReadOnlyStrip predicted={predictedScore(myPicks)} locale={locale} />
+        ) : (
+          <QuickBetButton
+            match={match}
+            locale={locale}
+            variant="strip"
+            hasPick={myPicks?.some((p) => p.status === "validated") ?? false}
+            existing={picksToExisting(myPicks)}
+            canBet={canBet}
+          />
+        ))}
       </Link>
       {following !== undefined && (
         <div className="absolute right-2.5 top-2.5 z-20">
@@ -240,6 +246,55 @@ function ConsensusStrip({
           {away}% {awayCode}
         </span>
       </div>
+    </div>
+  );
+}
+
+/** The player's predicted score for a match, read from their validated picks. */
+function predictedScore(
+  picks: MyPick[] | undefined,
+): { home: number; away: number } | null {
+  if (!picks) return null;
+  for (const p of picks) {
+    if (p.status !== "validated") continue;
+    const pl = p.payload as Record<string, unknown> | null;
+    if (pl && typeof pl.home === "number" && typeof pl.away === "number") {
+      return { home: pl.home, away: pl.away };
+    }
+  }
+  return null;
+}
+
+/**
+ * Read-only footer strip shown once the buy-in sale is over. Replaces the
+ * "buy my seat" CTA (no longer purchasable) with a useful recap: the player's
+ * own prediction, or a plain read-only marker when they have no pick.
+ */
+function ReadOnlyStrip({
+  predicted,
+  locale,
+}: {
+  predicted: { home: number; away: number } | null;
+  locale: Locale;
+}) {
+  const fr = locale === "fr";
+  return (
+    <div className="-mx-4 -mb-4 mt-3 flex items-center justify-between border-t border-white/[0.06] bg-white/[0.02] px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-text-tertiary">
+      <span className="flex items-center gap-1.5">
+        <Lock className="size-3" strokeWidth={2.5} />
+        {predicted
+          ? fr
+            ? "Ton prono"
+            : "Your pick"
+          : fr
+            ? "Lecture seule"
+            : "Read-only"}
+      </span>
+      {predicted && (
+        <span className="font-display text-xs font-bold tabular-nums text-text-secondary">
+          {predicted.home}–{predicted.away}
+        </span>
+      )}
     </div>
   );
 }

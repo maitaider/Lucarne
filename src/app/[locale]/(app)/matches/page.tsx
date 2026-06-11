@@ -161,6 +161,7 @@ export default async function MatchesPage({
           locale={L}
           myPicksByMatch={myPicksByMatch}
           canBet={buyIn.can_bet}
+          accessClosed={buyIn.deadline_passed}
           followedIds={followedIds}
           consensus={consensus}
         />
@@ -172,6 +173,7 @@ export default async function MatchesPage({
           locale={L}
           myPicksByMatch={myPicksByMatch}
           canBet={buyIn.can_bet}
+          accessClosed={buyIn.deadline_passed}
           followedIds={followedIds}
           consensus={consensus}
         />
@@ -394,6 +396,7 @@ function CalendarView({
   locale,
   myPicksByMatch,
   canBet,
+  accessClosed,
   followedIds,
   consensus,
 }: {
@@ -403,6 +406,7 @@ function CalendarView({
   locale: Locale;
   myPicksByMatch: Map<string, MyPick[]>;
   canBet: boolean;
+  accessClosed: boolean;
   followedIds: Set<string>;
   consensus: Map<string, CommunityOdds>;
 }) {
@@ -439,6 +443,7 @@ function CalendarView({
                     locale={locale}
                     myPicks={myPicksByMatch.get(m.id)}
                     canBet={canBet}
+                    accessClosed={accessClosed}
                     following={followedIds.has(m.id)}
                     odds={consensus.get(m.id)}
                   />
@@ -499,6 +504,7 @@ function KnockoutView({
   locale,
   myPicksByMatch,
   canBet,
+  accessClosed,
   followedIds,
   consensus,
 }: {
@@ -506,6 +512,7 @@ function KnockoutView({
   locale: Locale;
   myPicksByMatch: Map<string, MyPick[]>;
   canBet: boolean;
+  accessClosed: boolean;
   followedIds: Set<string>;
   consensus: Map<string, CommunityOdds>;
 }) {
@@ -542,6 +549,7 @@ function KnockoutView({
                 locale={locale}
                 myPicks={myPicksByMatch.get(m.id)}
                 canBet={canBet}
+                accessClosed={accessClosed}
                 following={followedIds.has(m.id)}
                 odds={consensus.get(m.id)}
               />
