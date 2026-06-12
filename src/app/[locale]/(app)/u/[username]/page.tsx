@@ -10,6 +10,7 @@ import {
   Sparkles,
   Percent,
   History,
+  LineChart,
   ArrowLeft,
   CheckCircle2,
   XCircle,
@@ -32,6 +33,8 @@ import { AppPageShell } from "@/components/layout/app-page-shell";
 import { SectionPanel } from "@/components/layout/section-panel";
 import { Flag } from "@/components/team/flag";
 import { ExactScoreBadge } from "@/components/celebrations/exact-score-badge";
+import { getUserPointsHistory } from "@/lib/leagues/standings-history";
+import { PointsProgressChart } from "@/components/profile/points-progress-chart";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
 
@@ -63,9 +66,10 @@ export default async function PublicProfilePage({
   ]);
   if (!profile) notFound();
 
-  const [recent, achievements] = await Promise.all([
+  const [recent, achievements, pointsHistory] = await Promise.all([
     getProfileRecentBets(username, 104),
     getPlayerAchievements(username),
+    getUserPointsHistory(username),
   ]);
 
   const isSelf = me?.id === profile.user_id;
@@ -188,6 +192,18 @@ export default async function PublicProfilePage({
 
       {/* ── Badges & streaks ─────────────────────────────────────────────── */}
       <PlayerBadges achievements={achievements} locale={L} />
+
+      {/* ── Progression (cumulative points per day) ──────────────────────── */}
+      <SectionPanel
+        icon={LineChart}
+        accent="primary"
+        title={fr ? "Progression" : "Progression"}
+        description={
+          fr ? "Points cumulés, jour après jour." : "Cumulative points, day by day."
+        }
+      >
+        <PointsProgressChart data={pointsHistory} locale={L} />
+      </SectionPanel>
 
       {/* ── Predictions — grouped: results + upcoming ────────────────────── */}
       <SectionPanel

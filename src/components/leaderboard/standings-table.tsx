@@ -5,16 +5,22 @@ import { Link } from "@/i18n/navigation";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { CountUp } from "@/components/ui/count-up";
 import { FlashRow } from "./flash-row";
+import { RankDelta } from "./rank-delta";
+import type { StandingDelta } from "@/lib/leagues/standings-history";
 
 export function StandingsTable({
   entries,
   highlightUserId,
+  deltas,
   locale,
 }: {
   entries: StandingEntry[];
   highlightUserId?: string | null;
+  /** user_id → rank/points delta vs yesterday's snapshot. */
+  deltas?: Map<string, StandingDelta>;
   locale: "fr" | "en";
 }) {
+  const fr = locale === "fr";
   const maxPoints = Math.max(...entries.map((e) => e.total_points), 1);
 
   return (
@@ -45,6 +51,7 @@ export function StandingsTable({
             const winRate = e.bets_count > 0 ? e.wins / e.bets_count : 0;
             const barWidth = (e.total_points / maxPoints) * 100;
             const draws = Math.max(e.bets_count - e.wins - e.losses, 0);
+            const maxPossible = deltas?.get(e.user_id)?.maxPossible ?? null;
             return (
               <FlashRow
                 as="tr"
@@ -60,7 +67,15 @@ export function StandingsTable({
                 )}
               >
                 <td className="w-12 px-4 py-3">
-                  <RankBadge rank={e.rank} />
+                  <div className="flex flex-col items-center gap-1">
+                    <RankBadge rank={e.rank} />
+                    {deltas && (
+                      <RankDelta
+                        delta={deltas.get(e.user_id)?.rankDelta ?? null}
+                        locale={locale}
+                      />
+                    )}
+                  </div>
                 </td>
                 <td className="py-3">
                   <div className="flex items-center gap-2.5">
@@ -153,7 +168,16 @@ export function StandingsTable({
                     <FormIcon wins={e.wins} losses={e.losses} />
                   </div>
                 </td>
-                <td className="px-4 py-3 text-right">
+                <td
+                  className="px-4 py-3 text-right"
+                  title={
+                    maxPossible != null
+                      ? fr
+                        ? `Peut encore atteindre ${maxPossible} pts`
+                        : `Can still reach ${maxPossible} pts`
+                      : undefined
+                  }
+                >
                   <span
                     className={cn(
                       "font-display text-base font-bold tabular-nums",

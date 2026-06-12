@@ -1,5 +1,10 @@
 import { setRequestLocale } from "next-intl/server";
 import { getGlobalStandings, getStageStandings } from "@/lib/leagues/queries";
+import {
+  getStandingsDeltas,
+  getDailyMovements,
+} from "@/lib/leagues/standings-history";
+import { DailyMovements } from "@/components/leaderboard/daily-movements";
 import { getProjectedPayouts } from "@/lib/leagues/projected-payouts";
 import { formatMoney } from "@/lib/admin/economy";
 import { AppPageShell } from "@/components/layout/app-page-shell";
@@ -132,9 +137,11 @@ export default async function GlobalLeaderboardPage({
       : null;
   const isFiltered = phase !== null;
 
-  const [standings, projected] = await Promise.all([
+  const [standings, projected, deltas, movements] = await Promise.all([
     isFiltered ? getStageStandings(phase, matchday) : getGlobalStandings(),
     isFiltered ? Promise.resolve(null) : getProjectedPayouts(),
+    getStandingsDeltas(),
+    getDailyMovements(),
   ]);
   const leader = standings[0];
   const totalBets = standings.reduce((sum, entry) => sum + entry.bets_count, 0);
@@ -199,6 +206,9 @@ export default async function GlobalLeaderboardPage({
         <EmptyLeaderboardPreview locale={L} />
       ) : (
         <>
+          {!isFiltered && (
+            <DailyMovements movements={movements} locale={L} />
+          )}
           {!isFiltered && projected && (
             <ProjectedPotCard
               locale={L}
@@ -258,6 +268,7 @@ export default async function GlobalLeaderboardPage({
           <StandingsTable
             entries={standings}
             highlightUserId={currentUserId}
+            deltas={isFiltered ? undefined : deltas}
             locale={locale === "fr" ? "fr" : "en"}
           />
         </>

@@ -1357,6 +1357,41 @@ export type Database = {
           },
         ]
       }
+      standings_snapshots: {
+        Row: {
+          created_at: string
+          points: number
+          rank: number
+          snapshot_date: string
+          user_id: string
+          wins: number
+        }
+        Insert: {
+          created_at?: string
+          points: number
+          rank: number
+          snapshot_date: string
+          user_id: string
+          wins?: number
+        }
+        Update: {
+          created_at?: string
+          points?: number
+          rank?: number
+          snapshot_date?: string
+          user_id?: string
+          wins?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "standings_snapshots_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stripe_checkouts: {
         Row: {
           amount_cents: number
@@ -1815,6 +1850,34 @@ export type Database = {
         }[]
       }
       compute_bet_points: { Args: { p_bet_id: string }; Returns: undefined }
+      cron_snapshot_standings: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      daily_movements: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          kind: string
+          user_id: string
+          username: string
+          display_name: string
+          avatar_url: string
+          value: number
+        }[]
+      }
+      standings_deltas: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          user_id: string
+          rank_delta: number
+          points_24h: number
+          max_possible: number
+        }[]
+      }
+      user_points_history: {
+        Args: { p_username: string }
+        Returns: { snapshot_date: string; points: number }[]
+      }
       create_chat_poll: {
         Args: { p_closes_at?: string; p_options: string[]; p_question: string }
         Returns: string
