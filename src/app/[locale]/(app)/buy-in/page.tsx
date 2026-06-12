@@ -104,6 +104,7 @@ export default async function BuyInPage({
         stripeReady={stripeReady}
         alreadyPaid={status.paid || status.is_admin}
         deadlinePassed={status.deadline_passed}
+        canBuyIn={status.can_buy_in}
         deadlineAt={status.deadline_at}
         locale={L}
       />
