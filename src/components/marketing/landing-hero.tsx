@@ -2,7 +2,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { LucarneLogo } from "@/components/brand/lucarne-mark";
-import { Countdown } from "./countdown";
+import { LandingFixtures } from "./landing-fixtures";
 import { CountUp } from "@/components/ui/count-up";
 import { getPublicAccessPrice } from "@/lib/admin/economy";
 import {
@@ -90,7 +90,7 @@ export async function LandingHero() {
             </div>
 
             <div className="mt-9">
-              <Countdown targetIso="2026-06-11T20:00:00Z" />
+              <LandingFixtures />
             </div>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
