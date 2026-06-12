@@ -113,6 +113,7 @@ export type Database = {
       bets: {
         Row: {
           bet_type: Database["public"]["Enums"]["bet_type_enum"]
+          celebrated_at: string | null
           client_request_id: string | null
           created_at: string
           id: string
@@ -151,6 +152,7 @@ export type Database = {
         }
         Update: {
           bet_type?: Database["public"]["Enums"]["bet_type_enum"]
+          celebrated_at?: string | null
           client_request_id?: string | null
           created_at?: string
           id?: string
@@ -1796,6 +1798,21 @@ export type Database = {
           p_team_id: string
         }
         Returns: string
+      }
+      claim_celebration: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          bet_id: string
+          match_id: string
+          points: number
+          is_exact: boolean
+          home_fr: string
+          home_en: string
+          home_code: string
+          away_fr: string
+          away_en: string
+          away_code: string
+        }[]
       }
       compute_bet_points: { Args: { p_bet_id: string }; Returns: undefined }
       create_chat_poll: {

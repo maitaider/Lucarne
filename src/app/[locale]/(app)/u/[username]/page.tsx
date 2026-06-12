@@ -31,6 +31,7 @@ import { PlayerBadges } from "@/components/profile/player-badges";
 import { AppPageShell } from "@/components/layout/app-page-shell";
 import { SectionPanel } from "@/components/layout/section-panel";
 import { Flag } from "@/components/team/flag";
+import { ExactScoreBadge } from "@/components/celebrations/exact-score-badge";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
 
@@ -357,6 +358,12 @@ function RecentBetRow({ bet, locale }: { bet: ProfileBet; locale: Locale }) {
   const predicted = parseScore(bet.payload);
 
   const finished = bet.home.score !== null || bet.away.score !== null;
+  const isExact =
+    finished &&
+    bet.result === "won" &&
+    predicted !== null &&
+    predicted.home === bet.home.score &&
+    predicted.away === bet.away.score;
   const stripTone =
     bet.result === "won"
       ? "bg-primary-400"
@@ -400,6 +407,7 @@ function RecentBetRow({ bet, locale }: { bet: ProfileBet; locale: Locale }) {
           )}
         </div>
         <div className="flex shrink-0 items-center gap-2 pr-3">
+          {isExact && <ExactScoreBadge locale={locale} size="xs" />}
           {predicted && (
             <span className="rounded-full border border-white/10 bg-white/[0.04] px-2 py-0.5 text-[11px] tabular-nums text-text-secondary">
               {fr ? "Prono" : "Pick"} {predicted.home}–{predicted.away}

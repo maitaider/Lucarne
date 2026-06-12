@@ -1120,7 +1120,10 @@ function LeaderRow({
           row.rank === 1 ? "text-gold-300" : "text-text-secondary",
         )}
       >
-        {row.total_points}
+        <CountUp
+          value={row.total_points}
+          locale={locale === "fr" ? "fr-FR" : "en-US"}
+        />
         <span className="ml-0.5 text-[9px] font-medium text-text-tertiary">
           pts
         </span>
