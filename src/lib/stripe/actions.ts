@@ -57,7 +57,9 @@ export async function createCheckoutSession(input: {
 
   const settings = await getAppSettings();
   const deadline = effectiveBuyInDeadline(settings);
-  if (deadline.getTime() < Date.now()) {
+  // Late entry: the admin can re-open sales after the deadline (each late buyer
+  // then gets a 1 h prediction window — see my_prediction_deadline()).
+  if (deadline.getTime() < Date.now() && !settings.late_entry_open) {
     return {
       ok: false,
       message: "La date butoire d'achat de place est passée.",

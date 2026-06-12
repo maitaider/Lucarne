@@ -19,6 +19,7 @@ export function BuyInCard({
   stripeReady,
   alreadyPaid,
   deadlinePassed,
+  canBuyIn = false,
   deadlineAt,
   locale,
   compact = false,
@@ -28,6 +29,8 @@ export function BuyInCard({
   stripeReady: boolean;
   alreadyPaid: boolean;
   deadlinePassed: boolean;
+  /** Late entry: checkout stays open even after the global deadline. */
+  canBuyIn?: boolean;
   deadlineAt: string;
   locale: Locale;
   compact?: boolean;
@@ -131,7 +134,7 @@ export function BuyInCard({
               <CheckCircle2 className="size-4" strokeWidth={2.5} />
               {locale === "fr" ? "Accès activé" : "Access active"}
             </div>
-          ) : deadlinePassed ? (
+          ) : deadlinePassed && !canBuyIn ? (
             <div className="inline-flex items-center justify-center gap-2 rounded-sm border border-white/[0.1] bg-white/[0.05] px-4 py-3 text-sm font-semibold text-text-tertiary">
               {locale === "fr"
                 ? "Vente de places terminée"
