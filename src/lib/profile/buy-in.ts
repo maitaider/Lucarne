@@ -23,6 +23,12 @@ export type BuyInStatus = {
   deadline_at: string;
   /** True if the buy-in deadline has passed. */
   deadline_passed: boolean;
+  /** True if a "buy your seat" CTA should be shown: unpaid + window open
+   *  (before the global deadline, or admin-enabled late entry). */
+  can_buy_in: boolean;
+  /** The caller's EFFECTIVE edit deadline (global, or paid_at + 1 h for a late
+   *  joiner) — for their personal countdown. */
+  my_deadline_at: string;
   /** Snapshot of the app-wide settings used (currency, etc). */
   settings: AppSettings;
 };
@@ -36,6 +42,8 @@ const ANON: Omit<BuyInStatus, "settings"> = {
   amount_cents: 2000,
   deadline_at: new Date().toISOString(),
   deadline_passed: false,
+  can_buy_in: false,
+  my_deadline_at: new Date().toISOString(),
 };
 
 /**
@@ -51,6 +59,7 @@ export async function getMyBuyInStatus(): Promise<BuyInStatus> {
     amount_cents: settings.buy_in_amount_cents,
     deadline_at: deadline.toISOString(),
     deadline_passed: deadlinePassed,
+    my_deadline_at: deadline.toISOString(),
     settings,
   };
 
@@ -93,14 +102,28 @@ export async function getMyBuyInStatus(): Promise<BuyInStatus> {
     .maybeSingle();
 
   const paid = !!payment;
+  const paidAtMs = payment?.received_at
+    ? new Date(payment.received_at).getTime()
+    : null;
+  // Entrée tardive : paiement au/après le verrou global → fenêtre perso de 1 h
+  // (à partir du paiement). Sinon, échéance = verrou global (inchangé). Mirroir
+  // exact de la RPC SQL my_prediction_deadline().
+  const isLate = paidAtMs !== null && paidAtMs >= deadline.getTime();
+  const myDeadlineMs = isLate
+    ? paidAtMs! + 60 * 60 * 1000
+    : deadline.getTime();
   return {
     ...baseline,
     paid,
     paid_at: payment?.received_at ?? null,
     paid_cents: payment?.amount_cents ?? null,
-    // Verrou unique : les payeurs éditent jusqu'à l'échéance (1 h avant le 1er
-    // match), puis tout est gelé — le remplissage aléatoire prend le relais.
-    can_bet: paid && !deadlinePassed,
+    // Payeur normal : jusqu'au verrou global. Payeur tardif : jusqu'à
+    // paiement + 1 h. Les déjà-verrouillés (payés avant le verrou) le restent.
+    can_bet: paid && myDeadlineMs > Date.now(),
+    // Bouton « Acheter ma place » : non-payeur + fenêtre ouverte (avant le
+    // verrou OU entrée tardive activée par l'admin).
+    can_buy_in: !paid && (!deadlinePassed || settings.late_entry_open),
+    my_deadline_at: new Date(myDeadlineMs).toISOString(),
   };
 }
 

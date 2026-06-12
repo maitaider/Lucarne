@@ -192,6 +192,7 @@ export function PredictBoard({
   currency,
   deadlineAt,
   deadlinePassed,
+  canBuyIn,
   locale,
 }: {
   initialTab: Tab;
@@ -206,6 +207,7 @@ export function PredictBoard({
   currency: string;
   deadlineAt: string;
   deadlinePassed: boolean;
+  canBuyIn: boolean;
   locale: Locale;
 }) {
   const router = useRouter();
@@ -640,6 +642,7 @@ export function PredictBoard({
           currency={currency}
           deadlineAt={deadlineAt}
           deadlinePassed={deadlinePassed}
+          canBuyIn={canBuyIn}
           locale={locale}
         />
       )}

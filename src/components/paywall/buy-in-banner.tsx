@@ -13,12 +13,15 @@ export function BuyInBanner({
   currency,
   deadlineAt,
   deadlinePassed,
+  canBuyIn = false,
   locale,
 }: {
   amountCents: number;
   currency: string;
   deadlineAt: string;
   deadlinePassed: boolean;
+  /** Late entry: the seat can still be bought even after the deadline. */
+  canBuyIn?: boolean;
   locale: Locale;
 }) {
   const moneyLocale = locale === "fr" ? "fr-CA" : "en-CA";
@@ -27,7 +30,7 @@ export function BuyInBanner({
     { day: "numeric", month: "long", year: "numeric" },
   );
 
-  if (deadlinePassed) {
+  if (deadlinePassed && !canBuyIn) {
     return (
       <section className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-[10px] border border-white/[0.12] bg-white/[0.05] px-4 py-3 text-sm text-text-secondary">
         <div className="flex items-start gap-2.5">
@@ -63,9 +66,13 @@ export function BuyInBanner({
                 : `Unlock full World Cup access for ${formatMoney(amountCents, currency, moneyLocale)}`}
             </div>
             <div className="mt-0.5 text-xs text-text-secondary">
-              {locale === "fr"
-                ? `Vente ouverte jusqu’au ${deadlineLabel}. Modifie tes pronostics jusqu’à 1 h avant chaque match.`
-                : `Sales open until ${deadlineLabel}. Edit picks up to 1 h before each match.`}
+              {deadlinePassed
+                ? locale === "fr"
+                  ? "Entrée tardive ouverte — tu auras 1 h après ton paiement pour pronostiquer les matchs à venir."
+                  : "Late entry open — you'll have 1 h after payment to predict upcoming matches."
+                : locale === "fr"
+                  ? `Vente ouverte jusqu’au ${deadlineLabel}. Modifie tes pronostics jusqu’à 1 h avant chaque match.`
+                  : `Sales open until ${deadlineLabel}. Edit picks up to 1 h before each match.`}
             </div>
           </div>
         </div>

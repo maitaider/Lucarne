@@ -43,6 +43,7 @@ export type Database = {
           contact_label: string | null
           currency: string
           id: number
+          late_entry_open: boolean
           prize_distribution: Json
           scoring_rules: Json
           token_price_cents: number
@@ -59,6 +60,7 @@ export type Database = {
           contact_label?: string | null
           currency?: string
           id?: number
+          late_entry_open?: boolean
           prize_distribution?: Json
           scoring_rules?: Json
           token_price_cents?: number
@@ -75,6 +77,7 @@ export type Database = {
           contact_label?: string | null
           currency?: string
           id?: number
+          late_entry_open?: boolean
           prize_distribution?: Json
           scoring_rules?: Json
           token_price_cents?: number
@@ -1923,6 +1926,7 @@ export type Database = {
           won_count: number
         }[]
       }
+      my_prediction_deadline: { Args: never; Returns: string }
       predictions_locked: { Args: never; Returns: boolean }
       profile_recent_bets: {
         Args: { p_limit?: number; p_username: string }
