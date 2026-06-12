@@ -217,9 +217,9 @@ function ConsensusStrip({
 
   return (
     <div className="mt-3 border-t border-white/[0.06] pt-2.5">
-      <div className="mb-1.5 flex items-center justify-between text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
-        <span>{fr ? "Le groupe penche" : "Group leans"}</span>
-        <span className="tabular-nums">
+      <div className="mb-1.5 flex items-center justify-between gap-2 text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
+        <span className="min-w-0 truncate">{fr ? "Le groupe penche" : "Group leans"}</span>
+        <span className="shrink-0 tabular-nums">
           {odds.total} {fr ? (odds.total === 1 ? "prono" : "pronos") : odds.total === 1 ? "pick" : "picks"}
         </span>
       </div>
@@ -235,14 +235,14 @@ function ConsensusStrip({
           ) : null,
         )}
       </div>
-      <div className="mt-1.5 flex items-center justify-between text-[10px] tabular-nums text-text-secondary">
-        <span className="font-semibold text-primary-300">
+      <div className="mt-1.5 flex items-center justify-between gap-2 text-[10px] tabular-nums text-text-secondary">
+        <span className="min-w-0 truncate font-semibold text-primary-300">
           {homeCode} {home}%
         </span>
-        <span className={cn("text-text-tertiary", draw === 0 && "opacity-40")}>
+        <span className={cn("shrink-0 text-text-tertiary", draw === 0 && "opacity-40")}>
           {fr ? "Nul" : "Draw"} {draw}%
         </span>
-        <span className="font-semibold text-violet-300">
+        <span className="min-w-0 truncate text-right font-semibold text-violet-300">
           {away}% {awayCode}
         </span>
       </div>
