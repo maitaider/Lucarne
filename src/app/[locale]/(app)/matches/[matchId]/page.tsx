@@ -6,6 +6,7 @@ import { getMyPicksByMatch } from "@/lib/bets/my-picks";
 import { getMyBuyInStatus } from "@/lib/profile/buy-in";
 import { listMyFollowedMatchIds } from "@/lib/matches/follows";
 import { FollowMatchButton } from "@/components/match/follow-match-button";
+import { ExactScoreBadge } from "@/components/celebrations/exact-score-badge";
 import { OthersPredictions } from "@/components/match/others-predictions";
 import { CommunityConsensus } from "@/components/match/community-consensus";
 import { listPlayersForTeams, type PlayerRow } from "@/lib/players/queries";
@@ -103,6 +104,11 @@ export default async function MatchDetailPage({
     match.status !== "scheduled" ||
     kickoff.getTime() - 60 * 60 * 1000 < Date.now();
   const kickedOff = kickoff.getTime() <= Date.now();
+  const isExactScore =
+    !!score &&
+    match.status === "finished" &&
+    score.home === match.home_score &&
+    score.away === match.away_score;
 
   const homeName = teamLabel(match.home_team, match.home_placeholder, L);
   const awayName = teamLabel(match.away_team, match.away_placeholder, L);
@@ -200,6 +206,7 @@ export default async function MatchDetailPage({
           homeTeam={match.home_team}
           awayTeam={match.away_team}
           score={score}
+          isExactScore={isExactScore}
           locked={locked}
           editHref={editHref}
           shareBetId={scorePick?.bet_id ?? null}
@@ -426,6 +433,7 @@ function MyPredictionPanel({
   homeTeam,
   awayTeam,
   score,
+  isExactScore,
   locked,
   editHref,
   shareBetId,
@@ -437,6 +445,7 @@ function MyPredictionPanel({
   homeTeam: MatchListItem["home_team"];
   awayTeam: MatchListItem["away_team"];
   score: { home: number; away: number } | null;
+  isExactScore: boolean;
   locked: boolean;
   editHref: string;
   shareBetId: string | null;
@@ -454,10 +463,13 @@ function MyPredictionPanel({
           {fr ? "Mon pronostic" : "My prediction"}
         </h2>
         {hasPrediction && (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-500/12 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-300 ring-1 ring-primary-500/25">
-            <CheckCircle2 className="size-3" strokeWidth={2.5} />
-            {fr ? "Placé" : "Placed"}
-          </span>
+          <div className="flex items-center gap-1.5">
+            {isExactScore && <ExactScoreBadge locale={locale} />}
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-500/12 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-300 ring-1 ring-primary-500/25">
+              <CheckCircle2 className="size-3" strokeWidth={2.5} />
+              {fr ? "Placé" : "Placed"}
+            </span>
+          </div>
         )}
       </div>
 

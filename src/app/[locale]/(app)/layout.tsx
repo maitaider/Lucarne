@@ -7,6 +7,7 @@ import { ToastProvider } from "@/components/ui/toast-provider";
 import { QuickBetProvider } from "@/components/bet/quick-bet-provider";
 import { MobileQuickBetFab } from "@/components/nav/mobile-quick-bet-fab";
 import { BottomNav } from "@/components/nav/bottom-nav";
+import { CelebrationManager } from "@/components/celebrations/celebration-manager";
 import { OnboardingTour } from "@/components/onboarding/onboarding-tour";
 import { ChunkReloadGuard } from "@/components/system/chunk-reload-guard";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -74,6 +75,7 @@ export default async function AppLayout({
             hasLiveMatch={hasLiveMatch}
           />
           <OnboardingTour locale={locale} />
+          <CelebrationManager locale={locale} />
         </QuickBetProvider>
       </ToastProvider>
     </div>

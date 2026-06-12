@@ -7,10 +7,10 @@ import {
   useEffect,
   useState,
 } from "react";
-import { CheckCircle2, AlertCircle, Info, X } from "lucide-react";
+import { CheckCircle2, AlertCircle, Info, Trophy, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type ToastKind = "success" | "error" | "info";
+type ToastKind = "success" | "error" | "info" | "celebrate";
 type Toast = { id: string; kind: ToastKind; message: string };
 
 type ToastCtx = {
@@ -18,6 +18,8 @@ type ToastCtx = {
   success: (message: string) => void;
   error: (message: string) => void;
   info: (message: string) => void;
+  /** Gold, points-win celebration toast. */
+  celebrate: (message: string) => void;
 };
 
 const ToastContext = createContext<ToastCtx | null>(null);
@@ -31,6 +33,7 @@ export function useToast(): ToastCtx {
       success: () => {},
       error: () => {},
       info: () => {},
+      celebrate: () => {},
     };
   }
   return ctx;
@@ -58,6 +61,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     success: (m) => push("success", m),
     error: (m) => push("error", m),
     info: (m) => push("info", m),
+    celebrate: (m) => push("celebrate", m),
   };
 
   return (
@@ -104,6 +108,11 @@ function ToastBubble({
       icon: Info,
       bg: "bg-violet-500/15 border-violet-500/40",
       text: "text-violet-300",
+    },
+    celebrate: {
+      icon: Trophy,
+      bg: "border-gold-500/45 bg-gradient-to-r from-gold-500/[0.22] via-gold-500/[0.12] to-gold-500/[0.06]",
+      text: "text-gold-300",
     },
   }[toast.kind];
 

@@ -3,6 +3,7 @@ import { TrendingUp, TrendingDown, Minus, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "@/i18n/navigation";
 import { UserAvatar } from "@/components/ui/user-avatar";
+import { CountUp } from "@/components/ui/count-up";
 import { FlashRow } from "./flash-row";
 
 export function StandingsTable({
@@ -159,7 +160,10 @@ export function StandingsTable({
                       e.rank === 1 ? "text-gold-400" : "text-text-primary",
                     )}
                   >
-                    {e.total_points}
+                    <CountUp
+                      value={e.total_points}
+                      locale={locale === "fr" ? "fr-FR" : "en-US"}
+                    />
                   </span>
                 </td>
               </FlashRow>
