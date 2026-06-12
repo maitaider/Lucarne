@@ -83,7 +83,7 @@ export default async function DashboardPage({
     listMatches(),
     listMyBets(),
     listMyLeagues(),
-    getGlobalStandings(10),
+    getGlobalStandings(100),
     getMyPicksByMatch(),
     getMyBuyInStatus(),
     getMyTournamentPrediction(),
@@ -144,9 +144,9 @@ export default async function DashboardPage({
     )
     .slice(0, 3);
 
-  const top5 = standings.slice(0, 5);
-  const myRow = user ? standings.find((s) => s.user_id === user.id) : null;
-  const showMyRow = myRow && top5.every((r) => r.user_id !== myRow.user_id);
+  // Small private pool: show the WHOLE standings on the dashboard (scroll-capped
+  // in MiniLeaderboard) so newly-joined players — 0 pts, sorted last — are
+  // visible here, not only on /leaderboard/global.
 
   // Bracket completion for the hero brief — knockout winners chosen vs the
   // number of knockout fixtures (fallback 32 if KO rounds aren't seeded yet).
@@ -266,8 +266,7 @@ export default async function DashboardPage({
 
           {/* Right — leaderboard preview */}
           <MiniLeaderboard
-            top5={top5}
-            myRow={showMyRow ? (myRow ?? null) : null}
+            rows={standings}
             currentUserId={user?.id ?? null}
             total={standings.length}
             locale={L}
@@ -1002,14 +1001,12 @@ function UpcomingCard({
 /* -------------------------------------------------------------------------- */
 
 function MiniLeaderboard({
-  top5,
-  myRow,
+  rows,
   currentUserId,
   total,
   locale,
 }: {
-  top5: StandingEntry[];
-  myRow: StandingEntry | null;
+  rows: StandingEntry[];
   currentUserId: string | null;
   total: number;
   locale: Locale;
@@ -1040,15 +1037,15 @@ function MiniLeaderboard({
           {fr ? "Tout voir →" : "View all →"}
         </Link>
       </header>
-      {top5.length === 0 ? (
+      {rows.length === 0 ? (
         <p className="px-4 py-6 text-center text-sm text-text-tertiary">
           {fr
-            ? "Le classement s'ouvre au 1ᵉʳ match résolu."
-            : "Opens after the first settled match."}
+            ? "Le classement s'ouvre dès le 1ᵉʳ inscrit."
+            : "Opens with the first member."}
         </p>
       ) : (
-        <ul className="divide-y divide-white/[0.05]">
-          {top5.map((r) => (
+        <ul className="max-h-[19rem] divide-y divide-white/[0.05] overflow-y-auto">
+          {rows.map((r) => (
             <LeaderRow
               key={r.user_id}
               row={r}
@@ -1056,11 +1053,6 @@ function MiniLeaderboard({
               locale={locale}
             />
           ))}
-          {myRow && (
-            <li className="border-t-2 border-dashed border-white/[0.08]">
-              <LeaderRow row={myRow} isMe locale={locale} />
-            </li>
-          )}
         </ul>
       )}
     </Card>
