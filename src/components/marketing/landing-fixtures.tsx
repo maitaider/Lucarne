@@ -46,21 +46,23 @@ export async function LandingFixtures() {
     <div className="flex max-w-xl flex-col gap-4">
       {nextMatch && (
         <div className="flex flex-col gap-2.5">
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-            <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-primary-400">
-              <CalendarClock className="size-3" strokeWidth={2} />
-              {fr ? "Prochain match" : "Next match"}
-            </span>
-            <span className="inline-flex items-center gap-2 font-display text-base font-bold text-text-primary">
+          <div className="flex flex-col gap-1.5">
+            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+              <span className="inline-flex shrink-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-primary-400">
+                <CalendarClock className="size-3" strokeWidth={2} />
+                {fr ? "Prochain match" : "Next match"}
+              </span>
+              <span className="min-w-0 truncate text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
+                {STAGE_LABEL[nextMatch.stage]?.[fr ? "fr" : "en"] ?? ""}
+                {nextMatch.group_label
+                  ? ` · ${fr ? "Gr." : "Grp"} ${nextMatch.group_label}`
+                  : ""}
+              </span>
+            </div>
+            <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1 font-display text-base font-bold text-text-primary">
               <TeamTag team={nextMatch.home_team} />
               <span className="text-xs font-medium text-text-tertiary">vs</span>
               <TeamTag team={nextMatch.away_team} />
-            </span>
-            <span className="text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
-              {STAGE_LABEL[nextMatch.stage]?.[fr ? "fr" : "en"] ?? ""}
-              {nextMatch.group_label
-                ? ` · ${fr ? "Gr." : "Grp"} ${nextMatch.group_label}`
-                : ""}
             </span>
           </div>
           <Countdown targetIso={nextMatch.kickoff_at} />
