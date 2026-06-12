@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { getMatchById, type MatchListItem } from "@/lib/matches/queries";
 import { getMyPicksByMatch } from "@/lib/bets/my-picks";
+import { getMyBuyInStatus } from "@/lib/profile/buy-in";
 import { listMyFollowedMatchIds } from "@/lib/matches/follows";
 import { FollowMatchButton } from "@/components/match/follow-match-button";
 import { OthersPredictions } from "@/components/match/others-predictions";
@@ -51,8 +52,15 @@ export default async function MatchDetailPage({
   const teamIds = [match.home_team?.id, match.away_team?.id].filter(
     (id): id is string => Boolean(id),
   );
-  const [comments, myPicks, currentUserId, roster, groupTables, followedIds] =
-    await Promise.all([
+  const [
+    comments,
+    myPicks,
+    currentUserId,
+    roster,
+    groupTables,
+    followedIds,
+    buyIn,
+  ] = await Promise.all([
       listComments("match", matchId, 50),
       getMyPicksByMatch(),
       (async () => {
@@ -68,6 +76,7 @@ export default async function MatchDetailPage({
         ? getGroupStandings()
         : Promise.resolve([] as GroupTable[]),
       listMyFollowedMatchIds(),
+      getMyBuyInStatus(),
     ]);
   const isFollowing = followedIds.includes(matchId);
 
@@ -85,7 +94,12 @@ export default async function MatchDetailPage({
   const hasPrediction = score !== null;
 
   const kickoff = new Date(match.kickoff_at);
+  // Locked when the player can't bet at all (global lock passed / unpaid /
+  // grace window closed) OR the match isn't open OR kickoff is within the hour.
+  // Without the `can_bet` term the page showed "Modifier mon pronostic" for an
+  // upcoming match even though `place_bet` would reject it (predictions frozen).
   const locked =
+    !buyIn.can_bet ||
     match.status !== "scheduled" ||
     kickoff.getTime() - 60 * 60 * 1000 < Date.now();
   const kickedOff = kickoff.getTime() <= Date.now();
@@ -482,9 +496,7 @@ function MyPredictionPanel({
               </Link>
             ) : (
               <p className="rounded-[10px] border border-warning/30 bg-warning/10 px-4 py-3 text-center text-xs font-medium text-warning">
-                {fr
-                  ? "Pronostics fermés — le coup d'envoi approche."
-                  : "Predictions closed — kickoff is near."}
+                {fr ? "Pronostics fermés." : "Predictions closed."}
               </p>
             )}
             {shareable && shareBetId && (
