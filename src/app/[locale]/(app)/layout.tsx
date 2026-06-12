@@ -6,6 +6,7 @@ import { AppHeader } from "@/components/nav/app-header";
 import { ToastProvider } from "@/components/ui/toast-provider";
 import { QuickBetProvider } from "@/components/bet/quick-bet-provider";
 import { MobileQuickBetFab } from "@/components/nav/mobile-quick-bet-fab";
+import { BottomNav } from "@/components/nav/bottom-nav";
 import { OnboardingTour } from "@/components/onboarding/onboarding-tour";
 import { ChunkReloadGuard } from "@/components/system/chunk-reload-guard";
 import { SiteFooter } from "@/components/layout/site-footer";
@@ -52,17 +53,26 @@ export default async function AppLayout({
           new Date(m.kickoff_at).getTime() - now > 60_000,
       ) ?? null)
     : null;
+  // Drives the "EN DIRECT" pip on the mobile bottom-nav Live tab.
+  const hasLiveMatch = allMatches.some((m) => m.status === "live");
 
   return (
-    <div className="relative isolate flex min-h-dvh flex-col overflow-hidden">
+    // Bottom padding (mobile) clears the fixed bottom tab bar + iPhone safe
+    // area, so page content and the footer are never hidden behind it.
+    <div className="relative isolate flex min-h-dvh flex-col overflow-hidden pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
       <AppAtmosphere />
       <ChunkReloadGuard />
       <ToastProvider>
         <QuickBetProvider locale={locale}>
           <AppHeader user={user} locale={locale} />
-          <div className="relative flex-1 pb-20 md:pb-0">{children}</div>
+          <div className="relative flex-1">{children}</div>
           <SiteFooter locale={locale} />
           <MobileQuickBetFab locale={locale} nextMatch={nextOpenMatch} />
+          <BottomNav
+            locale={locale}
+            userId={user?.id ?? null}
+            hasLiveMatch={hasLiveMatch}
+          />
           <OnboardingTour locale={locale} />
         </QuickBetProvider>
       </ToastProvider>
