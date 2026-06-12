@@ -7,11 +7,13 @@ import {
   purgeUser,
   restoreUser,
   setUserRole,
+  setUserPredictionUnlock,
 } from "@/lib/admin/actions";
 import { useToast } from "@/components/ui/toast-provider";
 import {
   Archive,
   ArchiveRestore,
+  KeyRound,
   Loader2,
   ShieldCheck,
   Trash2,
@@ -111,6 +113,27 @@ export function ManageUserButton({
     });
   }
 
+  function handleUnlock(hours: number) {
+    startTransition(async () => {
+      const res = await setUserPredictionUnlock(userId, hours);
+      if (res.ok) {
+        toast.success(
+          hours > 0
+            ? fr
+              ? "Pronos débloqués (1 h)."
+              : "Predictions unlocked (1 h)."
+            : fr
+              ? "Reverrouillé."
+              : "Re-locked.",
+        );
+        close();
+        router.refresh();
+      } else {
+        toast.error(res.message ?? "Erreur");
+      }
+    });
+  }
+
   return (
     <>
       <button
@@ -182,6 +205,50 @@ export function ManageUserButton({
                         )}
                       >
                         {fr ? "Changer" : "Set"}
+                      </button>
+                    </div>
+                  </section>
+                )}
+
+                {/* Unlock predictions (late entry / per-user grace) */}
+                {!isSelf && (
+                  <section
+                    className={cn(
+                      isSuperAdmin && "border-t border-white/[0.08] pt-4",
+                    )}
+                  >
+                    <div className="mb-2 flex items-center gap-2">
+                      <KeyRound className="size-4 text-primary-400" strokeWidth={1.7} />
+                      <h4 className="text-sm font-bold text-text-primary">
+                        {fr ? "Débloquer les pronos" : "Unlock predictions"}
+                      </h4>
+                    </div>
+                    <p className="mb-2.5 text-xs leading-5 text-text-secondary">
+                      {fr
+                        ? "Redonne à ce joueur 1 h pour pronostiquer les matchs à venir (les matchs déjà joués comptent 0 pt)."
+                        : "Give this player 1 h to predict upcoming matches (already-played matches score 0)."}
+                    </p>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleUnlock(1)}
+                        disabled={isPending}
+                        className="inline-flex items-center gap-1.5 rounded-sm bg-primary-500 px-3 py-2 text-xs font-bold text-abyss transition hover:bg-primary-400 disabled:opacity-60"
+                      >
+                        {isPending ? (
+                          <Loader2 className="size-3.5 animate-spin" strokeWidth={2} />
+                        ) : (
+                          <KeyRound className="size-3.5" strokeWidth={2.4} />
+                        )}
+                        {fr ? "Débloquer 1 h" : "Unlock 1 h"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleUnlock(0)}
+                        disabled={isPending}
+                        className="inline-flex items-center gap-1 rounded-sm border border-white/[0.12] px-3 py-2 text-xs font-semibold text-text-secondary transition hover:text-text-primary disabled:opacity-60"
+                      >
+                        {fr ? "Reverrouiller" : "Re-lock"}
                       </button>
                     </div>
                   </section>

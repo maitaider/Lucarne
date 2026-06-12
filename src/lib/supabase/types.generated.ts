@@ -1097,6 +1097,7 @@ export type Database = {
           display_name: string | null
           id: string
           locale: string
+          predictions_unlock_until: string | null
           role: Database["public"]["Enums"]["app_role"]
           timezone: string
           total_paid_cents: number
@@ -1113,6 +1114,7 @@ export type Database = {
           display_name?: string | null
           id: string
           locale?: string
+          predictions_unlock_until?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           timezone?: string
           total_paid_cents?: number
@@ -1129,6 +1131,7 @@ export type Database = {
           display_name?: string | null
           id?: string
           locale?: string
+          predictions_unlock_until?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           timezone?: string
           total_paid_cents?: number

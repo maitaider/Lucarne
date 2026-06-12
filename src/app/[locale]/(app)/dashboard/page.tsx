@@ -24,6 +24,7 @@ import { getMyTournamentPrediction } from "@/lib/predictions/queries";
 import { getPotTotal } from "@/lib/admin/economy";
 import { getProjectedPayouts } from "@/lib/leagues/projected-payouts";
 import { BuyInBanner } from "@/components/paywall/buy-in-banner";
+import { GraceWindowBanner } from "@/components/paywall/grace-window-banner";
 import { LockCountdown } from "@/components/ui/lock-countdown";
 import { MatchCountdown } from "@/components/match/match-countdown";
 import { WorldTrophyMark } from "@/components/brand/sport-icons";
@@ -169,6 +170,9 @@ export default async function DashboardPage({
           canBuyIn={buyIn.can_buy_in}
           locale={L}
         />
+      )}
+      {buyIn.deadline_passed && buyIn.can_bet && (
+        <GraceWindowBanner targetAt={buyIn.my_deadline_at} locale={L} />
       )}
 
       {/* ============================ HERO ============================ */}
