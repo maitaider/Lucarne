@@ -144,6 +144,10 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  /* Mobile safety net: a stray over-wide child must never widen the page or
+     get clipped off-screen. `clip` (not `hidden`) avoids creating a scroll
+     container, so sticky/position descendants keep working. */
+  overflow-x: clip;
 }
 
 body {
