@@ -136,7 +136,7 @@ function MatchesPanel({
   const away = teamName(selectedMatch.away_team, selectedMatch.away_placeholder, locale);
 
   return (
-    <div className="grid gap-4 p-4 lg:grid-cols-[0.95fr_1.05fr]">
+    <div className="grid grid-cols-1 gap-4 p-4 lg:grid-cols-[0.95fr_1.05fr]">
       <div className="grid max-h-[420px] gap-2 overflow-y-auto pr-1 md:grid-cols-2 lg:grid-cols-1">
         {matches.map((match) => {
           const isActive = match.id === selectedMatch.id;
@@ -224,7 +224,7 @@ function MatchesPanel({
             />
           </div>
 
-          <div className="mt-6 grid gap-2 sm:grid-cols-3">
+          <div className="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-3">
             <InfoPill
               label={locale === "fr" ? "Date" : "Date"}
               value={formatDate(selectedMatch.kickoff_at, locale)}
@@ -264,7 +264,7 @@ function VenuesPanel({
   onSelect: (venueName: string) => void;
 }) {
   return (
-    <div className="grid gap-4 p-4 lg:grid-cols-[1fr_0.72fr]">
+    <div className="grid grid-cols-1 gap-4 p-4 lg:grid-cols-[1fr_0.72fr]">
       <div className="grid max-h-[420px] gap-2 overflow-y-auto pr-1 sm:grid-cols-2 xl:grid-cols-3">
         {venues.map((venue) => {
           const isActive = venue.name === selectedVenue.name;
@@ -345,7 +345,7 @@ function PlayersPanel({
   onSelect: (teamCode: string) => void;
 }) {
   return (
-    <div className="grid gap-4 p-4 lg:grid-cols-[1fr_0.86fr]">
+    <div className="grid grid-cols-1 gap-4 p-4 lg:grid-cols-[1fr_0.86fr]">
       <div className="grid max-h-[420px] gap-2 overflow-y-auto pr-1 sm:grid-cols-2 xl:grid-cols-3">
         {teams.map((team) => {
           const isActive = team.fifa_code === selectedTeam.fifa_code;

@@ -187,7 +187,7 @@ export function PickRow({
 
       {/* Extras (inline, collapsed by default) */}
       {expanded && (
-        <div className="grid gap-3 border-t border-white/[0.05] bg-white/[0.025] px-3 py-3 sm:grid-cols-2 sm:px-4 sm:py-4">
+        <div className="grid grid-cols-1 gap-3 border-t border-white/[0.05] bg-white/[0.025] px-3 py-3 sm:grid-cols-2 sm:px-4 sm:py-4">
           <TotalGoalsPicker
             value={pick.total_goals}
             disabled={disabled}

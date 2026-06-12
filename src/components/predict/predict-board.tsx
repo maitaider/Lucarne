@@ -892,7 +892,7 @@ function GroupesSection({
           </span>
         </p>
       </Card>
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
         {labels.map((label) => (
           <GroupCard
             key={label}

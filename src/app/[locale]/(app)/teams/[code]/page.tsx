@@ -140,7 +140,7 @@ export default async function TeamPage({
           </h2>
 
           {roster.length > 0 ? (
-            <ul className="grid gap-2 sm:grid-cols-2">
+            <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {roster.map((p) => {
                 const age = computeAge(p.birth_date);
                 return (
@@ -174,7 +174,7 @@ export default async function TeamPage({
               })}
             </ul>
           ) : (
-            <ul className="grid gap-2 sm:grid-cols-2">
+            <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {team.key_players.map((player, i) => (
                 <li
                   key={player}

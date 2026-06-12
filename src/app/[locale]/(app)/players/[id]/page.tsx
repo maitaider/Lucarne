@@ -103,7 +103,7 @@ export default async function PlayerPage({
       </section>
 
       {/* Details */}
-      <section className="mt-5 grid gap-2 sm:grid-cols-2">
+      <section className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
         <InfoRow icon={Building2} label={fr ? "Club actuel" : "Current club"}>
           {player.club ?? "—"}
         </InfoRow>

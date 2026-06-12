@@ -31,7 +31,7 @@ export function LiveScores({
           accent="violet"
           live
         >
-          <ul className="grid gap-2 md:grid-cols-2">
+          <ul className="grid grid-cols-1 gap-2 md:grid-cols-2">
             {liveNow.map((m) => (
               <MatchRow key={m.id} match={m} locale={locale} />
             ))}
@@ -52,7 +52,7 @@ export function LiveScores({
             }
           />
         ) : (
-          <ul className="grid gap-2 md:grid-cols-2">
+          <ul className="grid grid-cols-1 gap-2 md:grid-cols-2">
             {[...upcomingToday, ...finishedToday].map((m) => (
               <MatchRow key={m.id} match={m} locale={locale} />
             ))}
@@ -65,7 +65,7 @@ export function LiveScores({
           title={locale === "fr" ? "Résultats récents" : "Recent results"}
           accent="gold"
         >
-          <ul className="grid gap-2 md:grid-cols-2">
+          <ul className="grid grid-cols-1 gap-2 md:grid-cols-2">
             {recentlyFinished.map((m) => (
               <MatchRow key={m.id} match={m} locale={locale} />
             ))}

@@ -96,7 +96,7 @@ export default async function LeagueDetailPage({
         </div>
       </header>
 
-      <section className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <LeagueDetailMetric
           icon={Users}
           label={locale === "fr" ? "Membres" : "Members"}
@@ -150,7 +150,7 @@ export default async function LeagueDetailPage({
         </>
       )}
 
-      <section className="mt-8 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+      <section className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <LeagueFeedBoard
           leagueId={league.id}
           initialPosts={posts}

@@ -97,7 +97,7 @@ export default async function MatchesPage({
             </p>
           </div>
 
-          <div className="grid gap-2 sm:grid-cols-2 xl:min-w-[580px] xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:min-w-[580px] xl:grid-cols-4">
             <TournamentStat
               icon={MapPinned}
               label={L === "fr" ? "Format" : "Format"}
@@ -145,7 +145,7 @@ export default async function MatchesPage({
           {groups.length === 0 ? (
             <GroupsFormatPreview locale={L} />
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
               {groups.map((g) => (
                 <GroupTableCard key={g.group_label} group={g} locale={L} />
               ))}
@@ -265,7 +265,7 @@ function TournamentPulse({
   finishedCount: number;
 }) {
   return (
-    <section className="mb-6 grid gap-3 lg:grid-cols-[1.2fr_0.8fr]">
+    <section className="mb-6 grid grid-cols-1 gap-3 lg:grid-cols-[1.2fr_0.8fr]">
       <div className="rounded-sm border border-white/[0.08] bg-surface-1/[0.62] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -359,7 +359,7 @@ function GroupsFormatPreview({ locale }: { locale: Locale }) {
           {locale === "fr" ? "Voir le calendrier" : "Open calendar"}
         </Link>
       </div>
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
         {groups.map((group, idx) => (
           <div
             key={group}
@@ -436,7 +436,7 @@ function CalendarView({
                 <span>{formatDateHeader(date, locale)}</span>
                 <span className="h-px flex-1 bg-border-subtle" />
               </h2>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {grouped.get(date)!.map((m) => (
                   <MatchCard
                     key={m.id}

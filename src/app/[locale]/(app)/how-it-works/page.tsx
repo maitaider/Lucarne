@@ -199,7 +199,7 @@ export default async function HowItWorksPage({
           <p className="mb-4 text-xs font-bold uppercase tracking-wider text-text-tertiary">
             {fr ? "Phase de groupes — par match" : "Group stage — per match"}
           </p>
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <ScoreCard
               icon={MousePointerClick}
               title={fr ? "Bon vainqueur" : "Right winner"}
@@ -422,7 +422,7 @@ export default async function HowItWorksPage({
         </section>
 
         {/* ── LOCK + SAFETY ────────────────────────────────────────────── */}
-        <section className="mt-10 grid gap-3 sm:grid-cols-2">
+        <section className="mt-10 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <NoteCard
             icon={CalendarClock}
             title={fr ? "Un seul verrou" : "One single lock"}

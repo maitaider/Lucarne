@@ -42,7 +42,7 @@ export default async function InvitePage({
         </p>
       </header>
 
-      <ol className="mb-6 grid gap-2 sm:grid-cols-3">
+      <ol className="mb-6 grid grid-cols-1 gap-2 sm:grid-cols-3">
         {steps.map(({ icon: Icon, text }, i) => (
           <li
             key={i}

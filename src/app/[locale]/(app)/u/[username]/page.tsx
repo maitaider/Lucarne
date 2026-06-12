@@ -265,7 +265,7 @@ function PredGroup({
           {bets.length}
         </span>
       </h3>
-      <ul className="grid gap-2 lg:grid-cols-2">
+      <ul className="grid grid-cols-1 gap-2 lg:grid-cols-2">
         {bets.map((bet) => (
           <RecentBetRow key={bet.bet_id} bet={bet} locale={locale} />
         ))}

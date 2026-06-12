@@ -78,7 +78,7 @@ export default async function LeaguesPage({
       {leagues.length === 0 ? (
         <EmptyLeagues locale={L} isAdmin={admin} />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {leagues.map((league) => (
             <Link
               key={league.id}
@@ -153,7 +153,7 @@ function LeagueConsole({
   premiumCount: number;
 }) {
   return (
-    <section className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <section className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
       <LeagueMetric
         icon={Trophy}
         label={locale === "fr" ? "Ligues" : "Leagues"}
@@ -304,7 +304,7 @@ function EmptyLeagues({ locale, isAdmin }: { locale: Locale; isAdmin: boolean })
           </Link>
         )}
       </div>
-      <div className="grid gap-3 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         {features.map((feature) => {
           const Icon = feature.icon;
           return (

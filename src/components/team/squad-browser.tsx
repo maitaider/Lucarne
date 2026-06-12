@@ -123,7 +123,7 @@ export function SquadBrowser({
               <SectionLabel>
                 {(fr ? "Joueurs" : "Players") + ` · ${matchedPlayers.length}`}
               </SectionLabel>
-              <ul className="grid gap-2 sm:grid-cols-2">
+              <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {shownPlayers.map((p) => (
                   <PlayerRow key={p.id} player={p} fr={fr} />
                 ))}
@@ -159,7 +159,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 function TeamGrid({ teams, fr }: { teams: BrowseTeam[]; fr: boolean }) {
   return (
-    <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+    <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
       {teams.map((t) => (
         <li key={t.fifa_code}>
           <Link

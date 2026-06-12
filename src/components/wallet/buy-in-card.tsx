@@ -165,7 +165,7 @@ export function BuyInCard({
         </div>
       </div>
 
-      <ul className="relative mt-5 grid gap-2 text-xs text-text-secondary sm:grid-cols-3">
+      <ul className="relative mt-5 grid grid-cols-1 gap-2 text-xs text-text-secondary sm:grid-cols-3">
         <Feature
           icon={ShieldCheck}
           fr="Paiement sécurisé Stripe"
