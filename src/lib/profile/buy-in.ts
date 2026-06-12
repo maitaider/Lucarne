@@ -72,7 +72,7 @@ export async function getMyBuyInStatus(): Promise<BuyInStatus> {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, predictions_unlock_until")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -109,9 +109,18 @@ export async function getMyBuyInStatus(): Promise<BuyInStatus> {
   // (à partir du paiement). Sinon, échéance = verrou global (inchangé). Mirroir
   // exact de la RPC SQL my_prediction_deadline().
   const isLate = paidAtMs !== null && paidAtMs >= deadline.getTime();
-  const myDeadlineMs = isLate
+  const baseDeadlineMs = isLate
     ? paidAtMs! + 60 * 60 * 1000
     : deadline.getTime();
+  // Déblocage admin par usager (profiles.predictions_unlock_until) : prolonge
+  // l'échéance du joueur si ce timestamp est plus tardif.
+  const unlockUntilMs = profile?.predictions_unlock_until
+    ? new Date(profile.predictions_unlock_until).getTime()
+    : null;
+  const myDeadlineMs =
+    unlockUntilMs && unlockUntilMs > baseDeadlineMs
+      ? unlockUntilMs
+      : baseDeadlineMs;
   return {
     ...baseline,
     paid,

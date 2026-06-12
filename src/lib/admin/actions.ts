@@ -380,6 +380,37 @@ export async function setLateEntryOpen(
   return { ok: true };
 }
 
+/**
+ * Admin per-user unlock: grant a paid player a fresh prediction window for the
+ * REMAINING matches (sets profiles.predictions_unlock_until = now + hours; the
+ * per-match kickoff lock still blocks already-started matches). Pass hours=0 to
+ * re-lock immediately.
+ */
+export async function setUserPredictionUnlock(
+  userId: string,
+  hours: number,
+): Promise<{ ok: boolean; message?: string }> {
+  const me = await getCurrentUser();
+  if (!me || !isAdminRole(me.role)) {
+    return { ok: false, message: "Accès refusé" };
+  }
+  if (!Number.isFinite(hours) || hours < 0 || hours > 168) {
+    return { ok: false, message: "Durée invalide" };
+  }
+  const admin = getSupabaseAdmin();
+  if (!admin) return { ok: false, message: "Service indisponible" };
+  const until =
+    hours > 0 ? new Date(Date.now() + hours * 3_600_000).toISOString() : null;
+  const { error } = await admin
+    .from("profiles")
+    .update({ predictions_unlock_until: until })
+    .eq("id", userId);
+  if (error) return { ok: false, message: error.message };
+  revalidatePath("/admin/users");
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
 export async function updateAppSettings(
   input: z.infer<typeof settingsSchema>,
 ): Promise<{ ok: boolean; message?: string }> {

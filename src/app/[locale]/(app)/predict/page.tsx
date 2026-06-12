@@ -6,6 +6,7 @@ import { getMyPicksByMatch } from "@/lib/bets/my-picks";
 import { AppPageShell } from "@/components/layout/app-page-shell";
 import { PageHero } from "@/components/layout/page-hero";
 import { PredictBoard } from "@/components/predict/predict-board";
+import { GraceWindowBanner } from "@/components/paywall/grace-window-banner";
 import { Sparkles, Trophy } from "lucide-react";
 import type { Locale } from "@/i18n/routing";
 
@@ -146,6 +147,10 @@ export default async function PredictPage({
         }
         background="subtle"
       />
+
+      {buyIn.deadline_passed && buyIn.can_bet && (
+        <GraceWindowBanner targetAt={buyIn.my_deadline_at} locale={L} />
+      )}
 
       <PredictBoard
         initialTab={tab}
