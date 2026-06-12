@@ -10,6 +10,7 @@ import { OnboardingTour } from "@/components/onboarding/onboarding-tour";
 import { ChunkReloadGuard } from "@/components/system/chunk-reload-guard";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { listMatches } from "@/lib/matches/queries";
+import { getMyBuyInStatus } from "@/lib/profile/buy-in";
 import type { Locale } from "@/i18n/routing";
 
 export default async function AppLayout({
@@ -36,15 +37,21 @@ export default async function AppLayout({
   const user = await getCurrentUser();
   if (!user) redirect({ href: "/login", locale });
 
-  // Pre-fetch the next openable match for the mobile FAB shortcut.
-  const allMatches = await listMatches();
+  // Pre-fetch the next openable match for the mobile FAB shortcut — but only
+  // when the player can actually bet. When predictions are frozen (global lock
+  // passed / unpaid), hide the FAB so it can't lead to a locked place_bet.
+  const [allMatches, buyIn] = await Promise.all([
+    listMatches(),
+    getMyBuyInStatus(),
+  ]);
   const now = Date.now();
-  const nextOpenMatch =
-    allMatches.find(
-      (m) =>
-        m.status === "scheduled" &&
-        new Date(m.kickoff_at).getTime() - now > 60_000,
-    ) ?? null;
+  const nextOpenMatch = buyIn.can_bet
+    ? (allMatches.find(
+        (m) =>
+          m.status === "scheduled" &&
+          new Date(m.kickoff_at).getTime() - now > 60_000,
+      ) ?? null)
+    : null;
 
   return (
     <div className="relative isolate flex min-h-dvh flex-col overflow-hidden">
