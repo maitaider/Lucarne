@@ -21,6 +21,7 @@ function makeSettings(overrides: Partial<AppSettings> = {}): AppSettings {
     contact_label: null,
     contact_info: null,
     currency: "CAD",
+    late_entry_open: false,
     updated_at: new Date().toISOString(),
     ...overrides,
   };

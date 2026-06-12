@@ -75,6 +75,7 @@ export default async function MatchesPage({
           currency={buyIn.settings.currency}
           deadlineAt={buyIn.deadline_at}
           deadlinePassed={buyIn.deadline_passed}
+          canBuyIn={buyIn.can_buy_in}
           locale={L}
         />
       )}
@@ -161,7 +162,7 @@ export default async function MatchesPage({
           locale={L}
           myPicksByMatch={myPicksByMatch}
           canBet={buyIn.can_bet}
-          accessClosed={buyIn.deadline_passed}
+          accessClosed={!buyIn.can_bet && !buyIn.can_buy_in}
           followedIds={followedIds}
           consensus={consensus}
         />
@@ -173,7 +174,7 @@ export default async function MatchesPage({
           locale={L}
           myPicksByMatch={myPicksByMatch}
           canBet={buyIn.can_bet}
-          accessClosed={buyIn.deadline_passed}
+          accessClosed={!buyIn.can_bet && !buyIn.can_buy_in}
           followedIds={followedIds}
           consensus={consensus}
         />

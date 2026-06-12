@@ -166,6 +166,7 @@ export default async function DashboardPage({
           currency={buyIn.settings.currency}
           deadlineAt={buyIn.deadline_at}
           deadlinePassed={buyIn.deadline_passed}
+          canBuyIn={buyIn.can_buy_in}
           locale={L}
         />
       )}
@@ -298,7 +299,7 @@ export default async function DashboardPage({
             match={featured}
             myPicks={featured ? myPicksByMatch.get(featured.id) : undefined}
             canBet={buyIn.can_bet}
-            deadlinePassed={buyIn.deadline_passed}
+            canBuyIn={buyIn.can_buy_in}
             locale={L}
           />
           <UpcomingCard
@@ -703,13 +704,13 @@ function FeaturedMatch({
   match,
   myPicks,
   canBet,
-  deadlinePassed,
+  canBuyIn,
   locale,
 }: {
   match: MatchListItem | null;
   myPicks?: MyPick[];
   canBet: boolean;
-  deadlinePassed: boolean;
+  canBuyIn: boolean;
   locale: Locale;
 }) {
   const fr = locale === "fr";
@@ -850,7 +851,7 @@ function FeaturedMatch({
       )}
 
       <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:items-center">
-        {match.status === "scheduled" && !deadlinePassed && (
+        {match.status === "scheduled" && (canBet || canBuyIn) && (
           <div className="flex-1">
             <QuickBetButton
               match={match}

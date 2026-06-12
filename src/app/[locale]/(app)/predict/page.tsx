@@ -160,6 +160,7 @@ export default async function PredictPage({
         currency={buyIn.settings.currency}
         deadlineAt={buyIn.deadline_at}
         deadlinePassed={buyIn.deadline_passed}
+        canBuyIn={buyIn.can_buy_in}
         locale={L}
       />
     </AppPageShell>

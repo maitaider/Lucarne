@@ -4,6 +4,7 @@ import {
   getOverviewStats,
 } from "@/lib/admin/economy";
 import { EconomyForm } from "@/components/admin/economy-form";
+import { LateEntryToggle } from "@/components/admin/late-entry-toggle";
 import type { Locale } from "@/i18n/routing";
 
 export default async function AdminEconomyPage({
@@ -32,6 +33,8 @@ export default async function AdminEconomyPage({
             : "Configure access price, currency, deadline, and prize split. Your changes are visible to all players instantly."}
         </p>
       </header>
+
+      <LateEntryToggle initialOpen={settings.late_entry_open} locale={L} />
 
       <EconomyForm
         initial={{

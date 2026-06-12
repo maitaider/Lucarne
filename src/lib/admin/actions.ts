@@ -355,6 +355,31 @@ const settingsSchema = z.object({
   contact_info: z.string().max(500).nullable().optional(),
 });
 
+/**
+ * Admin toggle: accept new players after the global lock (late entry). When on,
+ * unpaid users see "Buy your seat" again; paying late grants a 1 h window
+ * (handled by my_prediction_deadline() / getMyBuyInStatus).
+ */
+export async function setLateEntryOpen(
+  open: boolean,
+): Promise<{ ok: boolean; message?: string }> {
+  const me = await getCurrentUser();
+  if (!me || !isAdminRole(me.role)) {
+    return { ok: false, message: "Accès refusé" };
+  }
+  const admin = getSupabaseAdmin();
+  if (!admin) return { ok: false, message: "Service indisponible" };
+  const { error } = await admin
+    .from("app_settings")
+    .update({ late_entry_open: open })
+    .eq("id", 1);
+  if (error) return { ok: false, message: error.message };
+  // can_buy_in is read across the app — revalidate broadly.
+  revalidatePath("/admin/economy");
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
 export async function updateAppSettings(
   input: z.infer<typeof settingsSchema>,
 ): Promise<{ ok: boolean; message?: string }> {

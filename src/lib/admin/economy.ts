@@ -19,6 +19,8 @@ export type AppSettings = {
   contact_label: string | null;
   contact_info: string | null;
   currency: string;
+  /** Admin toggle: accept new players after the global lock (late entry). */
+  late_entry_open: boolean;
   updated_at: string;
 };
 
@@ -58,6 +60,7 @@ const DEFAULT: AppSettings = {
   contact_label: "Lucarne Admin",
   contact_info: null,
   currency: "CAD",
+  late_entry_open: false,
   updated_at: new Date().toISOString(),
 };
 
@@ -67,7 +70,7 @@ export async function getAppSettings(): Promise<AppSettings> {
   const { data } = await supabase
     .from("app_settings")
     .select(
-      "token_price_cents, buy_in_amount_cents, buy_in_deadline, tournament_start_at, tournament_end_at, prize_distribution, scoring_rules, contact_label, contact_info, currency, updated_at",
+      "token_price_cents, buy_in_amount_cents, buy_in_deadline, tournament_start_at, tournament_end_at, prize_distribution, scoring_rules, contact_label, contact_info, currency, late_entry_open, updated_at",
     )
     .eq("id", 1)
     .maybeSingle();
@@ -88,6 +91,7 @@ export async function getAppSettings(): Promise<AppSettings> {
     contact_label: data.contact_label,
     contact_info: data.contact_info,
     currency: data.currency ?? "CAD",
+    late_entry_open: data.late_entry_open ?? false,
     updated_at: data.updated_at,
   };
 }
