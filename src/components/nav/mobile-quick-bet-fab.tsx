@@ -26,7 +26,7 @@ export function MobileQuickBetFab({
     <Link
       href="/predict"
       aria-label={locale === "fr" ? "Faire mes pronostics" : "Make my predictions"}
-      className="fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-full bg-primary-500 px-4 py-3 text-sm font-bold text-abyss shadow-glow-primary transition hover:bg-primary-400 active:scale-95 md:hidden"
+      className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] right-5 z-40 inline-flex items-center gap-2 rounded-full bg-primary-500 px-4 py-3 text-sm font-bold text-abyss shadow-glow-primary transition hover:bg-primary-400 active:scale-95 md:hidden"
     >
       <Zap className="size-4" strokeWidth={2.5} />
       {locale === "fr" ? "Pronostiquer" : "Predict"}
