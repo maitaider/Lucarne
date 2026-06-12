@@ -93,7 +93,7 @@ function PredictionConsole({
   settledWins: number;
 }) {
   return (
-    <section className="mb-8 grid gap-3 sm:grid-cols-3">
+    <section className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-3">
       <BetMetric
         icon={ShieldCheck}
         label={locale === "fr" ? "En attente" : "Pending"}
@@ -198,7 +198,7 @@ function EmptyBets({ locale }: { locale: Locale }) {
           </p>
         </div>
       </div>
-      <div className="grid gap-3 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         {steps.map((step, idx) => (
           <div key={step.title} className="rounded-sm border border-white/[0.08] bg-white/[0.035] p-4">
             <div className="mb-3 flex size-7 items-center justify-center rounded-sm bg-primary-500/[0.1] font-display text-sm font-bold text-primary-400 ring-1 ring-primary-500/25">

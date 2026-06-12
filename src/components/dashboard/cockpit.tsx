@@ -83,11 +83,11 @@ export function Cockpit({
         aria-hidden
         className="pointer-events-none absolute left-12 right-12 top-0 h-px bg-gradient-to-r from-transparent via-white/45 to-transparent"
       />
-      <div className="grid gap-3 md:grid-cols-[2.75rem_1fr]">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-[2.75rem_1fr]">
         <ConsoleRail tab={tab} setTab={setTab} locale={locale} />
         <div className="rounded-[10px] border border-black/30 bg-abyss/[0.7] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
           <ConsoleHeader locale={locale} events={events} />
-          <div className="mt-3 grid gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
             {tickets.map((t) => (
               <PredictionCard key={t.match.id} ticket={t} locale={locale} />
             ))}
@@ -111,7 +111,7 @@ export function Cockpit({
             </div>
           )}
 
-          <div className="mt-3 grid gap-3 xl:grid-cols-[0.85fr_1.25fr_0.9fr]">
+          <div className="mt-3 grid grid-cols-1 gap-3 xl:grid-cols-[0.85fr_1.25fr_0.9fr]">
             <ProgressDonut value={donutValue} label={donutLabel} locale={locale} />
             <FormCurve points={formPoints} locale={locale} />
             <MetricRings rings={rings} />

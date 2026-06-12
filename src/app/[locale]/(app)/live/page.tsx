@@ -140,7 +140,7 @@ export default async function LivePage({
       </nav>
 
       {/* Desktop: 2-column scores + news rail. Mobile: single column based on tab. */}
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] lg:gap-6">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] lg:gap-6">
         <section className={cn(activeTab === "news" && "hidden lg:block")}>
           <LiveScores
             todayMatches={todayMatches}

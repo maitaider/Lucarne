@@ -117,7 +117,7 @@ export async function LandingHero() {
           </div>
         </div>
 
-        <div className="grid gap-3 pb-8 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 pb-8 sm:grid-cols-3">
           <StatStripItem
             icon={Users}
             value={<CountUp value={48} />}

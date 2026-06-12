@@ -115,7 +115,7 @@ export default async function BuyInPage({
         title={L === "fr" ? "Ton parcours en 4 étapes" : "Your 4-step journey"}
         accent="primary"
       >
-        <ol className="grid gap-3 sm:grid-cols-4">
+        <ol className="grid grid-cols-1 gap-3 sm:grid-cols-4">
           <Step
             n={1}
             icon={Ticket}

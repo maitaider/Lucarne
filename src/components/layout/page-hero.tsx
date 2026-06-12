@@ -111,7 +111,7 @@ export function PageHero({
 
       <div
         className={cn(
-          "relative grid gap-5 p-5 sm:p-7",
+          "relative grid grid-cols-1 gap-5 p-5 sm:p-7",
           visual && "lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-center lg:gap-8",
         )}
       >

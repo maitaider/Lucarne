@@ -219,7 +219,7 @@ export default async function MatchDetailPage({
       {/* ── Players to watch ───────────────────────────────────────────── */}
       {(homeTeamData || awayTeamData) && (
         <Reveal className="mt-6" delayMs={80}>
-          <section className="grid gap-4 md:grid-cols-2">
+          <section className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {homeTeamData && (
               <TeamWatchlist
                 team={homeTeamData}
@@ -553,7 +553,7 @@ function TeamWatchlist({
           </p>
         </div>
       </div>
-      <div className="grid gap-2">
+      <div className="grid grid-cols-1 gap-2">
         {team.key_players.map((player, index) => (
           <div
             key={player}
@@ -652,7 +652,7 @@ function SquadSection({
   locale: Locale;
 }) {
   return (
-    <section className="grid gap-4 md:grid-cols-2">
+    <section className="grid grid-cols-1 gap-4 md:grid-cols-2">
       <SquadColumn name={homeName} iso={homeIso} roster={homeRoster} locale={locale} />
       <SquadColumn name={awayName} iso={awayIso} roster={awayRoster} locale={locale} />
     </section>

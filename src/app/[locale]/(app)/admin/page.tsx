@@ -85,7 +85,7 @@ export default async function AdminOverviewPage({
       />
 
       {/* KPI grid */}
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
           icon={Wallet}
           label={L === "fr" ? "Argent collecté" : "Money collected"}
@@ -131,7 +131,7 @@ export default async function AdminOverviewPage({
       <RecentSignups data={signupData} locale={L} />
 
       {/* Deadline + prize pool */}
-      <section className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-[1.1fr_1fr]">
         {/* Deadline */}
         <div
           className={cn(
@@ -267,7 +267,7 @@ export default async function AdminOverviewPage({
         <h2 className="mb-3 font-display text-base font-semibold text-text-primary">
           {L === "fr" ? "Actions rapides" : "Quick actions"}
         </h2>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <QuickAction
             href="/admin/payments"
             icon={Wallet}

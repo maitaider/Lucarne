@@ -32,7 +32,7 @@ export default async function AdminLayout({
         </div>
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-[14rem_1fr]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[14rem_1fr]">
         <AdminSidebar locale={locale} />
         <div className="min-w-0">{children}</div>
       </div>

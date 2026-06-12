@@ -144,7 +144,7 @@ export function AdminInviteTool({
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="rounded-sm border border-white/[0.08] bg-white/[0.03] px-3 py-2">
               <div className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
                 {fr ? "Ligue maison" : "House league"}

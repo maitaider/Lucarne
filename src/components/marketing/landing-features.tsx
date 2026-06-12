@@ -63,7 +63,7 @@ export async function LandingFeatures() {
             </p>
           </Reveal>
 
-          <div className="grid gap-4 sm:grid-cols-3 lg:gap-5">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:gap-5">
             {features.map(({ icon: Icon, title, body, accent }, i) => (
               <Reveal key={title} delayMs={i * 110} className="h-full">
                 <article className="group relative h-full overflow-hidden rounded-md border border-white/[0.08] bg-surface-1/[0.76] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition duration-200 hover:-translate-y-1 hover:border-primary-500/35 hover:bg-surface-2/70">
@@ -94,7 +94,7 @@ export async function LandingFeatures() {
 
       <section className="bg-[#f3f7f2] text-[#11160f]">
         <div className="mx-auto max-w-6xl px-6 py-20 lg:px-8">
-          <div className="grid gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:items-start">
+          <div className="grid grid-cols-1 gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:items-start">
             <Reveal>
               <p className="mb-4 text-xs font-bold uppercase tracking-wider text-[#176943]">
                 {t("workflowEyebrow")}
@@ -103,7 +103,7 @@ export async function LandingFeatures() {
                 {t("workflowTitle")}
               </h2>
             </Reveal>
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               {steps.map((step, index) => (
                 <Reveal key={step.title} delayMs={index * 110}>
                   <article className="border-t border-[#c9d6c6] pt-5">
@@ -153,7 +153,7 @@ export async function LandingFeatures() {
               {t("trustIntro")}
             </p>
           </Reveal>
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {trustItems.map(({ icon: Icon, title, body }, i) => (
               <Reveal key={title} delayMs={i * 110} className="h-full">
                 <article className="h-full rounded-md border border-white/[0.12] bg-white/[0.06] p-5 backdrop-blur transition duration-200 hover:-translate-y-1 hover:border-primary-500/35">

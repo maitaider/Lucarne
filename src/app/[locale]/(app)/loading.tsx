@@ -14,7 +14,7 @@ export default function AppLoading() {
         {/* Hero band */}
         <div className="h-40 rounded-lg border border-white/[0.08] bg-surface-1/[0.6]" />
         {/* Stat row */}
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {Array.from({ length: 3 }).map((_, i) => (
             <div
               key={i}
@@ -23,7 +23,7 @@ export default function AppLoading() {
           ))}
         </div>
         {/* Content block */}
-        <div className="grid gap-4 lg:grid-cols-[1.4fr_0.6fr]">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.4fr_0.6fr]">
           <div className="h-72 rounded-lg border border-white/[0.08] bg-surface-1/[0.5]" />
           <div className="h-72 rounded-lg border border-white/[0.08] bg-surface-1/[0.4]" />
         </div>

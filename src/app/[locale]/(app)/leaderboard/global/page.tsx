@@ -217,7 +217,7 @@ export default async function GlobalLeaderboardPage({
                 : "No points scored in this phase yet."}
             </p>
           )}
-          <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <LeaderboardMetric
               icon={ShieldCheck}
               label={locale === "fr" ? "Victoires" : "Wins"}

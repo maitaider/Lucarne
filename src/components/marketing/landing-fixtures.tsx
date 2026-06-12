@@ -75,7 +75,7 @@ export async function LandingFixtures() {
             <Trophy className="size-3 text-gold-400" strokeWidth={2} />
             {fr ? "Derniers résultats" : "Latest results"}
           </div>
-          <div className="grid gap-1.5 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
             {lastResults.map((m) => (
               <ResultRow key={m.id} match={m} fr={fr} />
             ))}

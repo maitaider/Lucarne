@@ -154,7 +154,7 @@ export function PlayersAdminPanel({
   const selectedTeam = teams.find((t) => t.id === selectedTeamId) ?? null;
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[260px_1fr]">
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-[260px_1fr]">
       {/* Team list */}
       <aside className="rounded-md border border-white/[0.08] bg-surface-1/[0.6] backdrop-blur-xl">
         <ul className="max-h-[60vh] overflow-y-auto divide-y divide-white/[0.05]">
@@ -308,7 +308,7 @@ function DraftForm({
     onChange({ ...draft, [k]: v });
   }
   return (
-    <div className="grid gap-2 rounded-[10px] border border-violet-500/30 bg-violet-500/[0.06] p-3 sm:grid-cols-[2fr_2fr_3.5rem_5rem_2.5fr_auto]">
+    <div className="grid grid-cols-1 gap-2 rounded-[10px] border border-violet-500/30 bg-violet-500/[0.06] p-3 sm:grid-cols-[2fr_2fr_3.5rem_5rem_2.5fr_auto]">
       <input
         type="text"
         value={draft.full_name}
