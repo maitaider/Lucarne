@@ -14,9 +14,14 @@ import {
   listMyLeagues,
   type StandingEntry,
 } from "@/lib/leagues/queries";
+import {
+  getStandingsDeltas,
+  type StandingDelta,
+} from "@/lib/leagues/standings-history";
 import { LiveRefresh } from "@/components/live/live-refresh";
 import { ChatPreviewCard } from "@/components/dashboard/chat-preview-card";
 import { FlashRow } from "@/components/leaderboard/flash-row";
+import { RankDelta } from "@/components/leaderboard/rank-delta";
 import { getMyPicksByMatch, type MyPick } from "@/lib/bets/my-picks";
 import { picksToExisting } from "@/lib/bets/picks-to-existing";
 import { getMyBuyInStatus } from "@/lib/profile/buy-in";
@@ -78,6 +83,7 @@ export default async function DashboardPage({
     followedMatches,
     potTotal,
     projected,
+    standingsDeltas,
   ] = await Promise.all([
     getCurrentUser(),
     getMyStats(),
@@ -95,6 +101,7 @@ export default async function DashboardPage({
     getFollowedMatches(),
     getPotTotal(),
     getProjectedPayouts(),
+    getStandingsDeltas(),
   ]);
 
   // Resolve the user's predicted champion from the teams present in the
@@ -273,6 +280,7 @@ export default async function DashboardPage({
             rows={standings}
             currentUserId={user?.id ?? null}
             total={standings.length}
+            deltas={standingsDeltas}
             locale={L}
           />
           </div>
@@ -1008,11 +1016,13 @@ function MiniLeaderboard({
   rows,
   currentUserId,
   total,
+  deltas,
   locale,
 }: {
   rows: StandingEntry[];
   currentUserId: string | null;
   total: number;
+  deltas?: Map<string, StandingDelta>;
   locale: Locale;
 }) {
   const fr = locale === "fr";
@@ -1054,6 +1064,9 @@ function MiniLeaderboard({
               key={r.user_id}
               row={r}
               isMe={r.user_id === currentUserId}
+              delta={
+                deltas ? (deltas.get(r.user_id)?.rankDelta ?? null) : undefined
+              }
               locale={locale}
             />
           ))}
@@ -1066,10 +1079,12 @@ function MiniLeaderboard({
 function LeaderRow({
   row,
   isMe,
+  delta,
   locale,
 }: {
   row: StandingEntry;
   isMe: boolean;
+  delta?: number | null;
   locale: Locale;
 }) {
   const isAdmin = row.role === "admin" || row.role === "super_admin";
@@ -1083,7 +1098,10 @@ function LeaderRow({
         isMe && "bg-primary-500/[0.07]",
       )}
     >
-      <RankBadge rank={row.rank} />
+      <div className="flex w-7 shrink-0 flex-col items-center gap-0.5">
+        <RankBadge rank={row.rank} />
+        {delta !== undefined && <RankDelta delta={delta} locale={locale} />}
+      </div>
       <UserAvatar
         src={row.avatar_url}
         name={row.display_name ?? row.username}
