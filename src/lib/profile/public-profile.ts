@@ -110,3 +110,40 @@ export async function getProfileRecentBets(
     },
   }));
 }
+
+/** One team of a player's predicted final four (rank: 1 champion, 2 runner-up,
+ *  3 semi-finalist). */
+export type BracketTeam = {
+  rank: number;
+  team_id: string;
+  name_fr: string | null;
+  name_en: string | null;
+  iso: string | null;
+  fifa: string | null;
+};
+
+/**
+ * The player's predicted FINAL FOUR (champion + the other finalist + the two
+ * semi-finalists), resolved to team names/flags by the `profile_bracket`
+ * SECURITY DEFINER RPC. Same membership gate as `getProfileRecentBets`, plus an
+ * anti-copy lock: another player's bracket is only revealed once predictions are
+ * globally locked. Returns [] when not viewable, not locked, or no bracket.
+ */
+export async function getProfileBracket(
+  username: string,
+): Promise<BracketTeam[]> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return [];
+  const supabase = await getSupabaseServer();
+  const { data, error } = await supabase.rpc("profile_bracket", {
+    p_username: username,
+  });
+  if (error || !data) return [];
+  return data.map((r) => ({
+    rank: r.rank ?? 3,
+    team_id: r.team_id ?? "",
+    name_fr: r.name_fr,
+    name_en: r.name_en,
+    iso: r.iso,
+    fifa: r.fifa,
+  }));
+}

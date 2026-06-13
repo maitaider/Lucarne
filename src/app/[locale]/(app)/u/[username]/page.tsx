@@ -24,16 +24,18 @@ import { arePredictionsLocked } from "@/lib/predictions/queries";
 import {
   getPublicProfile,
   getProfileRecentBets,
+  getProfileBracket,
   type ProfileBet,
   type ProfileTeamSide,
 } from "@/lib/profile/public-profile";
 import { getPlayerAchievements } from "@/lib/profile/achievements";
 import { PlayerBadges } from "@/components/profile/player-badges";
+import { BracketSummary } from "@/components/profile/bracket-summary";
 import { AppPageShell } from "@/components/layout/app-page-shell";
 import { SectionPanel } from "@/components/layout/section-panel";
 import { Flag } from "@/components/team/flag";
 import { ExactScoreBadge } from "@/components/celebrations/exact-score-badge";
-import { getUserPointsHistory } from "@/lib/leagues/standings-history";
+import type { PointsHistoryPoint } from "@/lib/leagues/standings-history";
 import { PointsProgressChart } from "@/components/profile/points-progress-chart";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
@@ -66,11 +68,17 @@ export default async function PublicProfilePage({
   ]);
   if (!profile) notFound();
 
-  const [recent, achievements, pointsHistory] = await Promise.all([
+  const [recent, achievements, bracket] = await Promise.all([
     getProfileRecentBets(username, 104),
     getPlayerAchievements(username),
-    getUserPointsHistory(username),
+    getProfileBracket(username),
   ]);
+
+  // Progression curve — cumulative points per Toronto match-day, derived from
+  // the player's settled bets. Immediate and accurate (points only ever move on
+  // a match day), so it draws as soon as one match is scored — no waiting on the
+  // daily standings snapshots to accumulate.
+  const pointsCurve = buildPointsCurve(recent);
 
   const isSelf = me?.id === profile.user_id;
   const isAdmin = profile.role === "admin" || profile.role === "super_admin";
@@ -193,6 +201,20 @@ export default async function PublicProfilePage({
       {/* ── Badges & streaks ─────────────────────────────────────────────── */}
       <PlayerBadges achievements={achievements} locale={L} />
 
+      {/* ── Phase finale — predicted bracket (final four) ────────────────── */}
+      <SectionPanel
+        icon={Trophy}
+        accent="gold"
+        title={fr ? "Phase finale" : "Knockout bracket"}
+        description={
+          fr
+            ? "Son bracket pronostiqué : champion, finaliste, demi-finalistes."
+            : "Their predicted bracket: champion, runner-up, semi-finalists."
+        }
+      >
+        <BracketSummary teams={bracket} locale={L} canSee={canSeeAllPicks} />
+      </SectionPanel>
+
       {/* ── Progression (cumulative points per day) ──────────────────────── */}
       <SectionPanel
         icon={LineChart}
@@ -202,7 +224,7 @@ export default async function PublicProfilePage({
           fr ? "Points cumulés, jour après jour." : "Cumulative points, day by day."
         }
       >
-        <PointsProgressChart data={pointsHistory} locale={L} />
+        <PointsProgressChart data={pointsCurve} locale={L} />
       </SectionPanel>
 
       {/* ── Predictions — grouped: results + upcoming ────────────────────── */}
@@ -526,4 +548,43 @@ function betTypeLabel(t: string, fr: boolean): string {
     top_scorer: { fr: "Meilleur buteur", en: "Top scorer" },
   };
   return map[t]?.[fr ? "fr" : "en"] ?? t;
+}
+
+/* ─────────────────────── Progression curve helper ────────────────────────── */
+
+/** YYYY-MM-DD for the Toronto calendar day of an ISO timestamp (the app's
+ *  default audience timezone, so a late kickoff lands on the right day). */
+function torontoDay(iso: string): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Toronto",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(iso));
+}
+
+/**
+ * Cumulative points per match-day from the player's settled bets — the series
+ * fed to the progression chart. Only settled (won/lost) bets count, grouped by
+ * Toronto match-day and running-summed. A 0-point baseline (the day before the
+ * first scored day) is prepended so the curve climbs from zero and renders even
+ * after a single match day. Empty when nothing is settled yet.
+ */
+function buildPointsCurve(bets: ProfileBet[]): PointsHistoryPoint[] {
+  const byDay = new Map<string, number>();
+  for (const b of bets) {
+    if ((b.result !== "won" && b.result !== "lost") || !b.kickoff_at) continue;
+    const day = torontoDay(b.kickoff_at);
+    byDay.set(day, (byDay.get(day) ?? 0) + b.points);
+  }
+  const days = [...byDay.keys()].sort();
+  if (days.length === 0) return [];
+  let cum = 0;
+  const series = days.map((d) => {
+    cum += byDay.get(d) ?? 0;
+    return { date: d, points: cum };
+  });
+  const before = new Date(`${days[0]}T00:00:00Z`);
+  before.setUTCDate(before.getUTCDate() - 1);
+  return [{ date: before.toISOString().slice(0, 10), points: 0 }, ...series];
 }
