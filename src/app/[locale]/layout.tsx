@@ -74,6 +74,10 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
+  // The on-screen keyboard resizes the layout (dvh/fixed shrink above it)
+  // instead of overlaying it — fixes the chat composer being pushed/hidden and
+  // the page "jumping" when an input is focused on mobile.
+  interactiveWidget: "resizes-content",
 };
 
 export function generateStaticParams() {

@@ -898,7 +898,7 @@ export function ChatRoom({
   const onlineCount = online.length;
 
   return (
-    <section className="relative flex h-[calc(100dvh-20rem)] min-h-[20rem] max-h-[880px] flex-col overflow-hidden rounded-[16px] border border-white/[0.08] bg-surface-1/[0.5] shadow-card backdrop-blur-xl sm:h-[70dvh] sm:min-h-[480px]">
+    <section className="relative flex h-[calc(100dvh-14rem)] min-h-[20rem] max-h-[880px] flex-col overflow-hidden rounded-[16px] border border-white/[0.08] bg-surface-1/[0.5] shadow-card backdrop-blur-xl sm:h-[70dvh] sm:min-h-[480px]">
       {/* Animated accent line */}
       <div className="lk-gradient-pan h-[2px] w-full shrink-0 bg-[linear-gradient(90deg,transparent,rgba(34,217,130,0.55),rgba(124,92,255,0.55),transparent)]" />
 
@@ -1271,7 +1271,7 @@ export function ChatRoom({
                     ? "Écris dans le Salon…  (@ pour mentionner)"
                     : "Write in the Lounge…  (@ to mention)"
                 }
-                className="max-h-32 min-h-[2.25rem] flex-1 resize-none bg-transparent px-2 py-1.5 text-sm text-text-primary outline-none placeholder:text-text-tertiary"
+                className="max-h-32 min-h-[2.25rem] flex-1 resize-none bg-transparent px-2 py-1.5 text-base text-text-primary outline-none placeholder:text-text-tertiary sm:text-sm"
               />
               <div className="flex items-center gap-2 pr-1">
                 {input.length > CHAT_MAX_LEN - 40 && (

@@ -49,6 +49,10 @@ export function BottomNav({
   const chatUnread = useChatUnread(userId);
   const fr = locale === "fr";
 
+  // The salon is a full-screen, keyboard-driven surface — a fixed bottom bar
+  // fights the composer + the on-screen keyboard. Hide it there.
+  if (pathname === "/chat" || pathname.startsWith("/chat/")) return null;
+
   return (
     <nav
       aria-label={fr ? "Navigation principale" : "Primary navigation"}
