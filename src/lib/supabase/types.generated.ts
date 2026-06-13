@@ -2011,6 +2011,17 @@ export type Database = {
       }
       my_prediction_deadline: { Args: never; Returns: string }
       predictions_locked: { Args: never; Returns: boolean }
+      profile_bracket: {
+        Args: { p_username: string }
+        Returns: {
+          fifa: string
+          iso: string
+          name_en: string
+          name_fr: string
+          rank: number
+          team_id: string
+        }[]
+      }
       profile_recent_bets: {
         Args: { p_limit?: number; p_username: string }
         Returns: {
