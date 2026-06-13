@@ -1411,10 +1411,35 @@ function MessageRow({
   const name = isBot ? "Salon" : m.author.display_name ?? `@${m.author.username}`;
   const authorIsAdmin = isAdminRole(m.author.role);
   const canMute = isAdmin && !isMine && !isBot;
+
+  // Mobile: swipe a message right to reply (reveal icon + ~52px threshold).
+  // `touch-action: pan-y` lets vertical scrolling through while we own the
+  // horizontal gesture.
+  const [swipeX, setSwipeX] = useState(0);
+  const swipeStart = useRef<{ x: number; y: number } | null>(null);
+
   return (
     <li
+      onTouchStart={(e) => {
+        swipeStart.current = {
+          x: e.touches[0].clientX,
+          y: e.touches[0].clientY,
+        };
+      }}
+      onTouchMove={(e) => {
+        if (!swipeStart.current) return;
+        const dx = e.touches[0].clientX - swipeStart.current.x;
+        const dy = e.touches[0].clientY - swipeStart.current.y;
+        if (dx > 0 && Math.abs(dx) > Math.abs(dy)) setSwipeX(Math.min(dx, 88));
+      }}
+      onTouchEnd={() => {
+        if (swipeX > 52) onReply(m);
+        setSwipeX(0);
+        swipeStart.current = null;
+      }}
+      style={{ touchAction: "pan-y" }}
       className={cn(
-        "group relative flex gap-2.5 rounded-lg px-2 transition hover:bg-white/[0.025]",
+        "group relative overflow-hidden rounded-lg transition hover:bg-white/[0.025]",
         grouped ? "py-0.5" : "mt-2 pt-1.5 first:mt-0",
         m.pinned_at && "bg-gold-500/[0.05]",
         isMine && !m.pinned_at && "bg-primary-500/[0.04]",
@@ -1422,6 +1447,20 @@ function MessageRow({
         flashing && "lk-mention-flash",
       )}
     >
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 left-2 flex items-center text-primary-300"
+        style={{ opacity: Math.min(swipeX / 52, 1) }}
+      >
+        <Reply className="size-5" strokeWidth={2.2} />
+      </span>
+      <div
+        className="flex gap-2.5 px-2"
+        style={{
+          transform: swipeX ? `translateX(${swipeX}px)` : undefined,
+          transition: swipeX ? "none" : "transform 0.2s ease-out",
+        }}
+      >
       <div className="w-8 shrink-0">
         {!grouped &&
           (isBot ? (
@@ -1536,8 +1575,9 @@ function MessageRow({
           <MessageReactions messageId={m.id} initial={m.reactions} />
         </div>
       </div>
+      </div>
 
-      <div className="absolute right-1.5 top-1 flex items-center gap-0.5 rounded-md border border-white/[0.08] bg-abyss/80 opacity-0 shadow-sm backdrop-blur transition group-hover:opacity-100 focus-within:opacity-100">
+      <div className="absolute right-1.5 top-1 flex items-center gap-0.5 rounded-md border border-white/[0.08] bg-abyss/80 opacity-100 shadow-sm backdrop-blur transition focus-within:opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100">
         <button
           type="button"
           onClick={() => onReply(m)}

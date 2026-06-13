@@ -5,7 +5,7 @@ import { z } from "zod";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import type { Locale } from "@/i18n/routing";
 import { GLOBAL_CHAT_ID, CHAT_MAX_LEN } from "./constants";
-import { notifyMentionsByEmail } from "./mention-email";
+import { notifyChatMessageByEmail } from "./mention-email";
 
 const bodySchema = z.string().trim().max(CHAT_MAX_LEN);
 
@@ -98,14 +98,18 @@ export async function postChatMessage(
     return { ok: false, message: error?.message ?? (fr ? "Échec de l'envoi." : "Send failed.") };
   }
 
-  // Also email anyone @mentioned. The in-app notification is already created by
-  // the notify_comment trigger; this adds the email channel. Runs after the
-  // response (never delays the post) and is best-effort (failures are logged).
-  if (parsed.data.includes("@")) {
+  // Also email the people this message concerns — the author it replies to and
+  // anyone @mentioned. The in-app notifications are already created by the
+  // notify_comment trigger; this adds the email channel. Runs after the response
+  // (never delays the post) and is best-effort (failures are logged).
+  if (parsed.data.includes("@") || replyToId) {
     after(() =>
-      notifyMentionsByEmail({ body: parsed.data, senderId: user.id, locale }).catch(
-        (err) => console.error("[chat:mention-email]", err),
-      ),
+      notifyChatMessageByEmail({
+        body: parsed.data,
+        senderId: user.id,
+        replyToId: replyToId ?? null,
+        locale,
+      }).catch((err) => console.error("[chat:notify-email]", err)),
     );
   }
 
