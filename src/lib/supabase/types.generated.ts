@@ -2011,6 +2011,7 @@ export type Database = {
           settled_count: number
           total_points: number
           won_count: number
+          winner_count: number
         }[]
       }
       my_prediction_deadline: { Args: never; Returns: string }

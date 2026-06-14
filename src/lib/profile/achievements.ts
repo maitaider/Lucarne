@@ -9,6 +9,7 @@ export type PlayerAchievements = {
   scorer_count: number;
   current_streak: number;
   best_streak: number;
+  winner_count: number;
 };
 
 /**

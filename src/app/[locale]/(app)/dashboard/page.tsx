@@ -119,7 +119,6 @@ export default async function DashboardPage({
 
   const now = Date.now();
   const activeBets = myBets.filter((b) => b.status === "validated");
-  const winRatePct = Math.round(stats.win_rate * 100);
   const myRank = user && standings.find((s) => s.user_id === user.id)?.rank;
   const firstName =
     (user?.display_name?.trim() || user?.username || "").split(" ")[0] ?? "";
@@ -188,8 +187,8 @@ export default async function DashboardPage({
           className="pointer-events-none absolute -right-24 -top-24 -z-10 size-[420px] rounded-full bg-primary-500/10 blur-3xl"
         />
 
-        <div className="relative p-4 sm:p-8">
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.3fr_0.7fr] lg:items-stretch lg:gap-10">
+        <div className="relative p-4 sm:p-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.3fr_0.7fr] lg:items-stretch lg:gap-8">
           {/* Left — greeting + KPIs */}
           <div className="flex min-w-0 flex-col">
             <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -253,10 +252,10 @@ export default async function DashboardPage({
               </div>
 
               <SeasonStrip
-                winRatePct={winRatePct}
                 exactCount={achievements?.exact_count ?? 0}
+                winnerCount={achievements?.winner_count ?? 0}
                 currentStreak={achievements?.current_streak ?? 0}
-                wonCount={achievements?.won_count ?? 0}
+                totalPoints={stats.total_points}
                 settledBets={stats.settled_bets}
                 locale={L}
               />
@@ -288,13 +287,13 @@ export default async function DashboardPage({
 
           {/* Marquee — the next kickoff, spanning the full hero width */}
           {featured && (
-            <HeroNextMatch match={featured} locale={L} className="mt-5" />
+            <HeroNextMatch match={featured} locale={L} className="mt-4" />
           )}
         </div>
-      </section>
 
-      {/* Quick actions */}
-      <QuickActions locale={L} />
+        {/* Quick actions — folded into the hero window as a full-width footer band */}
+        <QuickActions locale={L} />
+      </section>
 
       {/* ===================== MAIN — act first =====================
           Left = your matches (the daily action). Right rail = where you stand
@@ -418,27 +417,35 @@ function HeroKpi({
 /* -------------------------------------------------------------------------- */
 
 function SeasonStrip({
-  winRatePct,
   exactCount,
+  winnerCount,
   currentStreak,
-  wonCount,
+  totalPoints,
   settledBets,
   locale,
 }: {
-  winRatePct: number;
+  /** Scores RÉELLEMENT exacts (payload == score final). */
   exactCount: number;
+  /** Bons vainqueurs/issues (1X2 correct) — la vraie « victoire » de prono. */
+  winnerCount: number;
   currentStreak: number;
-  wonCount: number;
+  totalPoints: number;
   settledBets: number;
   locale: Locale;
 }) {
   const fr = locale === "fr";
   const started = settledBets > 0;
+  // Note : « Victoires » = bon vainqueur (winnerCount), pas « a marqué des points »
+  // (won_count comptait toute consolation → un prono à contre-sens passait pour une
+  // victoire). « Scores exacts » = score réellement deviné (corrigé côté RPC).
   const items: { label: string; value: string }[] = [
-    { label: fr ? "Réussite" : "Win rate", value: started ? `${winRatePct}%` : "—" },
+    { label: fr ? "Victoires" : "Wins", value: started ? `${winnerCount}` : "—" },
     { label: fr ? "Scores exacts" : "Exact", value: started ? `${exactCount}` : "—" },
     { label: fr ? "Série" : "Streak", value: started ? `${currentStreak}` : "—" },
-    { label: fr ? "Victoires" : "Wins", value: started ? `${wonCount}` : "—" },
+    {
+      label: fr ? "Pts / match" : "Pts / game",
+      value: started ? (totalPoints / settledBets).toFixed(1) : "—",
+    },
   ];
   return (
     <div className="border-t border-white/[0.07] bg-abyss/[0.22] px-4 py-3">
@@ -529,7 +536,7 @@ function HeroBrief({
               ? championTeam.name_fr
               : championTeam.name_en
             : fr
-              ? "À désigner"
+              ? "Choisir"
               : "Pick one"
         }
         muted={!championTeam}
@@ -1391,34 +1398,36 @@ function QuickActions({ locale }: { locale: Locale }) {
     },
   ];
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <div className="relative grid grid-cols-2 gap-px border-t border-white/[0.08] bg-white/[0.07] lg:grid-cols-4">
       {actions.map((a) => {
         const Icon = a.icon;
         return (
-          <Card key={a.href} href={a.href} padded="md" className="group">
-            <div className="flex items-center gap-3">
-              <span
-                className={cn(
-                  "flex size-9 shrink-0 items-center justify-center rounded-sm ring-1",
-                  ACTION_ACCENT[a.accent],
-                )}
-              >
-                <Icon className="size-4" strokeWidth={1.8} />
-              </span>
-              <div className="min-w-0">
-                <div className="truncate font-display text-sm font-semibold text-text-primary">
-                  {a.label}
-                </div>
-                <div className="truncate text-xs text-text-tertiary">
-                  {a.sub}
-                </div>
+          <Link
+            key={a.href}
+            href={a.href}
+            className="group flex items-center gap-2.5 bg-abyss/[0.34] px-3 py-3 transition hover:bg-abyss/[0.55] sm:px-4 sm:py-3.5"
+          >
+            <span
+              className={cn(
+                "flex size-8 shrink-0 items-center justify-center rounded-md ring-1",
+                ACTION_ACCENT[a.accent],
+              )}
+            >
+              <Icon className="size-4" strokeWidth={1.8} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="font-display text-[13px] font-semibold leading-tight text-text-primary sm:truncate sm:text-sm">
+                {a.label}
               </div>
-              <ArrowRight
-                className="ml-auto size-4 shrink-0 text-text-tertiary transition group-hover:translate-x-0.5 group-hover:text-text-primary"
-                strokeWidth={1.6}
-              />
+              <div className="mt-0.5 hidden truncate text-[11px] text-text-tertiary sm:block">
+                {a.sub}
+              </div>
             </div>
-          </Card>
+            <ArrowRight
+              className="hidden size-4 shrink-0 text-text-tertiary opacity-0 transition group-hover:translate-x-0.5 group-hover:opacity-100 sm:block"
+              strokeWidth={1.8}
+            />
+          </Link>
         );
       })}
     </div>
