@@ -159,12 +159,12 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 function TeamGrid({ teams, fr }: { teams: BrowseTeam[]; fr: boolean }) {
   return (
-    <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+    <ul className="grid grid-cols-2 gap-2 lg:grid-cols-3">
       {teams.map((t) => (
         <li key={t.fifa_code}>
           <Link
             href={`/teams/${t.fifa_code}`}
-            className="flex items-center gap-3 rounded-[10px] border border-white/[0.07] bg-white/[0.035] px-3 py-2.5 transition hover:border-primary-500/40 hover:bg-white/[0.06]"
+            className="flex items-center gap-2.5 rounded-[10px] border border-white/[0.07] bg-white/[0.035] px-2.5 py-2.5 transition hover:border-primary-500/40 hover:bg-white/[0.06] active:scale-[0.98] sm:gap-3 sm:px-3"
           >
             <Flag
               isoCode={t.iso_code?.toLowerCase() ?? null}
