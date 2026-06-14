@@ -100,7 +100,7 @@ export function MessageBody({
   if (last < body.length) nodes.push(<Fragment key={key++}>{body.slice(last)}</Fragment>);
 
   return (
-    <span className="whitespace-pre-wrap break-words text-sm leading-relaxed text-text-secondary">
+    <span className="whitespace-pre-wrap break-words text-[15px] leading-relaxed text-text-secondary sm:text-sm">
       {nodes}
     </span>
   );

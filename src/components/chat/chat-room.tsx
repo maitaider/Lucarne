@@ -40,6 +40,7 @@ import { cn } from "@/lib/utils";
 import {
   ArrowDown,
   BarChart3,
+  ChevronLeft,
   Flag,
   ImagePlus,
   Loader2,
@@ -51,9 +52,11 @@ import {
   Shield,
   Smile,
   Trash2,
+  Users,
   Volume2,
   X,
 } from "lucide-react";
+import { useRouter } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
 
 type Props = {
@@ -178,6 +181,7 @@ export function ChatRoom({
 }: Props) {
   const fr = locale === "fr";
   const toast = useToast();
+  const router = useRouter();
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -898,15 +902,80 @@ export function ChatRoom({
   const onlineCount = online.length;
 
   return (
-    <section className="relative flex h-[calc(100dvh-14rem)] min-h-[20rem] max-h-[880px] flex-col overflow-hidden rounded-[16px] border border-white/[0.08] bg-surface-1/[0.5] shadow-card backdrop-blur-xl sm:h-[70dvh] sm:min-h-[480px]">
-      {/* Animated accent line */}
-      <div className="lk-gradient-pan h-[2px] w-full shrink-0 bg-[linear-gradient(90deg,transparent,rgba(34,217,130,0.55),rgba(124,92,255,0.55),transparent)]" />
+    <section
+      className={cn(
+        // Mobile: full-screen takeover (its own top bar + composer), above the
+        // app chrome — feels like opening a conversation in a native app.
+        "fixed inset-0 z-50 flex flex-col overflow-hidden bg-abyss/95 backdrop-blur-xl",
+        // Desktop: a contained, rounded chat card inside the page shell.
+        // `md:relative` (not static) keeps a positioning context for the
+        // absolutely-positioned children (scroll-to-bottom, floats, toolbars).
+        "md:relative md:z-auto md:h-[70dvh] md:min-h-[480px] md:max-h-[880px] md:rounded-[16px] md:border md:border-white/[0.08] md:bg-surface-1/[0.5] md:shadow-card",
+      )}
+    >
+      {/* Mobile top bar — own nav for the full-screen takeover: back + title +
+          live presence. Safe-area padding clears the status bar / notch. */}
+      <div className="flex shrink-0 items-center gap-1.5 border-b border-white/[0.08] bg-abyss/85 px-1.5 pb-2 pt-[max(env(safe-area-inset-top),0.6rem)] md:hidden">
+        <button
+          type="button"
+          onClick={() => {
+            // Back to where they came from; fall back to the dashboard on a
+            // direct load so the full-screen chat is never a dead end.
+            if (typeof window !== "undefined" && window.history.length > 1)
+              router.back();
+            else router.push("/dashboard");
+          }}
+          aria-label={fr ? "Retour" : "Back"}
+          className="flex size-9 shrink-0 items-center justify-center rounded-full text-text-secondary transition hover:bg-white/[0.06] active:scale-95"
+        >
+          <ChevronLeft className="size-6" strokeWidth={2} />
+        </button>
+        <div className="min-w-0 flex-1">
+          <h1 className="flex items-center gap-1.5 text-[15px] font-bold leading-tight text-text-primary">
+            {fr ? "Salon" : "Lounge"}
+            <span className="relative flex size-1.5">
+              {connected && (
+                <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary-400/70" />
+              )}
+              <span
+                className={cn(
+                  "relative inline-flex size-1.5 rounded-full",
+                  connected ? "bg-primary-400" : "bg-text-tertiary/50",
+                )}
+              />
+            </span>
+          </h1>
+          <p className="flex items-center gap-1 truncate text-[11px] leading-tight text-text-tertiary">
+            <Users className="size-3 shrink-0" strokeWidth={2} />
+            {onlineCount > 0
+              ? `${onlineCount} ${fr ? "en ligne" : "online"}`
+              : `${members.length} ${fr ? "membres" : "members"}`}
+          </p>
+        </div>
+        {onlineCount > 0 && (
+          <div className="flex -space-x-2 pr-1">
+            {online.slice(0, 3).map((u) => (
+              <UserAvatar
+                key={u.user_id}
+                src={u.avatar_url}
+                name={u.username}
+                className="size-7 ring-2 ring-abyss"
+                fallbackClassName="bg-gradient-to-br from-primary-500/40 to-violet-500/40 text-[9px] font-bold text-text-primary"
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Animated accent line — desktop card only */}
+      <div className="lk-gradient-pan hidden h-[2px] w-full shrink-0 bg-[linear-gradient(90deg,transparent,rgba(34,217,130,0.55),rgba(124,92,255,0.55),transparent)] md:block" />
 
       {/* Watch party — live scores + one-tap reactions */}
       <LiveMatchBar matches={liveMatches} locale={locale} onReact={handleReact} />
 
-      {/* Header strip: live status + online presence */}
-      <div className="flex shrink-0 items-center justify-between gap-2 border-b border-white/[0.08] bg-abyss/30 px-3 py-2 sm:px-4">
+      {/* Header strip: live status + online presence (desktop — mobile uses the
+          top bar above) */}
+      <div className="hidden shrink-0 items-center justify-between gap-2 border-b border-white/[0.08] bg-abyss/30 px-3 py-2 sm:px-4 md:flex">
         <span className="flex items-center gap-1.5 text-[11px] font-medium text-text-tertiary">
           <span className="relative flex size-2">
             {connected && (
@@ -984,7 +1053,7 @@ export function ChatRoom({
       <div
         ref={scrollRef}
         onScroll={onScroll}
-        className="flex-1 space-y-0.5 overflow-y-auto px-2 py-4 sm:px-3"
+        className="flex-1 space-y-0.5 overflow-y-auto overscroll-contain px-2 py-4 [scrollbar-width:thin] sm:px-3"
       >
         {messages.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
@@ -1101,7 +1170,7 @@ export function ChatRoom({
       )}
 
       {/* Compose */}
-      <div className="relative shrink-0 border-t border-white/[0.08] bg-surface-1/[0.6] p-2.5 sm:p-3">
+      <div className="relative shrink-0 border-t border-white/[0.08] bg-surface-1/[0.6] px-2.5 py-2.5 pb-[calc(env(safe-area-inset-bottom)+0.625rem)] sm:px-3 sm:py-3 sm:pb-3">
         {amIMuted ? (
           <div className="flex items-center gap-2 rounded-[10px] border border-error/30 bg-error/[0.08] px-3 py-2.5 text-xs text-error">
             <MicOff className="size-4 shrink-0" strokeWidth={1.8} />
@@ -1455,13 +1524,17 @@ function MessageRow({
         <Reply className="size-5" strokeWidth={2.2} />
       </span>
       <div
-        className="flex gap-2.5 px-2"
+        className={cn(
+          "flex gap-2 px-2 sm:gap-2.5",
+          // Mobile: my messages flip to the right (native bubble layout).
+          isMine && "max-md:flex-row-reverse",
+        )}
         style={{
           transform: swipeX ? `translateX(${swipeX}px)` : undefined,
           transition: swipeX ? "none" : "transform 0.2s ease-out",
         }}
       >
-      <div className="w-8 shrink-0">
+      <div className={cn("w-8 shrink-0", isMine && "max-md:hidden")}>
         {!grouped &&
           (isBot ? (
             <span className="flex size-8 items-center justify-center rounded-full bg-gradient-to-br from-primary-500/30 to-violet-500/30 text-base ring-1 ring-white/[0.1]">
@@ -1485,9 +1558,22 @@ function MessageRow({
           ))}
       </div>
 
-      <div className="min-w-0 flex-1">
+      <div
+        className={cn(
+          "flex min-w-0 flex-1 flex-col",
+          // Mobile: hug content (capped width) so messages read as bubbles,
+          // aligned to the sender's side. Desktop keeps the full-width list.
+          "max-md:max-w-[82%] max-md:flex-none",
+          isMine ? "max-md:items-end" : "max-md:items-start",
+        )}
+      >
         {!grouped && (
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+          <div
+            className={cn(
+              "flex flex-wrap items-center gap-x-2 gap-y-0.5",
+              isMine && "max-md:flex-row-reverse",
+            )}
+          >
             {isBot ? (
               <span className="inline-flex items-center gap-1 text-xs font-semibold text-text-primary">
                 {name}
@@ -1532,39 +1618,52 @@ function MessageRow({
           </div>
         )}
 
-        {m.reply && (
-          <div className="mb-1 mt-0.5 flex items-center gap-1.5 border-l-2 border-primary-500/40 pl-2 text-[11px] text-text-tertiary">
-            <Reply className="size-3 shrink-0" strokeWidth={2} />
-            <span className="font-semibold text-text-secondary">
-              @{m.reply.author}
-            </span>
-            <span className="min-w-0 truncate">{m.reply.body}</span>
-          </div>
-        )}
-
-        {m.body && (
-          <MessageBody
-            body={m.body}
-            memberUsernames={memberUsernames}
-            locale={locale}
-            highlightUsername={myUsername}
-          />
-        )}
-
-        {m.image_url && (
-          <button
-            type="button"
-            onClick={() => onImageClick(m.image_url!)}
-            className="mt-1 block overflow-hidden rounded-[10px] border border-white/[0.08] transition hover:border-primary-500/40"
+        {(m.reply || m.body || m.image_url) && (
+          <div
+            className={cn(
+              // Mobile: wrap the message content in a rounded chat bubble; the
+              // sender's side gets the accent fill. Desktop keeps the flat list.
+              "max-md:mt-0.5 max-md:w-fit max-md:max-w-full max-md:rounded-2xl max-md:px-3 max-md:py-1.5",
+              isMine
+                ? "max-md:rounded-br-sm max-md:bg-primary-500/[0.16]"
+                : "max-md:rounded-bl-sm max-md:bg-white/[0.06]",
+            )}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element -- Supabase Storage URL. */}
-            <img
-              src={m.image_url}
-              alt={fr ? "Image partagée" : "Shared image"}
-              loading="lazy"
-              className="max-h-72 max-w-full object-cover"
-            />
-          </button>
+            {m.reply && (
+              <div className="mb-1 mt-0.5 flex items-center gap-1.5 border-l-2 border-primary-500/40 pl-2 text-[11px] text-text-tertiary">
+                <Reply className="size-3 shrink-0" strokeWidth={2} />
+                <span className="font-semibold text-text-secondary">
+                  @{m.reply.author}
+                </span>
+                <span className="min-w-0 truncate">{m.reply.body}</span>
+              </div>
+            )}
+
+            {m.body && (
+              <MessageBody
+                body={m.body}
+                memberUsernames={memberUsernames}
+                locale={locale}
+                highlightUsername={myUsername}
+              />
+            )}
+
+            {m.image_url && (
+              <button
+                type="button"
+                onClick={() => onImageClick(m.image_url!)}
+                className="mt-1 block overflow-hidden rounded-[10px] border border-white/[0.08] transition hover:border-primary-500/40"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element -- Supabase Storage URL. */}
+                <img
+                  src={m.image_url}
+                  alt={fr ? "Image partagée" : "Shared image"}
+                  loading="lazy"
+                  className="max-h-72 max-w-full object-cover"
+                />
+              </button>
+            )}
+          </div>
         )}
 
         {m.poll && <PollCard poll={m.poll} locale={locale} onVote={onVote} />}
