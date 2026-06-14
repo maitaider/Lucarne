@@ -215,7 +215,7 @@ export default async function DashboardPage({
                 : "Your World Cup HQ: follow matches, predict, climb the leaderboard."}
             </p>
 
-            <div className="mt-6 grid grid-cols-3 gap-2">
+            <div className="mt-6 grid grid-cols-3 gap-2.5">
               <Stat
                 icon={Receipt}
                 label={L === "fr" ? "Pronos actifs" : "Active picks"}
@@ -300,7 +300,7 @@ export default async function DashboardPage({
           + your circle. `grid-cols-1` base + `min-w-0` on both columns are
           load-bearing on mobile (an implicit `auto` column would grow to the
           featured match's 80px flags and clip the grid). */}
-      <div className="grid grid-cols-1 gap-x-5 gap-y-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-x-5 gap-y-6 lg:grid-cols-3">
         {/* Left — your matches */}
         <div className="flex min-w-0 flex-col gap-4 lg:col-span-2">
           <SectionLabel icon={CalendarDays}>
@@ -909,7 +909,11 @@ function FeaturedTeam({
         align === "right" ? "items-end text-right" : "items-start text-left",
       )}
     >
-      <Flag isoCode={iso} size="2xl" />
+      <Flag
+        isoCode={iso}
+        size="2xl"
+        className="!h-10 !w-[3.4rem] sm:!h-[3.75rem] sm:!w-20"
+      />
       <span className="line-clamp-2 font-display text-base font-semibold leading-tight text-text-primary sm:text-xl">
         {name}
       </span>
