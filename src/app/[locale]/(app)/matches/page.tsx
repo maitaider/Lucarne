@@ -17,11 +17,8 @@ import {
   Activity,
   CalendarDays,
   LayoutGrid,
-  MapPinned,
-  Network,
   ShieldCheck,
   Trophy,
-  type LucideIcon,
 } from "lucide-react";
 
 type View = "groups" | "calendar" | "knockout";
@@ -79,65 +76,15 @@ export default async function MatchesPage({
           locale={L}
         />
       )}
-      {/* Header with tournament summary */}
-      <header className="relative mb-6 overflow-hidden rounded-sm border border-white/[0.12] bg-surface-1/[0.7] p-5 shadow-[0_26px_85px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl sm:p-6">
-        <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-          <div>
-            <div className="mb-3 inline-flex items-center gap-1.5 rounded-sm border border-gold-500/30 bg-gold-500/[0.1] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-gold-400 shadow-glow-gold">
-              <Trophy className="size-3.5" />
-              {L === "fr" ? "Coupe du Monde 2026" : "FIFA World Cup 2026"}
-            </div>
-            <h1 className="font-display text-3xl font-semibold text-text-primary sm:text-4xl">
-              {L === "fr" ? "Centre tournoi" : "Tournament center"}
-            </h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-text-secondary">
-              {L === "fr"
-                ? "Groupes, calendrier, phase finale et signaux live réunis dans une vue pensée pour analyser, comparer et parier vite."
-                : "Groups, calendar, knockout bracket, and live signals in one view built to scan, compare, and bet fast."}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:min-w-[580px] xl:grid-cols-4">
-            <TournamentStat
-              icon={MapPinned}
-              label={L === "fr" ? "Format" : "Format"}
-              value="48"
-              detail={L === "fr" ? "équipes" : "teams"}
-              accent="gold"
-            />
-            <TournamentStat
-              icon={LayoutGrid}
-              label={L === "fr" ? "Groupes" : "Groups"}
-              value={groups.length || 12}
-              detail={L === "fr" ? "tables" : "tables"}
-              accent="primary"
-            />
-            <TournamentStat
-              icon={CalendarDays}
-              label={L === "fr" ? "Calendrier" : "Calendar"}
-              value={allMatches.length || 104}
-              detail={`${finishedCount}/${allMatches.length || 104} ${L === "fr" ? "joués" : "played"}`}
-              accent="violet"
-            />
-            <TournamentStat
-              icon={Network}
-              label={L === "fr" ? "Arbre" : "Bracket"}
-              value={knockoutCount || 32}
-              detail={L === "fr" ? "matchs à élimination" : "knockout ties"}
-              accent="gold"
-            />
-          </div>
-        </div>
-      </header>
-
-      {/* Tabs */}
-      <ViewTabs current={currentView} locale={L} />
-
-      <TournamentPulse
+      <TournamentHub
         locale={L}
+        currentView={currentView}
+        totalMatches={allMatches.length}
+        groupsCount={groups.length}
+        knockoutCount={knockoutCount}
         liveCount={liveCount}
-        scheduledCount={scheduledCount}
         finishedCount={finishedCount}
+        scheduledCount={scheduledCount}
       />
 
       {currentView === "groups" && (
@@ -191,7 +138,7 @@ function ViewTabs({ current, locale }: { current: View; locale: Locale }) {
   ];
 
   return (
-    <div className="mb-6 inline-flex rounded-sm border border-white/[0.1] bg-abyss/[0.44] p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
+    <div className="flex w-full rounded-sm border border-white/[0.1] bg-abyss/[0.44] p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl md:inline-flex md:w-auto">
       {tabs.map((t) => {
         const isActive = t.id === current;
         const Icon = t.icon;
@@ -201,7 +148,7 @@ function ViewTabs({ current, locale }: { current: View; locale: Locale }) {
             key={t.id}
             href={href}
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-[7px] px-3.5 py-1.5 text-xs font-semibold transition",
+              "inline-flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-[7px] px-3.5 py-1.5 text-xs font-semibold transition md:flex-none md:justify-start",
               isActive
                 ? "bg-primary-500 text-abyss shadow-glow-primary"
                 : "text-text-secondary hover:bg-white/[0.05] hover:text-text-primary",
@@ -216,122 +163,158 @@ function ViewTabs({ current, locale }: { current: View; locale: Locale }) {
   );
 }
 
-function TournamentStat({
-  icon: Icon,
-  label,
-  value,
-  detail,
-  accent,
+/**
+ * Single translucent "tournament control center" panel. Folds what used to be
+ * three scattered blocks — the hero, the view tabs, and the "Signal tournoi"
+ * card — into one frosted-glass window with three stacked bands:
+ *   1. identity (badge + title + tagline)
+ *   2. metrics strip (structure stats) + live progress bar
+ *   3. view tabs + live indicator
+ * The "played" count lived in two places before (Calendar stat detail + Pulse);
+ * here it appears once, inside the progress band.
+ */
+function TournamentHub({
+  locale,
+  currentView,
+  totalMatches,
+  groupsCount,
+  knockoutCount,
+  liveCount,
+  finishedCount,
+  scheduledCount,
 }: {
-  icon: LucideIcon;
-  label: string;
-  value: string | number;
-  detail: string;
-  accent: "primary" | "gold" | "violet";
+  locale: Locale;
+  currentView: View;
+  totalMatches: number;
+  groupsCount: number;
+  knockoutCount: number;
+  liveCount: number;
+  finishedCount: number;
+  scheduledCount: number;
 }) {
-  const color = {
-    primary: "border-primary-500/25 bg-primary-500/[0.09] text-primary-400",
-    gold: "border-gold-500/30 bg-gold-500/[0.09] text-gold-400",
-    violet: "border-violet-500/25 bg-violet-500/[0.09] text-violet-400",
-  }[accent];
+  const fr = locale === "fr";
+  const total = totalMatches || 104;
+  const playedPct = total > 0 ? Math.round((finishedCount / total) * 100) : 0;
+  const stats = [
+    { value: 48, label: fr ? "équipes" : "teams" },
+    { value: groupsCount || 12, label: fr ? "groupes" : "groups" },
+    { value: total, label: fr ? "matchs" : "matches" },
+    { value: knockoutCount || 32, label: fr ? "phase finale" : "knockout" },
+  ];
 
   return (
-    <div className="rounded-sm border border-white/[0.09] bg-white/[0.045] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
-          {label}
-        </span>
-        <span className={`rounded-sm border p-1.5 ${color}`}>
-          <Icon className="size-3.5" strokeWidth={1.7} />
-        </span>
+    <header className="relative mb-6 overflow-hidden rounded-md border border-white/[0.12] bg-gradient-to-br from-abyss/[0.82] via-surface-1/[0.58] to-surface-1/[0.34] shadow-[0_26px_85px_rgba(0,0,0,0.32),inset_0_1px_0_rgba(255,255,255,0.07)] backdrop-blur-xl">
+      {/* soft gold glow, top-left, behind the title */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -left-20 -top-24 size-72 rounded-full bg-gold-500/10 blur-3xl"
+      />
+
+      {/* Band 1 — identity */}
+      <div className="relative flex flex-col gap-4 p-5 sm:p-6 md:flex-row md:items-start md:justify-between">
+        <div className="min-w-0">
+          <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-gold-500/30 bg-gold-500/[0.1] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-gold-400 shadow-glow-gold">
+            <Trophy className="size-3.5" />
+            {fr ? "Coupe du Monde 2026" : "FIFA World Cup 2026"}
+          </div>
+          <h1 className="font-display text-3xl font-semibold text-text-primary sm:text-4xl">
+            {fr ? "Centre tournoi" : "Tournament center"}
+          </h1>
+          <p className="mt-2 max-w-xl text-sm leading-6 text-text-secondary">
+            {fr
+              ? "Groupes, calendrier, phase finale et signaux live réunis pour analyser, comparer et parier vite."
+              : "Groups, calendar, knockout bracket, and live signals in one place to scan, compare, and bet fast."}
+          </p>
+        </div>
+        <LiveSignal locale={locale} liveCount={liveCount} className="hidden md:inline-flex" />
       </div>
-      <div className="font-display text-2xl font-semibold tabular-nums text-text-primary">
-        {value}
+
+      {/* Band 2 — metrics strip + live progress */}
+      <div className="relative grid border-t border-white/[0.08] lg:grid-cols-[1.65fr_1fr]">
+        <dl className="grid grid-cols-2 gap-px bg-white/[0.07] sm:grid-cols-4">
+          {stats.map((s) => (
+            <div key={s.label} className="bg-abyss/[0.46] px-4 py-3.5">
+              <dd className="font-display text-2xl font-semibold tabular-nums text-text-primary">
+                {s.value}
+              </dd>
+              <dt className="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
+                {s.label}
+              </dt>
+            </div>
+          ))}
+        </dl>
+
+        <div className="border-t border-white/[0.08] bg-abyss/[0.52] px-4 py-3.5 lg:border-l lg:border-t-0">
+          <div className="mb-2 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider">
+            <span className="text-text-tertiary">{fr ? "Progression" : "Progress"}</span>
+            <span className="font-mono tabular-nums text-text-secondary">
+              {finishedCount}/{total} · {playedPct}%
+            </span>
+          </div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-abyss/70 ring-1 ring-inset ring-white/[0.06]">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-primary-500 to-primary-400 shadow-glow-primary transition-[width]"
+              style={{ width: `${Math.max(playedPct, 1.5)}%` }}
+            />
+          </div>
+          <div className="mt-2 flex items-center gap-x-3 gap-y-1 text-[11px] tabular-nums text-text-tertiary">
+            <span><span className="font-semibold text-text-secondary">{scheduledCount}</span> {fr ? "à venir" : "upcoming"}</span>
+            <span className="text-white/15">·</span>
+            <span><span className="font-semibold text-text-secondary">{finishedCount}</span> {fr ? "joués" : "played"}</span>
+            <span className="text-white/15">·</span>
+            <span className={liveCount > 0 ? "text-violet-300" : ""}>
+              <span className={cn("font-semibold", liveCount > 0 ? "text-violet-200" : "text-text-secondary")}>{liveCount}</span> {fr ? "en direct" : "live"}
+            </span>
+          </div>
+        </div>
       </div>
-      <div className="mt-0.5 truncate text-xs text-text-tertiary">{detail}</div>
-    </div>
+
+      {/* Band 3 — view tabs (live state already shown in the progress band) */}
+      <div className="relative border-t border-white/[0.08] p-3">
+        <ViewTabs current={currentView} locale={locale} />
+      </div>
+    </header>
   );
 }
 
-function TournamentPulse({
+/** Compact live status pill: a pinging "X en direct" link when live, else a muted CTA. */
+function LiveSignal({
   locale,
   liveCount,
-  scheduledCount,
-  finishedCount,
+  className,
 }: {
   locale: Locale;
   liveCount: number;
-  scheduledCount: number;
-  finishedCount: number;
+  className?: string;
 }) {
-  return (
-    <section className="mb-6 grid grid-cols-1 gap-3 lg:grid-cols-[1.2fr_0.8fr]">
-      <div className="rounded-sm border border-white/[0.08] bg-surface-1/[0.62] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <span className="flex size-10 items-center justify-center rounded-sm border border-primary-500/25 bg-primary-500/[0.1] text-primary-400">
-              <Activity className="size-5" strokeWidth={1.6} />
-            </span>
-            <div>
-              <h2 className="font-display text-base font-semibold text-text-primary">
-                {locale === "fr" ? "Signal tournoi" : "Tournament signal"}
-              </h2>
-              <p className="text-sm text-text-secondary">
-                {locale === "fr"
-                  ? "Une lecture rapide de l’état du Mondial avant d’ouvrir un match."
-                  : "A quick read on the tournament state before opening a fixture."}
-              </p>
-            </div>
-          </div>
-          {liveCount > 0 ? (
-            <Link
-              href="/matches?view=calendar"
-              className="inline-flex items-center gap-2 rounded-sm border border-violet-500/40 bg-violet-500/[0.1] px-3 py-2 text-xs font-semibold text-violet-300 transition hover:bg-violet-500/[0.16]"
-            >
-              <span className="relative flex size-2">
-                <span className="absolute inline-flex size-full animate-ping rounded-full bg-violet-400 opacity-75" />
-                <span className="relative inline-flex size-2 rounded-full bg-violet-400" />
-              </span>
-              {liveCount} {locale === "fr" ? "en direct" : "live now"}
-            </Link>
-          ) : (
-            <span className="rounded-sm border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs font-semibold text-text-secondary">
-              {locale === "fr" ? "Prochain live à surveiller" : "Next live to watch"}
-            </span>
-          )}
-        </div>
-      </div>
-      <div className="grid grid-cols-3 gap-2">
-        <PulseTile label={locale === "fr" ? "À venir" : "Upcoming"} value={scheduledCount} />
-        <PulseTile label={locale === "fr" ? "Joués" : "Played"} value={finishedCount} />
-        <PulseTile label={locale === "fr" ? "Live" : "Live"} value={liveCount} gold />
-      </div>
-    </section>
-  );
-}
-
-function PulseTile({
-  label,
-  value,
-  gold,
-}: {
-  label: string;
-  value: number;
-  gold?: boolean;
-}) {
-  return (
-    <div className="rounded-sm border border-white/[0.08] bg-surface-1/[0.62] p-3 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
-      <div
-        className={`font-display text-2xl font-semibold tabular-nums ${
-          gold ? "text-gold-400" : "text-text-primary"
-        }`}
+  const fr = locale === "fr";
+  if (liveCount > 0) {
+    return (
+      <Link
+        href="/matches?view=calendar"
+        className={cn(
+          "shrink-0 items-center gap-2 rounded-full border border-violet-500/45 bg-violet-500/[0.12] px-3 py-1.5 text-xs font-semibold text-violet-200 transition hover:bg-violet-500/[0.2]",
+          className ?? "inline-flex",
+        )}
       >
-        {value}
-      </div>
-      <div className="mt-1 text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
-        {label}
-      </div>
-    </div>
+        <span className="relative flex size-2">
+          <span className="absolute inline-flex size-full animate-ping rounded-full bg-violet-400 opacity-75" />
+          <span className="relative inline-flex size-2 rounded-full bg-violet-400" />
+        </span>
+        {liveCount} {fr ? "en direct" : "live now"}
+      </Link>
+    );
+  }
+  return (
+    <span
+      className={cn(
+        "shrink-0 items-center gap-1.5 rounded-full border border-white/[0.1] bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-text-tertiary",
+        className ?? "inline-flex",
+      )}
+    >
+      <Activity className="size-3.5" strokeWidth={1.8} />
+      {fr ? "Aucun match en direct" : "No live match"}
+    </span>
   );
 }
 
