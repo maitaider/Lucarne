@@ -203,14 +203,14 @@ export default async function HowItWorksPage({
             <ScoreCard
               icon={MousePointerClick}
               title={fr ? "Bon vainqueur" : "Right winner"}
-              value="+3"
+              value="+5"
               accent="primary"
             />
             <ScoreCard
               icon={Target}
               title={fr ? "Total de buts" : "Total goals"}
-              value="+5"
-              sub={fr ? "exact · +2 à ±1" : "exact · +2 within 1"}
+              value="+2"
+              sub={fr ? "exact · +1 à ±1" : "exact · +1 within 1"}
               accent="gold"
             />
             <ScoreCard
@@ -225,8 +225,8 @@ export default async function HowItWorksPage({
               {fr ? "Ça se cumule. " : "It stacks. "}
             </span>
             {fr
-              ? "Un seul pronostic de score peut rapporter le vainqueur + le total + le score exact en même temps — jusqu'à +13 sur un match."
-              : "A single score pick can earn winner + total + exact score at once — up to +13 on one match."}
+              ? "Un seul pronostic de score peut rapporter le vainqueur + le total + le score exact en même temps — jusqu'à +12 sur un match. Te tromper de vainqueur plafonne à +2."
+              : "A single score pick can earn winner + total + exact score at once — up to +12 on one match. Getting the winner wrong caps you at +2."}
           </div>
 
           <p className="mb-3 mt-6 text-xs font-bold uppercase tracking-wider text-text-tertiary">
@@ -279,28 +279,28 @@ export default async function HowItWorksPage({
                 title={fr ? "Phase de groupes" : "Group stage"}
                 hint={fr ? "tes scores" : "your scores"}
                 accent="primary"
-                subtotal={21}
+                subtotal={23}
                 subtotalLabel={fr ? "3 matchs montrés" : "3 shown matches"}
               >
                 <LedgerRow
                   lead={<Flag isoCode="ar" size="sm" rounded />}
                   main="Argentine · 2-1 → 2-1"
                   sub={fr ? "vainqueur + total + score exact" : "winner + total + exact score"}
-                  pts={13}
+                  pts={12}
                   accent="primary"
                 />
                 <LedgerRow
                   lead={<Flag isoCode="br" size="sm" rounded />}
                   main="Brésil · 3-0 → 3-1"
                   sub={fr ? "bon vainqueur + total à ±1" : "right winner + total within 1"}
-                  pts={5}
+                  pts={6}
                   accent="primary"
                 />
                 <LedgerRow
                   lead={<Flag isoCode="fr" size="sm" rounded />}
                   main="France · 1-0 → 2-1"
                   sub={fr ? "bon vainqueur seulement" : "right winner only"}
-                  pts={3}
+                  pts={5}
                   accent="primary"
                 />
               </LedgerSection>
@@ -379,7 +379,7 @@ export default async function HowItWorksPage({
                 {fr ? "Total de l'exemple" : "Example total"}
               </span>
               <span className="font-display text-3xl font-bold tabular-nums text-gold-100">
-                154
+                156
                 <span className="ml-1 text-base font-semibold text-gold-300/80">
                   pts
                 </span>
@@ -387,8 +387,8 @@ export default async function HowItWorksPage({
             </div>
             <p className="mt-2 text-[11px] leading-4 text-white/55">
               {fr
-                ? "21 (poules, extrait) + 68 (parcours) + 65 (podium). Ton total réel dépend de tous tes matchs et de ton arbre."
-                : "21 (groups, excerpt) + 68 (run) + 65 (podium). Your real total depends on all your matches and your bracket."}
+                ? "23 (poules, extrait) + 68 (parcours) + 65 (podium). Ton total réel dépend de tous tes matchs et de ton arbre."
+                : "23 (groups, excerpt) + 68 (run) + 65 (podium). Your real total depends on all your matches and your bracket."}
             </p>
           </div>
         </section>

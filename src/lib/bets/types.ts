@@ -131,9 +131,9 @@ export type PlaceBetForm = z.infer<typeof placeBetFormSchema>;
  * the SQL compute_bet_points function — UI display only).
  */
 export const POINTS_SCHEME = {
-  match_winner: 3,
-  total_goals_exact: 5,
-  total_goals_close: 2,
+  match_winner: 5,
+  total_goals_exact: 2,
+  total_goals_close: 1,
   exact_score: 5,
   anytime_scorer_each: 4,
   first_scorer: 8,

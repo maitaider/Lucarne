@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
 
 /**
- * Persistent gold badge marking an exact-score prediction (the +13 / trophy
+ * Persistent gold badge marking an exact-score prediction (the +12 / trophy
  * moment). Reusable across the match sheet, public profile, and bet history.
  */
 export function ExactScoreBadge({
