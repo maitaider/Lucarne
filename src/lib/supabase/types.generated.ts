@@ -1783,6 +1783,10 @@ export type Database = {
       }
       admin_purge_user: { Args: { p_user_id: string }; Returns: undefined }
       admin_recompute_match: { Args: { p_match_id: string }; Returns: number }
+      admin_rescore_all_matches: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       admin_reply_ticket: {
         Args: { p_note: string; p_resolve?: boolean; p_ticket_id: string }
         Returns: undefined

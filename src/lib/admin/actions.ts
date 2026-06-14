@@ -450,6 +450,78 @@ export async function updateAppSettings(
   return { ok: true };
 }
 
+const scoringSchema = z.object({
+  match_winner: z.number().int().min(0).max(100),
+  total_goals_exact: z.number().int().min(0).max(100),
+  total_goals_close: z.number().int().min(0).max(100),
+  exact_score: z.number().int().min(0).max(100),
+});
+
+/**
+ * Admin: edit the points barème (`app_settings.scoring_rules`). Merges into the
+ * existing JSON so unrelated keys are preserved. Read LIVE by compute_bet_points,
+ * so it applies to future scoring immediately — call `recomputeAllScores()` to
+ * also re-apply it to already-played matches.
+ */
+export async function updateScoringRules(
+  input: z.infer<typeof scoringSchema>,
+): Promise<{ ok: boolean; message?: string }> {
+  const me = await getCurrentUser();
+  if (!me || !isAdminRole(me.role)) return { ok: false, message: "Accès refusé" };
+  const parsed = scoringSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Invalide" };
+  }
+  const admin = getSupabaseAdmin();
+  if (!admin) return { ok: false, message: "Service indisponible" };
+  const { data: cur } = await admin
+    .from("app_settings")
+    .select("scoring_rules")
+    .eq("id", 1)
+    .single();
+  const merged = {
+    ...((cur?.scoring_rules as Record<string, number> | null) ?? {}),
+    ...parsed.data,
+  };
+  const { error } = await admin
+    .from("app_settings")
+    .update({ scoring_rules: merged })
+    .eq("id", 1);
+  if (error) return { ok: false, message: error.message };
+  revalidatePath("/admin/scoring");
+  revalidatePath("/how-it-works");
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
+/**
+ * Admin: re-score every settled score-pick on a finished match with the CURRENT
+ * barème (`admin_rescore_all_matches` RPC). Silent — keeps status=settled so no
+ * notifications are re-emitted. Returns the number of bets re-scored.
+ */
+export async function recomputeAllScores(): Promise<{
+  ok: boolean;
+  message?: string;
+  count?: number;
+}> {
+  const me = await getCurrentUser();
+  if (!me || !isAdminRole(me.role)) return { ok: false, message: "Accès refusé" };
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    return { ok: false, message: "Supabase non configuré" };
+  }
+  const supabase = await getSupabaseServer();
+  const { data, error } = await supabase.rpc("admin_rescore_all_matches");
+  if (error) {
+    if (error.message?.includes("not_authorized")) {
+      return { ok: false, message: "Réservé aux admins." };
+    }
+    return { ok: false, message: error.message };
+  }
+  revalidatePath("/admin", "layout");
+  revalidatePath("/", "layout");
+  return { ok: true, count: typeof data === "number" ? data : undefined };
+}
+
 // Admin bet validation flow removed 2026-05-24: bets land directly as
 // `validated` (see migration 20260524000000). The /admin/validations page
 // and its server actions are gone — Stripe payments unlock betting now.
