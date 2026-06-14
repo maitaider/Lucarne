@@ -36,19 +36,19 @@ export function Stat({
   const inner = (
     <div
       className={cn(
-        "flex items-center gap-2.5 rounded-md border border-border-subtle bg-surface-1/[0.45] p-2.5 shadow-card backdrop-blur-md transition",
+        "flex items-center gap-2.5 rounded-md border border-border-subtle bg-surface-1/[0.45] p-3 shadow-card backdrop-blur-md transition active:scale-[0.98]",
         href && "group-hover:border-white/[0.18] group-hover:bg-surface-2",
         className,
       )}
     >
-      <span className={cn("rounded-sm p-1.5 ring-1", tone.chip)}>
-        <Icon className={cn("size-3.5", tone.icon)} strokeWidth={1.8} />
+      <span className={cn("rounded-md p-2 ring-1", tone.chip)}>
+        <Icon className={cn("size-4", tone.icon)} strokeWidth={1.8} />
       </span>
       <div className="min-w-0 flex-1">
-        <div className="text-[9px] font-bold uppercase tracking-wider text-text-tertiary">
+        <div className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
           {label}
         </div>
-        <div className="font-display text-base font-bold tabular-nums leading-tight text-text-primary sm:text-lg">
+        <div className="font-display text-lg font-bold tabular-nums leading-tight text-text-primary">
           {value}
         </div>
         {detail && (
