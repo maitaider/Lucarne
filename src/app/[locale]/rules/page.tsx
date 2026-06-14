@@ -20,7 +20,7 @@ export default async function RulesPage() {
         },
         {
           h: "3. Le concours de pronostics",
-          p: "Le concours est gratuit et basé sur l'adresse : aucune mise, aucun jeton, rien à perdre. Tu pronostiques le score de chaque match (bon vainqueur, bon total de buts, score exact — cumulables jusqu'à 13 points par match) et tu bâtis ta phase finale, elle aussi notée (des points par équipe que tu envoies à chaque tour, et un gros bonus pour le champion, le finaliste et le 3ᵉ). Tout se remplit jusqu'à 1 h avant le coup d'envoi du 1ᵉʳ match, puis se verrouille. Le classement se fait sur le total de points.",
+          p: "Le concours est gratuit et basé sur l'adresse : aucune mise, aucun jeton, rien à perdre. Tu pronostiques le score de chaque match (bon vainqueur, bon total de buts, score exact — cumulables jusqu'à 12 points par match) et tu bâtis ta phase finale, elle aussi notée (des points par équipe que tu envoies à chaque tour, et un gros bonus pour le champion, le finaliste et le 3ᵉ). Tout se remplit jusqu'à 1 h avant le coup d'envoi du 1ᵉʳ match, puis se verrouille. Le classement se fait sur le total de points.",
         },
         {
           h: "4. Le pot commun du groupe",
@@ -46,7 +46,7 @@ export default async function RulesPage() {
         },
         {
           h: "3. The prediction game",
-          p: "The game is free and skill-based: no stake, no tokens, nothing to lose. You predict each match's score (correct winner, correct total goals, exact score — stacking up to 13 points per match) and build your knockout bracket, which is also scored (points for every team you send to each round, plus a big bonus for the champion, runner-up and 3rd place). Everything stays open until 1 h before the first match kicks off, then locks. Standings are based on total points.",
+          p: "The game is free and skill-based: no stake, no tokens, nothing to lose. You predict each match's score (correct winner, correct total goals, exact score — stacking up to 12 points per match) and build your knockout bracket, which is also scored (points for every team you send to each round, plus a big bonus for the champion, runner-up and 3rd place). Everything stays open until 1 h before the first match kicks off, then locks. Standings are based on total points.",
         },
         {
           h: "4. The group pot",
