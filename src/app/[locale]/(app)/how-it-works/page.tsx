@@ -59,6 +59,39 @@ export default async function HowItWorksPage({
     year: "numeric",
   });
 
+  // Live barème — everything below (cards + worked example) is computed from
+  // app_settings.scoring_rules, so editing the points in /admin/scoring updates
+  // this page automatically.
+  const sr = settings.scoring_rules ?? {};
+  const num = (k: string, d: number) => {
+    const v = (sr as Record<string, number>)[k];
+    return typeof v === "number" && Number.isFinite(v) ? v : d;
+  };
+  const ptWinner = num("match_winner", 5);
+  const ptTotalExact = num("total_goals_exact", 2);
+  const ptTotalClose = num("total_goals_close", 1);
+  const ptExact = num("exact_score", 5);
+  const maxPerMatch = ptWinner + ptTotalExact + ptExact;
+  const ptR16 = num("bracket_r16", 1);
+  const ptQF = num("bracket_qf", 3);
+  const ptSF = num("bracket_sf", 6);
+  const ptFinal = num("bracket_final", 10);
+  const ptChampion = num("bracket_champion", 30);
+  const ptRunnerUp = num("bracket_runner_up", 20);
+  const ptThird = num("bracket_third", 15);
+  // Worked example — fixed scenario, points derived from the live barème.
+  const exExact = ptWinner + ptTotalExact + ptExact; // exact-score pick
+  const exWinnerTotal = ptWinner + ptTotalClose; // right winner + total ±1
+  const exWinnerOnly = ptWinner; // right winner only
+  const groupSubtotal = exExact + exWinnerTotal + exWinnerOnly;
+  const runR16 = 12 * ptR16;
+  const runQF = 6 * ptQF;
+  const runSF = 3 * ptSF;
+  const runFinal = 2 * ptFinal;
+  const runSubtotal = runR16 + runQF + runSF + runFinal;
+  const podiumSubtotal = ptChampion + ptRunnerUp + ptThird;
+  const grandTotal = groupSubtotal + runSubtotal + podiumSubtotal;
+
   return (
     <main className="relative">
       <div className="mx-auto max-w-4xl px-4 pb-20 pt-6 sm:px-6 sm:pt-8 lg:px-8">
@@ -203,20 +236,24 @@ export default async function HowItWorksPage({
             <ScoreCard
               icon={MousePointerClick}
               title={fr ? "Bon vainqueur" : "Right winner"}
-              value="+5"
+              value={`+${ptWinner}`}
               accent="primary"
             />
             <ScoreCard
               icon={Target}
               title={fr ? "Total de buts" : "Total goals"}
-              value="+2"
-              sub={fr ? "exact · +1 à ±1" : "exact · +1 within 1"}
+              value={`+${ptTotalExact}`}
+              sub={
+                fr
+                  ? `exact · +${ptTotalClose} à ±1`
+                  : `exact · +${ptTotalClose} within 1`
+              }
               accent="gold"
             />
             <ScoreCard
               icon={Zap}
               title={fr ? "Score exact" : "Exact score"}
-              value="+5"
+              value={`+${ptExact}`}
               accent="violet"
             />
           </div>
@@ -225,23 +262,23 @@ export default async function HowItWorksPage({
               {fr ? "Ça se cumule. " : "It stacks. "}
             </span>
             {fr
-              ? "Un seul pronostic de score peut rapporter le vainqueur + le total + le score exact en même temps — jusqu'à +12 sur un match. Te tromper de vainqueur plafonne à +2."
-              : "A single score pick can earn winner + total + exact score at once — up to +12 on one match. Getting the winner wrong caps you at +2."}
+              ? `Un seul pronostic de score peut rapporter le vainqueur + le total + le score exact en même temps — jusqu'à +${maxPerMatch} sur un match. Te tromper de vainqueur plafonne à +${ptTotalExact}.`
+              : `A single score pick can earn winner + total + exact score at once — up to +${maxPerMatch} on one match. Getting the winner wrong caps you at +${ptTotalExact}.`}
           </div>
 
           <p className="mb-3 mt-6 text-xs font-bold uppercase tracking-wider text-text-tertiary">
             {fr ? "Phase finale — par équipe bien placée" : "Knockouts — per correctly placed team"}
           </p>
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-            <RoundChip label={fr ? "8ᵉˢ" : "R16"} value="+1" />
-            <RoundChip label={fr ? "Quarts" : "QF"} value="+3" />
-            <RoundChip label={fr ? "Demies" : "SF"} value="+6" />
-            <RoundChip label={fr ? "Finale" : "Final"} value="+10" />
+            <RoundChip label={fr ? "8ᵉˢ" : "R16"} value={`+${ptR16}`} />
+            <RoundChip label={fr ? "Quarts" : "QF"} value={`+${ptQF}`} />
+            <RoundChip label={fr ? "Demies" : "SF"} value={`+${ptSF}`} />
+            <RoundChip label={fr ? "Finale" : "Final"} value={`+${ptFinal}`} />
           </div>
           <div className="mt-2.5 grid grid-cols-3 gap-2.5">
-            <PodiumChip medal="🥇" label={fr ? "Champion" : "Champion"} value="+30" />
-            <PodiumChip medal="🥈" label={fr ? "Finaliste" : "Runner-up"} value="+20" />
-            <PodiumChip medal="🥉" label={fr ? "3ᵉ place" : "3rd place"} value="+15" />
+            <PodiumChip medal="🥇" label={fr ? "Champion" : "Champion"} value={`+${ptChampion}`} />
+            <PodiumChip medal="🥈" label={fr ? "Finaliste" : "Runner-up"} value={`+${ptRunnerUp}`} />
+            <PodiumChip medal="🥉" label={fr ? "3ᵉ place" : "3rd place"} value={`+${ptThird}`} />
           </div>
         </section>
 
@@ -279,28 +316,28 @@ export default async function HowItWorksPage({
                 title={fr ? "Phase de groupes" : "Group stage"}
                 hint={fr ? "tes scores" : "your scores"}
                 accent="primary"
-                subtotal={23}
+                subtotal={groupSubtotal}
                 subtotalLabel={fr ? "3 matchs montrés" : "3 shown matches"}
               >
                 <LedgerRow
                   lead={<Flag isoCode="ar" size="sm" rounded />}
                   main="Argentine · 2-1 → 2-1"
                   sub={fr ? "vainqueur + total + score exact" : "winner + total + exact score"}
-                  pts={12}
+                  pts={exExact}
                   accent="primary"
                 />
                 <LedgerRow
                   lead={<Flag isoCode="br" size="sm" rounded />}
                   main="Brésil · 3-0 → 3-1"
                   sub={fr ? "bon vainqueur + total à ±1" : "right winner + total within 1"}
-                  pts={6}
+                  pts={exWinnerTotal}
                   accent="primary"
                 />
                 <LedgerRow
                   lead={<Flag isoCode="fr" size="sm" rounded />}
                   main="France · 1-0 → 2-1"
                   sub={fr ? "bon vainqueur seulement" : "right winner only"}
-                  pts={5}
+                  pts={exWinnerOnly}
                   accent="primary"
                 />
               </LedgerSection>
@@ -310,35 +347,35 @@ export default async function HowItWorksPage({
                 title={fr ? "Ta phase finale" : "Your bracket"}
                 hint={fr ? "par équipe bien placée" : "per correct team"}
                 accent="violet"
-                subtotal={68}
+                subtotal={runSubtotal}
                 subtotalLabel={fr ? "parcours" : "run"}
               >
                 <LedgerRow
                   lead={<RoundBadge>{fr ? "8ᵉˢ" : "R16"}</RoundBadge>}
                   main={fr ? "12 bonnes équipes" : "12 correct teams"}
-                  sub="12 × +1"
-                  pts={12}
+                  sub={`12 × +${ptR16}`}
+                  pts={runR16}
                   accent="violet"
                 />
                 <LedgerRow
                   lead={<RoundBadge>{fr ? "Quarts" : "QF"}</RoundBadge>}
                   main={fr ? "6 bonnes équipes" : "6 correct teams"}
-                  sub="6 × +3"
-                  pts={18}
+                  sub={`6 × +${ptQF}`}
+                  pts={runQF}
                   accent="violet"
                 />
                 <LedgerRow
                   lead={<RoundBadge>{fr ? "Demies" : "SF"}</RoundBadge>}
                   main={fr ? "3 bonnes équipes" : "3 correct teams"}
-                  sub="3 × +6"
-                  pts={18}
+                  sub={`3 × +${ptSF}`}
+                  pts={runSF}
                   accent="violet"
                 />
                 <LedgerRow
                   lead={<RoundBadge>{fr ? "Finale" : "Final"}</RoundBadge>}
                   main={fr ? "tes 2 finalistes y sont" : "both your finalists made it"}
-                  sub="2 × +10"
-                  pts={20}
+                  sub={`2 × +${ptFinal}`}
+                  pts={runFinal}
                   accent="violet"
                 />
               </LedgerSection>
@@ -348,25 +385,25 @@ export default async function HowItWorksPage({
                 title={fr ? "Le podium" : "The podium"}
                 hint={fr ? "le gros lot" : "the jackpot"}
                 accent="gold"
-                subtotal={65}
+                subtotal={podiumSubtotal}
                 subtotalLabel="podium"
               >
                 <LedgerRow
                   lead={<span className="text-lg leading-none">🥇</span>}
                   main={fr ? "Champion exact · Argentine" : "Exact champion · Argentina"}
-                  pts={30}
+                  pts={ptChampion}
                   accent="gold"
                 />
                 <LedgerRow
                   lead={<span className="text-lg leading-none">🥈</span>}
                   main={fr ? "Finaliste exact" : "Exact runner-up"}
-                  pts={20}
+                  pts={ptRunnerUp}
                   accent="gold"
                 />
                 <LedgerRow
                   lead={<span className="text-lg leading-none">🥉</span>}
                   main={fr ? "3ᵉ place exacte" : "Exact 3rd place"}
-                  pts={15}
+                  pts={ptThird}
                   accent="gold"
                 />
               </LedgerSection>
@@ -379,7 +416,7 @@ export default async function HowItWorksPage({
                 {fr ? "Total de l'exemple" : "Example total"}
               </span>
               <span className="font-display text-3xl font-bold tabular-nums text-gold-100">
-                156
+                {grandTotal}
                 <span className="ml-1 text-base font-semibold text-gold-300/80">
                   pts
                 </span>
@@ -387,8 +424,8 @@ export default async function HowItWorksPage({
             </div>
             <p className="mt-2 text-[11px] leading-4 text-white/55">
               {fr
-                ? "23 (poules, extrait) + 68 (parcours) + 65 (podium). Ton total réel dépend de tous tes matchs et de ton arbre."
-                : "23 (groups, excerpt) + 68 (run) + 65 (podium). Your real total depends on all your matches and your bracket."}
+                ? `${groupSubtotal} (poules, extrait) + ${runSubtotal} (parcours) + ${podiumSubtotal} (podium). Ton total réel dépend de tous tes matchs et de ton arbre.`
+                : `${groupSubtotal} (groups, excerpt) + ${runSubtotal} (run) + ${podiumSubtotal} (podium). Your real total depends on all your matches and your bracket.`}
             </p>
           </div>
         </section>
