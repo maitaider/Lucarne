@@ -186,7 +186,7 @@ export function PerMatchPicker({
               onClick={onConfirm}
               disabled={disabled || pending || !dirty}
               title={fr ? "Confirmer le pronostic" : "Confirm this prediction"}
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-sm bg-primary-500 px-2.5 py-1 text-[11px] font-bold text-abyss shadow-glow-primary transition hover:bg-primary-400 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-sm bg-primary-500 px-3.5 py-1.5 text-xs font-bold text-abyss shadow-glow-primary transition hover:bg-primary-400 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50 sm:px-2.5 sm:py-1 sm:text-[11px]"
             >
               {pending ? (
                 <Loader2 className="size-3 animate-spin" strokeWidth={2.5} />
@@ -220,14 +220,14 @@ function ScoreStepper({
         onClick={onDec}
         disabled={disabled || (value ?? 0) <= 0}
         aria-label="−"
-        className="flex size-6 items-center justify-center text-text-secondary transition hover:bg-white/[0.08] hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
+        className="flex size-9 items-center justify-center text-text-secondary transition hover:bg-white/[0.08] hover:text-text-primary active:bg-white/[0.12] disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent sm:size-7"
       >
-        <Minus className="size-3" strokeWidth={2.5} />
+        <Minus className="size-4" strokeWidth={2.5} />
       </button>
       <span
         key={value ?? "empty"}
         className={cn(
-          "lk-pop w-5 text-center font-display text-sm font-bold tabular-nums",
+          "lk-pop w-8 text-center font-display text-lg font-bold tabular-nums sm:w-6 sm:text-base",
           value == null ? "text-text-tertiary" : "text-text-primary",
         )}
       >
@@ -238,9 +238,9 @@ function ScoreStepper({
         onClick={onInc}
         disabled={disabled || (value ?? 0) >= 9}
         aria-label="+"
-        className="flex size-6 items-center justify-center text-text-secondary transition hover:bg-primary-500/20 hover:text-primary-200 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent"
+        className="flex size-9 items-center justify-center text-text-secondary transition hover:bg-primary-500/20 hover:text-primary-200 active:bg-primary-500/30 disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent sm:size-7"
       >
-        <Plus className="size-3" strokeWidth={2.5} />
+        <Plus className="size-4" strokeWidth={2.5} />
       </button>
     </div>
   );
