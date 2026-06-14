@@ -47,6 +47,7 @@ import {
   MicOff,
   Pin,
   PinOff,
+  Plus,
   Reply,
   Send,
   Shield,
@@ -211,6 +212,9 @@ export function ChatRoom({
   } | null>(null);
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [pollOpen, setPollOpen] = useState(false);
+  // Mobile: the attach/emoji/poll buttons collapse behind a "+" so the text
+  // field gets the full width while writing. Desktop always shows them inline.
+  const [actionsOpen, setActionsOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Realtime side-channels
@@ -1290,35 +1294,62 @@ export function ChatRoom({
             <div
               onDrop={onDropCompose}
               onDragOver={(e) => e.preventDefault()}
-              className="flex items-end gap-1.5 rounded-[12px] border border-white/[0.08] bg-abyss/40 p-1.5 transition focus-within:border-primary-500/40"
+              className="flex items-end gap-1 rounded-[14px] border border-white/[0.08] bg-abyss/40 p-1.5 transition focus-within:border-primary-500/40 sm:gap-1.5"
             >
+              {/* Mobile: a single "+" toggles the action buttons so the text
+                  field keeps full width by default. Hidden on desktop. */}
               <button
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
-                aria-label={fr ? "Joindre une image" : "Attach an image"}
-                className="flex size-9 shrink-0 items-center justify-center rounded-[10px] text-text-tertiary transition hover:bg-white/[0.06] hover:text-primary-300"
-              >
-                <ImagePlus className="size-5" strokeWidth={1.7} />
-              </button>
-              <button
-                type="button"
-                onClick={() => setEmojiOpen((v) => !v)}
-                aria-label={fr ? "Emojis" : "Emojis"}
+                onClick={() => setActionsOpen((v) => !v)}
+                aria-label={fr ? "Plus d'options" : "More options"}
+                aria-expanded={actionsOpen}
                 className={cn(
-                  "flex size-9 shrink-0 items-center justify-center rounded-[10px] text-text-tertiary transition hover:bg-white/[0.06] hover:text-primary-300",
-                  emojiOpen && "bg-white/[0.06] text-primary-300",
+                  "flex size-9 shrink-0 items-center justify-center rounded-full text-text-tertiary transition hover:bg-white/[0.06] hover:text-primary-300 md:hidden",
+                  actionsOpen && "bg-white/[0.06] text-primary-300",
                 )}
               >
-                <Smile className="size-5" strokeWidth={1.7} />
+                <Plus
+                  className={cn("size-5 transition-transform", actionsOpen && "rotate-45")}
+                  strokeWidth={1.9}
+                />
               </button>
-              <button
-                type="button"
-                onClick={() => setPollOpen(true)}
-                aria-label={fr ? "Créer un sondage" : "Create a poll"}
-                className="flex size-9 shrink-0 items-center justify-center rounded-[10px] text-text-tertiary transition hover:bg-white/[0.06] hover:text-violet-300"
+
+              {/* Attach · emoji · poll — collapsed on mobile until "+" is tapped */}
+              <div
+                className={cn(
+                  "items-end gap-1 sm:gap-1.5",
+                  actionsOpen ? "flex" : "hidden",
+                  "md:flex",
+                )}
               >
-                <BarChart3 className="size-5" strokeWidth={1.7} />
-              </button>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  aria-label={fr ? "Joindre une image" : "Attach an image"}
+                  className="flex size-9 shrink-0 items-center justify-center rounded-[10px] text-text-tertiary transition hover:bg-white/[0.06] hover:text-primary-300"
+                >
+                  <ImagePlus className="size-5" strokeWidth={1.7} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEmojiOpen((v) => !v)}
+                  aria-label={fr ? "Emojis" : "Emojis"}
+                  className={cn(
+                    "flex size-9 shrink-0 items-center justify-center rounded-[10px] text-text-tertiary transition hover:bg-white/[0.06] hover:text-primary-300",
+                    emojiOpen && "bg-white/[0.06] text-primary-300",
+                  )}
+                >
+                  <Smile className="size-5" strokeWidth={1.7} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPollOpen(true)}
+                  aria-label={fr ? "Créer un sondage" : "Create a poll"}
+                  className="flex size-9 shrink-0 items-center justify-center rounded-[10px] text-text-tertiary transition hover:bg-white/[0.06] hover:text-violet-300"
+                >
+                  <BarChart3 className="size-5" strokeWidth={1.7} />
+                </button>
+              </div>
               <textarea
                 ref={textareaRef}
                 value={input}
@@ -1333,8 +1364,25 @@ export function ChatRoom({
                 }}
                 onKeyDown={onKeyDown}
                 onPaste={onPasteCompose}
+                onFocus={() => {
+                  stickRef.current = true;
+                  requestAnimationFrame(scrollToBottom);
+                }}
                 maxLength={CHAT_MAX_LEN}
                 rows={1}
+                // Plain chat field — keep iOS/Safari from showing the password /
+                // contact AutoFill accessory bar over the composer, and give the
+                // soft keyboard the right hints (sentence case, "send" return key).
+                name="lucarne-chat-message"
+                autoComplete="off"
+                autoCorrect="on"
+                autoCapitalize="sentences"
+                spellCheck
+                enterKeyHint="send"
+                inputMode="text"
+                data-1p-ignore
+                data-lpignore="true"
+                data-form-type="other"
                 placeholder={
                   fr
                     ? "Écris dans le Salon…  (@ pour mentionner)"
@@ -1486,6 +1534,19 @@ function MessageRow({
   // horizontal gesture.
   const [swipeX, setSwipeX] = useState(0);
   const swipeStart = useRef<{ x: number; y: number } | null>(null);
+
+  // System / bot announcements (match results, etc.) render as a quiet centered
+  // pill — no avatar, name, toolbar, reactions or swipe — so the feed isn't
+  // dominated by status lines.
+  if (isBot) {
+    return (
+      <li className={cn("my-2.5 flex justify-center px-3", animateIn && "lk-msg-in")}>
+        <div className="w-fit max-w-[92%] rounded-xl border border-white/[0.07] bg-white/[0.04] px-3 py-1.5 text-center text-[13px] leading-snug text-text-secondary">
+          {m.body}
+        </div>
+      </li>
+    );
+  }
 
   return (
     <li
