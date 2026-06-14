@@ -179,6 +179,23 @@ export async function getOverviewStats(): Promise<OverviewStats> {
   };
 }
 
+/**
+ * Total real-money collected so far (sum of confirmed payments, cents) — the
+ * SHARED projected prize pool, identical for every member. Reads the
+ * `projected_prize_pool` SECURITY DEFINER RPC, which bypasses the per-row
+ * `real_payments` RLS: `getOverviewStats` (security_invoker view) would collapse
+ * to the caller's own payment for a non-admin, so the leaderboard's "Cagnotte
+ * projetée" must use this instead. Exposes the aggregate only — no individual
+ * amounts.
+ */
+export async function getProjectedCollectedCents(): Promise<number> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return 0;
+  const supabase = await getSupabaseServer();
+  const { data } = await supabase.rpc("projected_prize_pool");
+  const row = Array.isArray(data) ? data[0] : data;
+  return Number(row?.total_collected_cents ?? 0);
+}
+
 export type PotTotal = {
   /** Sum of CONFIRMED real_payments across all players (money in hand). */
   total_collected_cents: number;

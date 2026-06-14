@@ -1,7 +1,7 @@
 import "server-only";
 import {
   getAppSettings,
-  getOverviewStats,
+  getProjectedCollectedCents,
   computePrizePool,
   type AppSettings,
 } from "@/lib/admin/economy";
@@ -28,11 +28,13 @@ export type ProjectedPayouts = {
  * "what you would win today".
  */
 export async function getProjectedPayouts(): Promise<ProjectedPayouts> {
-  const [settings, stats] = await Promise.all([
+  // `collected` MUST come from the shared SECURITY DEFINER aggregate, not the
+  // RLS-bound admin view — otherwise a non-admin sees only their own payment and
+  // the projected pot collapses to a single contribution.
+  const [settings, collected] = await Promise.all([
     getAppSettings(),
-    getOverviewStats(),
+    getProjectedCollectedCents(),
   ]);
-  const collected = stats.net_cents;
   const { house_cents, pool_cents, payouts } = computePrizePool(
     collected,
     settings,

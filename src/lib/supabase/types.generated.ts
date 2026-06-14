@@ -2061,6 +2061,13 @@ export type Database = {
           wins: number
         }[]
       }
+      projected_prize_pool: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          paying_users_count: number
+          total_collected_cents: number
+        }[]
+      }
       publish_league_post: {
         Args: {
           p_body: string
