@@ -431,10 +431,9 @@ function CalendarView({
         <div className="space-y-8">
           {dateKeys.map((date) => (
             <section key={date}>
-              <h2 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-text-tertiary">
-                <span className="h-px flex-1 bg-border-subtle" />
-                <span>{formatDateHeader(date, locale)}</span>
-                <span className="h-px flex-1 bg-border-subtle" />
+              <h2 className="sticky top-14 z-20 mb-3 flex items-center gap-2 rounded-sm bg-abyss/80 px-2 py-2 text-xs font-bold uppercase tracking-wider text-text-secondary backdrop-blur-md md:top-0 md:bg-transparent md:px-0 md:backdrop-blur-none">
+                <span className="shrink-0">{formatDateHeader(date, locale)}</span>
+                <span className="h-px flex-1 bg-border-subtle/70" />
               </h2>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {grouped.get(date)!.map((m) => (
