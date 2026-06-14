@@ -2,6 +2,7 @@
 
 import { Link, usePathname } from "@/i18n/navigation";
 import {
+  Calculator,
   Coins,
   Goal,
   LayoutDashboard,
@@ -30,6 +31,7 @@ const ITEMS: {
   { href: "/admin/economy", icon: Coins, fr: "Économie", en: "Economy" },
   { href: "/admin/players", icon: Shirt, fr: "Effectifs", en: "Rosters" },
   { href: "/admin/matches", icon: Goal, fr: "Résultats", en: "Results" },
+  { href: "/admin/scoring", icon: Calculator, fr: "Barème", en: "Scoring" },
   { href: "/admin/users", icon: Users, fr: "Usagers", en: "Users" },
   { href: "/admin/chat", icon: MessagesSquare, fr: "Salon", en: "Lounge" },
   { href: "/admin/support", icon: LifeBuoy, fr: "Support", en: "Support" },
