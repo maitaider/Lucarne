@@ -40,7 +40,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { Badge } from "@/components/ui/badge";
-import { Stat } from "@/components/ui/stat";
 import { CountUp } from "@/components/ui/count-up";
 import {
   ArrowRight,
@@ -215,64 +214,66 @@ export default async function DashboardPage({
                 : "Your World Cup HQ: follow matches, predict, climb the leaderboard."}
             </p>
 
-            <div className="mt-6 grid grid-cols-3 gap-2.5">
-              <Stat
-                icon={Receipt}
-                label={L === "fr" ? "Pronos actifs" : "Active picks"}
-                value={<CountUp value={activeBets.length} />}
-                detail={L === "fr" ? "à régler" : "open"}
-                accent="violet"
-                href="/bets"
+            {/* Unified stat board — KPIs + season + brief folded into ONE
+                translucent panel, banded with hairline dividers (was 8
+                separate cards). Win-rate now appears once (Season), not also
+                in the Points detail. */}
+            <div className="mt-6 overflow-hidden rounded-md border border-border-subtle bg-surface-1/[0.16] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-md lg:mt-7">
+              <div className="grid grid-cols-3 gap-px bg-white/[0.07]">
+                <HeroKpi
+                  icon={Receipt}
+                  label={L === "fr" ? "Pronos actifs" : "Active picks"}
+                  value={<CountUp value={activeBets.length} />}
+                  detail={L === "fr" ? "à régler" : "open"}
+                  accent="violet"
+                  href="/bets"
+                />
+                <HeroKpi
+                  icon={Crown}
+                  label={L === "fr" ? "Points" : "Points"}
+                  value={<CountUp value={stats.total_points} />}
+                  detail={
+                    stats.settled_bets > 0
+                      ? `${stats.settled_bets} ${L === "fr" ? "réglés" : "settled"}`
+                      : L === "fr"
+                        ? "en attente"
+                        : "pending"
+                  }
+                  accent="gold"
+                  href="/leaderboard/global"
+                />
+                <HeroKpi
+                  icon={Users}
+                  label={L === "fr" ? "Rang" : "Rank"}
+                  value={myRank ? `#${myRank}` : "—"}
+                  detail={`${myLeagues.length} ${L === "fr" ? "ligues" : "leagues"}`}
+                  accent="primary"
+                  href={myRank ? "/leaderboard/global" : "/leagues"}
+                />
+              </div>
+
+              <SeasonStrip
+                winRatePct={winRatePct}
+                exactCount={achievements?.exact_count ?? 0}
+                currentStreak={achievements?.current_streak ?? 0}
+                wonCount={achievements?.won_count ?? 0}
+                settledBets={stats.settled_bets}
+                locale={L}
               />
-              <Stat
-                icon={Crown}
-                label={L === "fr" ? "Points" : "Points"}
-                value={<CountUp value={stats.total_points} />}
-                detail={
-                  stats.settled_bets > 0
-                    ? `${winRatePct}% ${L === "fr" ? "réussite" : "win"}`
-                    : L === "fr"
-                      ? "en attente"
-                      : "pending"
-                }
-                accent="gold"
-                href="/leaderboard/global"
-              />
-              <Stat
-                icon={Users}
-                label={L === "fr" ? "Rang" : "Rank"}
-                value={myRank ? `#${myRank}` : "—"}
-                detail={`${myLeagues.length} ${L === "fr" ? "ligues" : "leagues"}`}
-                accent="primary"
-                href={myRank ? "/leaderboard/global" : "/leagues"}
+
+              <HeroBrief
+                championTeam={championTeam}
+                amountCents={buyIn.amount_cents}
+                currency={buyIn.settings.currency}
+                potTotalCents={projected.pool_cents}
+                payingUsers={potTotal.paying_users_count}
+                leagues={myLeagues}
+                bracketDone={bracketDone}
+                bracketTotal={bracketTotal}
+                canBet={buyIn.can_bet}
+                locale={L}
               />
             </div>
-
-            {/* Season at-a-glance — fills the gap between the KPIs and the
-                brief tiles with the player's running performance. */}
-            <SeasonStrip
-              winRatePct={winRatePct}
-              exactCount={achievements?.exact_count ?? 0}
-              currentStreak={achievements?.current_streak ?? 0}
-              wonCount={achievements?.won_count ?? 0}
-              settledBets={stats.settled_bets}
-              locale={L}
-            />
-
-            {/* Brief — champion, pot, league, bracket — bottom-aligned with
-                the next-step panel (lg:mt-auto). */}
-            <HeroBrief
-              championTeam={championTeam}
-              amountCents={buyIn.amount_cents}
-              currency={buyIn.settings.currency}
-              potTotalCents={projected.pool_cents}
-              payingUsers={potTotal.paying_users_count}
-              leagues={myLeagues}
-              bracketDone={bracketDone}
-              bracketTotal={bracketTotal}
-              canBet={buyIn.can_bet}
-              locale={L}
-            />
           </div>
 
           {/* Right — leaderboard preview */}
@@ -371,6 +372,48 @@ function SectionLabel({
 }
 
 /* -------------------------------------------------------------------------- */
+/*  Hero KPI — borderless cell for the unified stat board (top band)          */
+/* -------------------------------------------------------------------------- */
+
+const HERO_KPI_ACCENT: Record<"violet" | "gold" | "primary", string> = {
+  violet: "text-violet-300",
+  gold: "text-gold-300",
+  primary: "text-primary-300",
+};
+
+function HeroKpi({
+  icon: Icon,
+  label,
+  value,
+  detail,
+  accent,
+  href,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: React.ReactNode;
+  detail: string;
+  accent: "violet" | "gold" | "primary";
+  href: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group flex flex-col bg-abyss/[0.34] px-4 py-3.5 transition hover:bg-abyss/[0.55]"
+    >
+      <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
+        <Icon className={cn("size-3.5", HERO_KPI_ACCENT[accent])} strokeWidth={2} />
+        {label}
+      </span>
+      <span className="mt-1.5 font-display text-2xl font-bold leading-none tabular-nums text-text-primary sm:text-[1.7rem]">
+        {value}
+      </span>
+      <span className="mt-1 truncate text-[11px] text-text-tertiary">{detail}</span>
+    </Link>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
 /*  Season strip — running performance, fills the hero's left column          */
 /* -------------------------------------------------------------------------- */
 
@@ -398,7 +441,7 @@ function SeasonStrip({
     { label: fr ? "Victoires" : "Wins", value: started ? `${wonCount}` : "—" },
   ];
   return (
-    <div className="mt-4 rounded-md border border-border-subtle bg-surface-1/[0.45] px-3.5 py-3 backdrop-blur-md">
+    <div className="border-t border-white/[0.07] bg-abyss/[0.22] px-4 py-3">
       <div className="flex items-center justify-between">
         <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
           <Sparkles className="size-3 text-primary-300" strokeWidth={2} />
@@ -468,7 +511,7 @@ function HeroBrief({
   const bracketComplete = bracketTotal > 0 && bracketDone >= bracketTotal;
 
   return (
-    <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:mt-auto lg:pt-6">
+    <div className="grid grid-cols-2 gap-px border-t border-white/[0.07] bg-white/[0.07] sm:grid-cols-4">
       {/* Champion */}
       <BriefTile
         href={canBet ? "/predict?tab=finale" : "/buy-in"}
@@ -479,7 +522,7 @@ function HeroBrief({
             <BriefIcon icon={Crown} accent="gold" />
           )
         }
-        label={fr ? "Ton champion" : "Your champion"}
+        label={fr ? "Champion" : "Champion"}
         value={
           championTeam
             ? fr
@@ -497,7 +540,7 @@ function HeroBrief({
       <BriefTile
         href="/how-it-works"
         leading={<BriefIcon icon={Coins} accent="primary" />}
-        label={fr ? "Cagnotte projetée" : "Projected pot"}
+        label={fr ? "Cagnotte" : "Pot"}
         value={potTotalCents > 0 ? potAmount : amount}
         detail={
           potTotalCents > 0
@@ -511,7 +554,7 @@ function HeroBrief({
       <BriefTile
         href={league ? `/leagues/${league.slug}` : "/leagues/new"}
         leading={<BriefIcon icon={Users} accent="violet" />}
-        label={fr ? "Ta ligue" : "Your league"}
+        label={fr ? "Ligue" : "League"}
         value={league ? league.name : fr ? "Créer" : "Create"}
         detail={
           league
@@ -652,11 +695,11 @@ function BriefIcon({
   return (
     <span
       className={cn(
-        "flex size-8 shrink-0 items-center justify-center rounded-md ring-1",
+        "flex size-7 shrink-0 items-center justify-center rounded-md ring-1",
         BRIEF_ICON_ACCENT[accent],
       )}
     >
-      <Icon className="size-4" strokeWidth={1.9} />
+      <Icon className="size-3.5" strokeWidth={1.9} />
     </span>
   );
 }
@@ -679,11 +722,11 @@ function BriefTile({
   return (
     <Link
       href={href}
-      className="group flex items-center gap-2.5 rounded-md border border-border-subtle bg-surface-1/[0.45] px-2.5 py-2.5 backdrop-blur-md transition hover:border-white/[0.14] hover:bg-surface-1/[0.6]"
+      className="group flex items-center gap-2 bg-abyss/[0.3] px-2.5 py-3 transition hover:bg-abyss/[0.55]"
     >
       {leading}
       <div className="min-w-0 flex-1">
-        <div className="truncate text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
+        <div className="truncate text-[10px] font-bold uppercase tracking-wide text-text-tertiary">
           {label}
         </div>
         <div
