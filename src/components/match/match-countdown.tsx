@@ -18,12 +18,15 @@ export function MatchCountdown({
   urgentWithinHours = 1,
   className,
   showIcon = true,
+  compact = false,
 }: {
   targetAt: string;
   locale: Locale;
   urgentWithinHours?: number;
   className?: string;
   showIcon?: boolean;
+  /** Single dominant unit ("7 min", "21 h", "1 j") — for dense lists. */
+  compact?: boolean;
 }) {
   const fr = locale === "fr";
   const [now, setNow] = useState<number | null>(null);
@@ -51,10 +54,23 @@ export function MatchCountdown({
     const h = Math.floor((s % 86400) / 3600);
     const m = Math.floor((s % 3600) / 60);
     const sec = s % 60;
-    text =
-      d > 0
-        ? `${d}j ${pad(h)}h ${pad(m)}m`
-        : `${pad(h)}h ${pad(m)}m ${pad(sec)}s`;
+    if (compact) {
+      text =
+        d > 0
+          ? `${d} j`
+          : h > 0
+            ? `${h} h`
+            : m > 0
+              ? `${m} min`
+              : fr
+                ? "imminent"
+                : "soon";
+    } else {
+      text =
+        d > 0
+          ? `${d}j ${pad(h)}h ${pad(m)}m`
+          : `${pad(h)}h ${pad(m)}m ${pad(sec)}s`;
+    }
     if (delta < urgentWithinHours * 3_600_000) tone = "text-error";
   }
 

@@ -123,13 +123,15 @@ export default async function DashboardPage({
   const firstName =
     (user?.display_name?.trim() || user?.username || "").split(" ")[0] ?? "";
 
-  // Featured: a live match, else the next scheduled one (>1h buffer).
+  // Featured = the VERY NEXT kickoff: a live match, else the soonest upcoming
+  // scheduled one. No time buffer — the card literally says "prochain coup
+  // d'envoi", so it must be the next match. (The old `> 1h` buffer was a bug:
+  // it skipped imminent matches, burying a 7-min kickoff under a 3h one.)
   const liveMatch = allMatches.find((m) => m.status === "live") ?? null;
   const nextMatch = allMatches
     .filter(
       (m) =>
-        m.status === "scheduled" &&
-        new Date(m.kickoff_at).getTime() - now > 60 * 60_000,
+        m.status === "scheduled" && new Date(m.kickoff_at).getTime() > now,
     )
     .sort(
       (a, b) =>
@@ -806,6 +808,12 @@ function FeaturedMatch({
     timeZone: "America/Toronto",
   });
   const hasPick = myPicks?.some((p) => p.status === "validated") ?? false;
+  // The featured match can now be imminent (the next kickoff, no buffer), so it
+  // may already be locked (picks close 1h before kickoff). Reflect that instead
+  // of inviting a pick that would be rejected. `urgent` (<3h) drives emphasis.
+  const msToKickoff = kickoff.getTime() - Date.now();
+  const locked = match.status === "scheduled" && msToKickoff < 60 * 60_000;
+  const urgent = match.status === "scheduled" && msToKickoff < 3 * 60 * 60_000;
   const scorePick = myPicks?.find(
     (p) => p.bet_type === "exact_score" && p.status === "validated",
   );
@@ -878,8 +886,19 @@ function FeaturedMatch({
             <span className="font-display text-2xl font-bold text-text-tertiary sm:text-3xl">
               VS
             </span>
-            <span className="text-[9px] font-medium uppercase tracking-wider text-text-tertiary">
-              {fr ? "À toi de jouer" : "Your call"}
+            <span
+              className={cn(
+                "text-[9px] font-medium uppercase tracking-wider",
+                locked ? "text-gold-300/80" : "text-text-tertiary",
+              )}
+            >
+              {locked
+                ? fr
+                  ? "Pronostics fermés"
+                  : "Picks closed"
+                : fr
+                  ? "À toi de jouer"
+                  : "Your call"}
             </span>
           </div>
         )}
@@ -891,8 +910,20 @@ function FeaturedMatch({
       </div>
 
       {match.status === "scheduled" && (
-        <div className="mt-4 flex items-center justify-center gap-2 rounded-sm border border-white/[0.08] bg-white/[0.03] py-2">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
+        <div
+          className={cn(
+            "mt-4 flex items-center justify-center gap-2 rounded-sm border py-2 transition",
+            urgent
+              ? "border-gold-500/40 bg-gold-500/[0.1]"
+              : "border-white/[0.08] bg-white/[0.03]",
+          )}
+        >
+          <span
+            className={cn(
+              "text-[10px] font-bold uppercase tracking-wider",
+              urgent ? "text-gold-300" : "text-text-tertiary",
+            )}
+          >
             {fr ? "Coup d'envoi dans" : "Kickoff in"}
           </span>
           <MatchCountdown
@@ -912,7 +943,7 @@ function FeaturedMatch({
       )}
 
       <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:items-center">
-        {match.status === "scheduled" && (canBet || canBuyIn) && (
+        {match.status === "scheduled" && !locked && (canBet || canBuyIn) && (
           <div className="flex-1">
             <QuickBetButton
               match={match}
@@ -1041,13 +1072,18 @@ function UpcomingCard({
                     <Flag isoCode={m.away_team?.iso_code ?? null} size="sm" />
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1">
-                    <MatchCountdown targetAt={m.kickoff_at} locale={locale} />
+                    <MatchCountdown
+                      targetAt={m.kickoff_at}
+                      locale={locale}
+                      compact
+                      showIcon={false}
+                    />
                     {pred ? (
                       <span className="rounded-full bg-primary-500/12 px-2 py-0.5 text-[10px] font-bold tabular-nums text-primary-300">
                         {fr ? "Prono" : "Pick"} {pred.home}–{pred.away}
                       </span>
                     ) : (
-                      <span className="text-[10px] text-text-tertiary">
+                      <span className="rounded-full bg-white/[0.05] px-2 py-0.5 text-[10px] font-medium text-text-tertiary">
                         {fr ? "Pas de prono" : "No pick"}
                       </span>
                     )}
