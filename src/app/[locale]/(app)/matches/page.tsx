@@ -1,5 +1,9 @@
 import { setRequestLocale } from "next-intl/server";
-import { listMatches, groupMatchesByDate } from "@/lib/matches/queries";
+import {
+  listMatches,
+  groupMatchesByDate,
+  type MatchListItem,
+} from "@/lib/matches/queries";
 import { getGroupStandings } from "@/lib/matches/group-standings";
 import { getMyPicksByMatch, type MyPick } from "@/lib/bets/my-picks";
 import { getCommunityOdds, type CommunityOdds } from "@/lib/bets/community-odds";
@@ -16,6 +20,7 @@ import type { Locale } from "@/i18n/routing";
 import {
   Activity,
   CalendarDays,
+  ChevronDown,
   LayoutGrid,
   ShieldCheck,
   Trophy,
@@ -398,8 +403,41 @@ function CalendarView({
   if (stage && stage !== "all") filtered = filtered.filter((m) => m.stage === stage);
   if (group) filtered = filtered.filter((m) => m.group_label === group);
 
-  const grouped = groupMatchesByDate(filtered);
-  const dateKeys = Array.from(grouped.keys()).sort();
+  const fr = locale === "fr";
+
+  // The complaint: finished matches pile up at the top and push upcoming ones
+  // below the fold — worse every day. Fix: upcoming first (soonest → latest),
+  // past results in a collapsed section below (most recent → oldest).
+  const upcoming = filtered.filter((m) => m.status !== "finished");
+  const past = filtered.filter((m) => m.status === "finished");
+
+  const upcomingByDate = groupMatchesByDate(upcoming);
+  const upcomingDates = Array.from(upcomingByDate.keys()).sort();
+  const pastByDate = groupMatchesByDate(past);
+  const pastDates = Array.from(pastByDate.keys()).sort().reverse();
+
+  const renderDay = (date: string, list: MatchListItem[]) => (
+    <section key={date}>
+      <h2 className="sticky top-14 z-20 mb-3 flex items-center gap-2 rounded-sm bg-abyss/80 px-2 py-2 text-xs font-bold uppercase tracking-wider text-text-secondary backdrop-blur-md md:top-0 md:bg-transparent md:px-0 md:backdrop-blur-none">
+        <span className="shrink-0">{formatDateHeader(date, locale)}</span>
+        <span className="h-px flex-1 bg-border-subtle/70" />
+      </h2>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {list.map((m) => (
+          <MatchCard
+            key={m.id}
+            match={m}
+            locale={locale}
+            myPicks={myPicksByMatch.get(m.id)}
+            canBet={canBet}
+            accessClosed={accessClosed}
+            following={followedIds.has(m.id)}
+            odds={consensus.get(m.id)}
+          />
+        ))}
+      </div>
+    </section>
+  );
 
   return (
     <>
@@ -407,33 +445,46 @@ function CalendarView({
       {filtered.length === 0 ? (
         <div className="rounded-sm border border-dashed border-white/[0.12] bg-surface-1/[0.62] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] p-10 text-center">
           <p className="text-text-secondary">
-            {locale === "fr" ? "Aucun match dans cette catégorie." : "No matches here."}
+            {fr ? "Aucun match dans cette catégorie." : "No matches here."}
           </p>
         </div>
       ) : (
-        <div className="space-y-8">
-          {dateKeys.map((date) => (
-            <section key={date}>
-              <h2 className="sticky top-14 z-20 mb-3 flex items-center gap-2 rounded-sm bg-abyss/80 px-2 py-2 text-xs font-bold uppercase tracking-wider text-text-secondary backdrop-blur-md md:top-0 md:bg-transparent md:px-0 md:backdrop-blur-none">
-                <span className="shrink-0">{formatDateHeader(date, locale)}</span>
-                <span className="h-px flex-1 bg-border-subtle/70" />
-              </h2>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {grouped.get(date)!.map((m) => (
-                  <MatchCard
-                    key={m.id}
-                    match={m}
-                    locale={locale}
-                    myPicks={myPicksByMatch.get(m.id)}
-                    canBet={canBet}
-                    accessClosed={accessClosed}
-                    following={followedIds.has(m.id)}
-                    odds={consensus.get(m.id)}
-                  />
-                ))}
+        <div className="space-y-6">
+          {/* À venir — en tête, du plus proche au plus lointain */}
+          {upcomingDates.length > 0 ? (
+            <div className="space-y-8">
+              {upcomingDates.map((date) => renderDay(date, upcomingByDate.get(date)!))}
+            </div>
+          ) : (
+            <div className="rounded-sm border border-dashed border-white/[0.12] bg-surface-1/[0.6] px-4 py-8 text-center text-sm text-text-secondary">
+              {fr
+                ? "Aucun match à venir dans cette catégorie."
+                : "No upcoming matches in this category."}
+            </div>
+          )}
+
+          {/* Résultats — repliés par défaut (déployés si plus rien à venir) pour
+              que les matchs passés n'enterrent plus les matchs à venir. */}
+          {pastDates.length > 0 && (
+            <details open={upcomingDates.length === 0} className="group">
+              <summary className="flex cursor-pointer list-none items-center gap-2.5 rounded-sm border border-white/[0.08] bg-surface-1/[0.5] px-3.5 py-3 text-xs font-bold uppercase tracking-wider text-text-secondary backdrop-blur-md transition hover:border-white/[0.16] hover:text-text-primary [&::-webkit-details-marker]:hidden">
+                <ChevronDown
+                  className="size-4 shrink-0 text-text-tertiary transition group-open:rotate-180"
+                  strokeWidth={2}
+                />
+                <span>{fr ? "Résultats" : "Results"}</span>
+                <span className="rounded-full bg-white/[0.08] px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-text-tertiary">
+                  {past.length}
+                </span>
+                <span className="ml-auto text-[10px] font-medium normal-case text-text-tertiary">
+                  {fr ? "matchs joués" : "played"}
+                </span>
+              </summary>
+              <div className="mt-4 space-y-8">
+                {pastDates.map((date) => renderDay(date, pastByDate.get(date)!))}
               </div>
-            </section>
-          ))}
+            </details>
+          )}
         </div>
       )}
     </>
