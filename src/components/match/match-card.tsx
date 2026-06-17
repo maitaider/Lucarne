@@ -19,6 +19,7 @@ export function MatchCard({
   accessClosed = false,
   following,
   odds,
+  hideDate = false,
 }: {
   match: MatchListItem;
   locale: Locale;
@@ -32,6 +33,8 @@ export function MatchCard({
   following?: boolean;
   /** Group consensus (% home/draw/away). Strip hidden when no picks yet. */
   odds?: CommunityOdds;
+  /** Calendar groups by day already, so the kickoff chip shows time only. */
+  hideDate?: boolean;
 }) {
   const isLive = match.status === "live";
   const isFinished = match.status === "finished";
@@ -65,7 +68,7 @@ export function MatchCard({
     <Link
       href={`/matches/${match.id}`}
       className={cn(
-        "group relative block overflow-hidden rounded-sm border border-l-[3px] bg-surface-1/[0.68] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl transition",
+        "group relative block overflow-hidden rounded-md border border-l-[3px] bg-surface-1/[0.68] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl transition",
         "border-white/[0.08] border-l-white/[0.12] hover:-translate-y-0.5 hover:border-primary-500/35 hover:bg-surface-2/[0.78] hover:shadow-[0_20px_60px_rgba(0,0,0,0.26)]",
         isFinished && "border-l-white/25",
         isLive && "border-violet-500/50 border-l-violet-400 bg-gradient-to-br from-violet-500/[0.08] to-violet-500/[0.02] shadow-glow-violet",
@@ -82,26 +85,25 @@ export function MatchCard({
       {/* Header */}
       <div
         className={cn(
-          "mb-3 flex items-center justify-between gap-2 text-xs",
+          "mb-3 flex items-center justify-between gap-2",
           following !== undefined && "pr-8",
         )}
       >
-        <div className="flex min-w-0 items-center gap-1.5 text-text-tertiary">
-          <StageLabel stage={match.stage} group={match.group_label} locale={locale} />
+        <div className="flex min-w-0 items-center gap-1.5">
+          <span className="shrink-0 rounded-full bg-white/[0.06] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-text-secondary ring-1 ring-inset ring-white/[0.06]">
+            <StageLabel stage={match.stage} group={match.group_label} locale={locale} />
+          </span>
           {match.venue && (
-            <>
-              <span aria-hidden>·</span>
-              <span className="truncate">
-                {locale === "fr" ? match.venue.city_fr : match.venue.city_en}
-              </span>
-            </>
+            <span className="truncate text-[11px] text-text-tertiary">
+              {locale === "fr" ? match.venue.city_fr : match.venue.city_en}
+            </span>
           )}
           {myPicks && myPicks.length > 0 && (
             <MyPickBadge picks={myPicks} locale={locale} size="xs" />
           )}
         </div>
         {isLive ? (
-          <span className="flex items-center gap-1.5 rounded-full bg-violet-500/15 px-2 py-0.5 font-bold uppercase tracking-wider text-violet-300">
+          <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-violet-500/15 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-violet-300">
             <span className="relative flex size-1.5">
               <span className="absolute inline-flex size-full animate-ping rounded-full bg-violet-400 opacity-75" />
               <span className="relative inline-flex size-1.5 rounded-full bg-violet-400" />
@@ -109,12 +111,12 @@ export function MatchCard({
             LIVE
           </span>
         ) : isFinished ? (
-          <span className="rounded-xs bg-white/[0.05] px-2 py-0.5 font-medium uppercase tracking-wider text-text-tertiary">
+          <span className="shrink-0 rounded-full bg-white/[0.05] px-2 py-0.5 text-xs font-medium uppercase tracking-wider text-text-tertiary">
             {locale === "fr" ? "Terminé" : "Final"}
           </span>
         ) : (
-          <span className="shrink-0 whitespace-nowrap font-mono tabular-nums text-text-secondary">
-            {dateStr} · {timeStr}
+          <span className="shrink-0 whitespace-nowrap rounded-md bg-white/[0.05] px-2 py-1 font-mono text-[13px] font-bold tabular-nums text-text-primary ring-1 ring-inset ring-white/[0.07]">
+            {hideDate ? timeStr : `${dateStr} · ${timeStr}`}
           </span>
         )}
       </div>
@@ -333,11 +335,11 @@ function TeamLine({
         <Flag isoCode={team?.iso_code ?? null} size="lg" />
         <span
           className={cn(
-            "truncate text-sm",
+            "truncate text-[15px] leading-tight",
             highlight
               ? "font-bold text-text-primary"
               : team
-                ? "font-semibold text-text-secondary"
+                ? "font-semibold text-text-primary"
                 : "font-medium text-text-tertiary",
           )}
         >
