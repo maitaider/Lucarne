@@ -416,28 +416,78 @@ function CalendarView({
   const pastByDate = groupMatchesByDate(past);
   const pastDates = Array.from(pastByDate.keys()).sort().reverse();
 
-  const renderDay = (date: string, list: MatchListItem[]) => (
-    <section key={date}>
-      <h2 className="sticky top-14 z-20 mb-3 flex items-center gap-2 rounded-sm bg-abyss/80 px-2 py-2 text-xs font-bold uppercase tracking-wider text-text-secondary backdrop-blur-md md:top-0 md:bg-transparent md:px-0 md:backdrop-blur-none">
-        <span className="shrink-0">{formatDateHeader(date, locale)}</span>
-        <span className="h-px flex-1 bg-border-subtle/70" />
-      </h2>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {list.map((m) => (
-          <MatchCard
-            key={m.id}
-            match={m}
-            locale={locale}
-            myPicks={myPicksByMatch.get(m.id)}
-            canBet={canBet}
-            accessClosed={accessClosed}
-            following={followedIds.has(m.id)}
-            odds={consensus.get(m.id)}
-          />
-        ))}
-      </div>
-    </section>
-  );
+  // Relative day labels ("Aujourd'hui" / "Demain") vs the Toronto calendar day,
+  // so the schedule reads at a glance — same TZ/format as the grouping keys.
+  const toKey = (d: Date) =>
+    new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/Toronto",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(d);
+  const todayKey = toKey(new Date());
+  const tomorrowKey = toKey(new Date(Date.now() + 86_400_000));
+
+  const renderDay = (date: string, list: MatchListItem[]) => {
+    const isToday = date === todayKey;
+    const rel = isToday
+      ? fr
+        ? "Aujourd'hui"
+        : "Today"
+      : date === tomorrowKey
+        ? fr
+          ? "Demain"
+          : "Tomorrow"
+        : null;
+    const liveCount = list.filter((m) => m.status === "live").length;
+    return (
+      <section key={date}>
+        <h2 className="sticky top-14 z-20 mb-3 flex items-center gap-2.5 rounded-sm bg-abyss/80 px-2.5 py-2 backdrop-blur-md md:top-0 md:bg-transparent md:px-0 md:backdrop-blur-none">
+          {isToday && (
+            <span className="size-2 shrink-0 rounded-full bg-primary-400 shadow-glow-primary" />
+          )}
+          <span
+            className={cn(
+              "shrink-0 text-xs font-bold uppercase tracking-wider",
+              isToday ? "text-primary-300" : "text-text-secondary",
+            )}
+          >
+            {rel ?? formatDateHeader(date, locale)}
+          </span>
+          {rel && (
+            <span className="hidden shrink-0 text-xs font-medium text-text-tertiary sm:inline">
+              {formatDateHeader(date, locale)}
+            </span>
+          )}
+          <span className="h-px flex-1 bg-border-subtle/70" />
+          {liveCount > 0 && (
+            <span className="flex shrink-0 items-center gap-1 rounded-full bg-violet-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-violet-300">
+              <span className="size-1.5 rounded-full bg-violet-400" />
+              {liveCount} live
+            </span>
+          )}
+          <span className="shrink-0 text-[11px] font-medium tabular-nums text-text-tertiary">
+            {list.length} {fr ? "matchs" : "matches"}
+          </span>
+        </h2>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {list.map((m) => (
+            <MatchCard
+              key={m.id}
+              match={m}
+              locale={locale}
+              myPicks={myPicksByMatch.get(m.id)}
+              canBet={canBet}
+              accessClosed={accessClosed}
+              following={followedIds.has(m.id)}
+              odds={consensus.get(m.id)}
+              hideDate
+            />
+          ))}
+        </div>
+      </section>
+    );
+  };
 
   return (
     <>
