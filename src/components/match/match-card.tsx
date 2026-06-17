@@ -2,10 +2,9 @@ import type { MatchListItem } from "@/lib/matches/queries";
 import { Link } from "@/i18n/navigation";
 import { Flag } from "@/components/team/flag";
 import { QuickBetButton } from "@/components/bet/quick-bet-button";
-import { MyPickBadge } from "@/components/bet/my-pick-badge";
 import { FollowMatchButton } from "@/components/match/follow-match-button";
 import { picksToExisting } from "@/lib/bets/picks-to-existing";
-import { Lock } from "lucide-react";
+import { Check, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Locale } from "@/i18n/routing";
 import type { MyPick } from "@/lib/bets/my-picks";
@@ -19,7 +18,6 @@ export function MatchCard({
   accessClosed = false,
   following,
   odds,
-  hideDate = false,
 }: {
   match: MatchListItem;
   locale: Locale;
@@ -33,8 +31,6 @@ export function MatchCard({
   following?: boolean;
   /** Group consensus (% home/draw/away). Strip hidden when no picks yet. */
   odds?: CommunityOdds;
-  /** Calendar groups by day already, so the kickoff chip shows time only. */
-  hideDate?: boolean;
 }) {
   const isLive = match.status === "live";
   const isFinished = match.status === "finished";
@@ -44,11 +40,6 @@ export function MatchCard({
   const timeStr = kickoff.toLocaleTimeString(locale === "fr" ? "fr-FR" : "en-US", {
     hour: "2-digit",
     minute: "2-digit",
-    timeZone: "America/Toronto",
-  });
-  const dateStr = kickoff.toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US", {
-    day: "2-digit",
-    month: "short",
     timeZone: "America/Toronto",
   });
 
@@ -63,120 +54,121 @@ export function MatchCard({
     match.away_score !== null &&
     match.away_score > match.home_score;
 
+  // Compact right-zone status: their result/pick, or a predict CTA.
+  const activePred = predictedScore(myPicks);
+  const settledWon = myPicks?.filter(
+    (p) => p.status === "settled" && p.result === "won",
+  ) ?? [];
+  const wonPts = settledWon.reduce((s, p) => s + p.points, 0);
+  const settledAny = myPicks?.some((p) => p.status === "settled") ?? false;
+  const stage = stageShort(match.stage, match.group_label, locale);
+  const fr = locale === "fr";
+
   return (
-    <div className="relative">
     <Link
       href={`/matches/${match.id}`}
       className={cn(
-        "group relative block overflow-hidden rounded-md border border-l-[3px] bg-surface-1/[0.68] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl transition",
-        "border-white/[0.08] border-l-white/[0.12] hover:-translate-y-0.5 hover:border-primary-500/35 hover:bg-surface-2/[0.78] hover:shadow-[0_20px_60px_rgba(0,0,0,0.26)]",
+        "group relative flex flex-col gap-2 overflow-hidden rounded-md border border-l-[3px] bg-surface-1/[0.6] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl transition",
+        "border-white/[0.08] border-l-white/[0.12] hover:border-primary-500/35 hover:bg-surface-2/[0.78]",
         isFinished && "border-l-white/25",
-        isLive && "border-violet-500/50 border-l-violet-400 bg-gradient-to-br from-violet-500/[0.08] to-violet-500/[0.02] shadow-glow-violet",
+        isLive &&
+          "border-violet-500/45 border-l-violet-400 bg-gradient-to-br from-violet-500/[0.07] to-transparent",
       )}
     >
-      {/* subtle accent ribbon for live */}
-      {isLive && (
-        <span
-          aria-hidden
-          className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-400/60 to-transparent"
-        />
-      )}
-
-      {/* Header */}
-      <div
-        className={cn(
-          "mb-3 flex items-center justify-between gap-2",
-          following !== undefined && "pr-8",
-        )}
-      >
-        <div className="flex min-w-0 items-center gap-1.5">
-          <span className="shrink-0 rounded-full bg-white/[0.06] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-text-secondary ring-1 ring-inset ring-white/[0.06]">
-            <StageLabel stage={match.stage} group={match.group_label} locale={locale} />
-          </span>
-          {match.venue && (
-            <span className="truncate text-[11px] text-text-tertiary">
-              {locale === "fr" ? match.venue.city_fr : match.venue.city_en}
+      <div className="flex items-stretch gap-3">
+        {/* Time / status rail */}
+        <div className="flex w-11 shrink-0 flex-col items-center justify-center gap-1 border-r border-white/[0.07] pr-3 text-center">
+          {isLive ? (
+            <span className="flex flex-col items-center gap-0.5 text-violet-300">
+              <span className="relative flex size-2">
+                <span className="absolute inline-flex size-full animate-ping rounded-full bg-violet-400 opacity-75" />
+                <span className="relative inline-flex size-2 rounded-full bg-violet-400" />
+              </span>
+              <span className="text-[9px] font-bold uppercase tracking-wider">
+                Live
+              </span>
+            </span>
+          ) : isFinished ? (
+            <span className="text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
+              {fr ? "Fin" : "FT"}
+            </span>
+          ) : (
+            <span className="font-mono text-[13px] font-bold tabular-nums text-text-primary">
+              {timeStr}
             </span>
           )}
-          {myPicks && myPicks.length > 0 && (
-            <MyPickBadge picks={myPicks} locale={locale} size="xs" />
+          <span className="w-full truncate text-[9px] font-bold uppercase tracking-wider text-text-tertiary">
+            {stage}
+          </span>
+        </div>
+
+        {/* Teams */}
+        <div className="flex min-w-0 flex-1 flex-col justify-center gap-1.5">
+          <TeamLine
+            team={match.home_team}
+            placeholder={match.home_placeholder}
+            score={match.home_score}
+            showScore={isLive || isFinished}
+            highlight={homeWon}
+            locale={locale}
+          />
+          <TeamLine
+            team={match.away_team}
+            placeholder={match.away_placeholder}
+            score={match.away_score}
+            showScore={isLive || isFinished}
+            highlight={awayWon}
+            locale={locale}
+          />
+        </div>
+
+        {/* Right — follow bell + pick status / CTA */}
+        <div className="flex shrink-0 flex-col items-end justify-center gap-1.5">
+          {following !== undefined && (
+            <FollowMatchButton
+              matchId={match.id}
+              initialFollowing={following}
+              locale={locale}
+              variant="icon"
+            />
           )}
-        </div>
-        {isLive ? (
-          <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-violet-500/15 px-2 py-0.5 text-xs font-bold uppercase tracking-wider text-violet-300">
-            <span className="relative flex size-1.5">
-              <span className="absolute inline-flex size-full animate-ping rounded-full bg-violet-400 opacity-75" />
-              <span className="relative inline-flex size-1.5 rounded-full bg-violet-400" />
+          {settledWon.length > 0 ? (
+            <span className="rounded-full bg-gold-500/15 px-2 py-0.5 text-[11px] font-bold tabular-nums text-gold-300 ring-1 ring-inset ring-gold-500/30">
+              +{wonPts}
             </span>
-            LIVE
-          </span>
-        ) : isFinished ? (
-          <span className="shrink-0 rounded-full bg-white/[0.05] px-2 py-0.5 text-xs font-medium uppercase tracking-wider text-text-tertiary">
-            {locale === "fr" ? "Terminé" : "Final"}
-          </span>
-        ) : (
-          <span className="shrink-0 whitespace-nowrap rounded-md bg-white/[0.05] px-2 py-1 font-mono text-[13px] font-bold tabular-nums text-text-primary ring-1 ring-inset ring-white/[0.07]">
-            {hideDate ? timeStr : `${dateStr} · ${timeStr}`}
-          </span>
-        )}
-      </div>
-
-      {/* Teams */}
-      <div className="space-y-2">
-        <TeamLine
-          team={match.home_team}
-          placeholder={match.home_placeholder}
-          score={match.home_score}
-          showScore={isLive || isFinished}
-          highlight={homeWon}
-          locale={locale}
-        />
-        <TeamLine
-          team={match.away_team}
-          placeholder={match.away_placeholder}
-          score={match.away_score}
-          showScore={isLive || isFinished}
-          highlight={awayWon}
-          locale={locale}
-        />
-      </div>
-
-      {/* Group consensus — anonymous % of the pool, now shown on every card
-         (anti-cheat reveal dropped). Hidden until at least one pick exists. */}
-      <ConsensusStrip
-        odds={odds}
-        homeTeam={match.home_team}
-        awayTeam={match.away_team}
-        locale={locale}
-      />
-
-      {/* Bet CTA bottom strip (scheduled only, opens QuickBet sheet).
-         Pre-fills with existing picks so user can edit instead of duplicating. */}
-      {isScheduled &&
-        (accessClosed ? (
-          <ReadOnlyStrip predicted={predictedScore(myPicks)} locale={locale} />
-        ) : (
-          <QuickBetButton
-            match={match}
-            locale={locale}
-            variant="strip"
-            hasPick={myPicks?.some((p) => p.status === "validated") ?? false}
-            existing={picksToExisting(myPicks)}
-            canBet={canBet}
-          />
-        ))}
-      </Link>
-      {following !== undefined && (
-        <div className="absolute right-2.5 top-2.5 z-20">
-          <FollowMatchButton
-            matchId={match.id}
-            initialFollowing={following}
-            locale={locale}
-            variant="icon"
-          />
+          ) : settledAny ? (
+            <span className="rounded-full bg-white/[0.05] px-2 py-0.5 text-[11px] font-medium text-text-tertiary">
+              {fr ? "Raté" : "Missed"}
+            </span>
+          ) : activePred ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-primary-500/15 px-2 py-0.5 text-[11px] font-bold tabular-nums text-primary-300 ring-1 ring-inset ring-primary-500/30">
+              <Check className="size-3" strokeWidth={3} />
+              {activePred.home}–{activePred.away}
+            </span>
+          ) : isScheduled ? (
+            accessClosed ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-white/[0.05] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-text-tertiary">
+                <Lock className="size-2.5" strokeWidth={2.5} />
+                {fr ? "Fermé" : "Closed"}
+              </span>
+            ) : (
+              <QuickBetButton
+                match={match}
+                locale={locale}
+                variant="icon"
+                hasPick={false}
+                existing={picksToExisting(myPicks)}
+                canBet={canBet}
+              />
+            )
+          ) : null}
         </div>
-      )}
-    </div>
+      </div>
+
+      {/* Group consensus — condensed to a thin bar (full breakdown on the
+         match page). Anti-cheat reveal dropped; hidden below sample size. */}
+      <ConsensusBar odds={odds} locale={locale} />
+    </Link>
   );
 }
 
@@ -185,70 +177,44 @@ export function MatchCard({
 // surfaces never disagree). Not anti-cheat: individual picks are public.
 const CONSENSUS_MIN_SAMPLE = 3;
 
-/** Compact 3-segment group-consensus bar (home win / draw / away win). */
-function ConsensusStrip({
+/** Ultra-thin group-consensus bar (home / draw / away). The full labelled
+    breakdown lives on the match page — here it's a glanceable hint that keeps
+    the card compact. */
+function ConsensusBar({
   odds,
-  homeTeam,
-  awayTeam,
   locale,
 }: {
   odds?: CommunityOdds;
-  homeTeam: { fifa_code?: string; name_fr: string; name_en: string } | null;
-  awayTeam: { fifa_code?: string; name_fr: string; name_en: string } | null;
   locale: Locale;
 }) {
   if (!odds || odds.total < CONSENSUS_MIN_SAMPLE) return null;
   const fr = locale === "fr";
-  const homeCode = homeTeam?.fifa_code ?? (fr ? "DOM" : "HOME");
-  const awayCode = awayTeam?.fifa_code ?? (fr ? "EXT" : "AWAY");
-
   // Independently-rounded shares can sum to 99/101 — absorb the drift into the
-  // largest segment so the bar and legend always total 100.
+  // largest segment so the bar always totals 100.
   const shares = [odds.home, odds.draw, odds.away];
   const drift = 100 - (shares[0] + shares[1] + shares[2]);
   if (drift !== 0) {
     const maxIdx = shares.indexOf(Math.max(...shares));
     shares[maxIdx] += drift;
   }
-  const [home, draw, away] = shares;
-
   const segs = [
-    { pct: home, cls: "bg-primary-500/70" },
-    { pct: draw, cls: "bg-white/25" },
-    { pct: away, cls: "bg-violet-500/70" },
+    { pct: shares[0], cls: "bg-primary-500/70" },
+    { pct: shares[1], cls: "bg-white/25" },
+    { pct: shares[2], cls: "bg-violet-500/70" },
   ];
 
   return (
-    <div className="mt-3 border-t border-white/[0.06] pt-2.5">
-      <div className="mb-1.5 flex items-center justify-between gap-2 text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
-        <span className="min-w-0 truncate">{fr ? "Le groupe penche" : "Group leans"}</span>
-        <span className="shrink-0 tabular-nums">
-          {odds.total} {fr ? (odds.total === 1 ? "prono" : "pronos") : odds.total === 1 ? "pick" : "picks"}
-        </span>
-      </div>
-      <div className="flex h-1.5 overflow-hidden rounded-full bg-white/[0.05]">
+    <div className="flex items-center gap-2">
+      <div className="flex h-1 flex-1 overflow-hidden rounded-full bg-white/[0.05]">
         {segs.map((s, i) =>
           s.pct > 0 ? (
-            <span
-              key={i}
-              className={s.cls}
-              style={{ width: `${s.pct}%` }}
-              aria-hidden
-            />
+            <span key={i} className={s.cls} style={{ width: `${s.pct}%` }} aria-hidden />
           ) : null,
         )}
       </div>
-      <div className="mt-1.5 flex items-center justify-between gap-2 text-[10px] tabular-nums text-text-secondary">
-        <span className="min-w-0 truncate font-semibold text-primary-300">
-          {homeCode} {home}%
-        </span>
-        <span className={cn("shrink-0 text-text-tertiary", draw === 0 && "opacity-40")}>
-          {fr ? "Nul" : "Draw"} {draw}%
-        </span>
-        <span className="min-w-0 truncate text-right font-semibold text-violet-300">
-          {away}% {awayCode}
-        </span>
-      </div>
+      <span className="shrink-0 text-[9px] font-medium tabular-nums text-text-tertiary">
+        {odds.total} {fr ? "pronos" : "picks"}
+      </span>
     </div>
   );
 }
@@ -266,40 +232,6 @@ function predictedScore(
     }
   }
   return null;
-}
-
-/**
- * Read-only footer strip shown once the buy-in sale is over. Replaces the
- * "buy my seat" CTA (no longer purchasable) with a useful recap: the player's
- * own prediction, or a plain read-only marker when they have no pick.
- */
-function ReadOnlyStrip({
-  predicted,
-  locale,
-}: {
-  predicted: { home: number; away: number } | null;
-  locale: Locale;
-}) {
-  const fr = locale === "fr";
-  return (
-    <div className="-mx-4 -mb-4 mt-3 flex items-center justify-between border-t border-white/[0.06] bg-white/[0.02] px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-text-tertiary">
-      <span className="flex items-center gap-1.5">
-        <Lock className="size-3" strokeWidth={2.5} />
-        {predicted
-          ? fr
-            ? "Ton prono"
-            : "Your pick"
-          : fr
-            ? "Lecture seule"
-            : "Read-only"}
-      </span>
-      {predicted && (
-        <span className="font-display text-xs font-bold tabular-nums text-text-secondary">
-          {predicted.home}–{predicted.away}
-        </span>
-      )}
-    </div>
-  );
 }
 
 function TeamLine({
@@ -330,12 +262,12 @@ function TeamLine({
     : placeholder ?? "—";
 
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex min-w-0 items-center gap-3">
-        <Flag isoCode={team?.iso_code ?? null} size="lg" />
+    <div className="flex items-center justify-between gap-2">
+      <div className="flex min-w-0 items-center gap-2">
+        <Flag isoCode={team?.iso_code ?? null} size="md" />
         <span
           className={cn(
-            "truncate text-[15px] leading-tight",
+            "truncate text-sm leading-tight",
             highlight
               ? "font-bold text-text-primary"
               : team
@@ -349,7 +281,7 @@ function TeamLine({
       {showScore && (
         <span
           className={cn(
-            "ml-2 font-display text-2xl font-semibold tabular-nums",
+            "font-display text-lg font-bold tabular-nums",
             highlight ? "text-primary-400" : "text-text-secondary",
           )}
         >
@@ -360,33 +292,22 @@ function TeamLine({
   );
 }
 
-function StageLabel({
-  stage,
-  group,
-  locale,
-}: {
-  stage: string;
-  group: string | null;
-  locale: Locale;
-}) {
+/** Short stage tag for the compact time rail (fits ~44px): "Gr. K", "1/8"… */
+function stageShort(
+  stage: string,
+  group: string | null,
+  locale: Locale,
+): string {
   if (stage === "group" && group) {
-    return (
-      <span className="font-semibold uppercase tracking-wider">
-        {locale === "fr" ? "Groupe" : "Group"} {group}
-      </span>
-    );
+    return (locale === "fr" ? "Gr. " : "Grp ") + group;
   }
-  const labels: Record<string, { fr: string; en: string }> = {
-    r32: { fr: "1/16e", en: "R32" },
-    r16: { fr: "8e finale", en: "R16" },
-    qf: { fr: "1/4 finale", en: "QF" },
-    sf: { fr: "1/2 finale", en: "SF" },
-    third_place: { fr: "3e place", en: "3rd place" },
-    final: { fr: "Finale", en: "Final" },
+  const labels: Record<string, string> = {
+    r32: "1/16",
+    r16: "1/8",
+    qf: "1/4",
+    sf: "1/2",
+    third_place: "3e",
+    final: "F",
   };
-  return (
-    <span className="font-semibold uppercase tracking-wider">
-      {labels[stage]?.[locale] ?? stage}
-    </span>
-  );
+  return labels[stage] ?? stage.toUpperCase();
 }

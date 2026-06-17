@@ -27,7 +27,7 @@ export function QuickBetButton({
 }: {
   match: QuickBetMatch;
   locale: Locale;
-  variant?: "strip" | "pill" | "block";
+  variant?: "strip" | "pill" | "block" | "icon";
   hasPick?: boolean;
   existing?: QuickBetExistingPicks;
   /** When false, click sends the user to /buy-in. Defaults to true for back-compat. */
@@ -93,6 +93,25 @@ export function QuickBetButton({
         >
           →
         </span>
+      </button>
+    );
+  }
+
+  if (variant === "icon") {
+    return (
+      <button
+        type="button"
+        onClick={handleClick}
+        title={locale === "fr" ? editLabelFr : editLabelEn}
+        aria-label={locale === "fr" ? editLabelFr : editLabelEn}
+        className={cn(
+          "inline-flex size-7 items-center justify-center rounded-full ring-1 transition",
+          !canBet
+            ? "bg-gold-500/15 text-gold-300 ring-gold-500/35 hover:bg-gold-500/25"
+            : "bg-primary-500/15 text-primary-400 ring-primary-500/30 hover:bg-primary-500/25",
+        )}
+      >
+        <Icon className="size-3.5" strokeWidth={2.5} />
       </button>
     );
   }
