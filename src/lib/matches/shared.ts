@@ -83,3 +83,32 @@ export function groupMatchesByDate(
   }
   return groups;
 }
+
+/**
+ * A result is expected right now: the match is live, or it has kicked off
+ * (scheduled & past kickoff) but isn't finished yet. Shared by the admin
+ * results page (client clock) and the dashboard quick-results widget (server
+ * time) so "what needs a score" is defined in exactly one place. `nowMs <= 0`
+ * (clock not yet known) reports false to stay hydration-safe.
+ */
+export function isAwaitingResult(
+  match: Pick<MatchListItem, "status" | "kickoff_at">,
+  nowMs: number,
+): boolean {
+  if (match.status === "live") return true;
+  return (
+    match.status === "scheduled" &&
+    nowMs > 0 &&
+    new Date(match.kickoff_at).getTime() <= nowMs
+  );
+}
+
+/** Sort comparator for the "to settle" view: live first, then soonest kickoff. */
+export function compareLiveThenKickoff(
+  a: Pick<MatchListItem, "status" | "kickoff_at">,
+  b: Pick<MatchListItem, "status" | "kickoff_at">,
+): number {
+  if (a.status === "live" && b.status !== "live") return -1;
+  if (b.status === "live" && a.status !== "live") return 1;
+  return new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime();
+}
