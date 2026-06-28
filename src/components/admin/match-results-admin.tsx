@@ -7,7 +7,12 @@ import {
   setMatchResultAction,
   recomputeMatchAction,
 } from "@/lib/matches/admin-actions";
-import type { MatchListItem, TeamSnippet } from "@/lib/matches/shared";
+import {
+  isAwaitingResult,
+  compareLiveThenKickoff,
+  type MatchListItem,
+  type TeamSnippet,
+} from "@/lib/matches/shared";
 import type { Locale } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
 import { Loader2, Minus, Plus, RefreshCw, Search } from "lucide-react";
@@ -35,16 +40,6 @@ function teamName(
 ) {
   if (team) return fr ? team.name_fr : team.name_en;
   return placeholder ?? "?";
-}
-
-/** Live, or kicked off but not yet finished — i.e. a result is expected. */
-function needsAttention(m: MatchListItem, nowMs: number): boolean {
-  if (m.status === "live") return true;
-  return (
-    m.status === "scheduled" &&
-    nowMs > 0 &&
-    new Date(m.kickoff_at).getTime() <= nowMs
-  );
 }
 
 function isSameDay(iso: string, nowMs: number): boolean {
@@ -90,20 +85,15 @@ export function MatchResultsAdmin({
   );
 
   const attentionCount = useMemo(
-    () => matches.filter((m) => needsAttention(m, nowMs)).length,
+    () => matches.filter((m) => isAwaitingResult(m, nowMs)).length,
     [matches, nowMs],
   );
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    let list = [...matches].sort((a, b) => {
-      // Live first, then by kickoff (soonest first).
-      if (a.status === "live" && b.status !== "live") return -1;
-      if (b.status === "live" && a.status !== "live") return 1;
-      return new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime();
-    });
+    let list = [...matches].sort(compareLiveThenKickoff);
 
-    if (filter === "attention") list = list.filter((m) => needsAttention(m, nowMs));
+    if (filter === "attention") list = list.filter((m) => isAwaitingResult(m, nowMs));
     else if (filter === "today") list = list.filter((m) => isSameDay(m.kickoff_at, nowMs));
 
     if (q) {
@@ -195,7 +185,12 @@ export function MatchResultsAdmin({
   );
 }
 
-function MatchRow({
+/**
+ * One match row + its inline score editor. Exported so the dashboard's
+ * admin-only quick-results widget reuses the exact same fast editor (steppers,
+ * one-tap status, auto-finish) instead of duplicating it.
+ */
+export function MatchRow({
   match,
   fr,
   open,

@@ -1,13 +1,15 @@
 import Image from "next/image";
 import { setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { getCurrentUser } from "@/lib/profile/queries";
+import { getCurrentUser, isAdminRole } from "@/lib/profile/queries";
 import { getPlayerAchievements } from "@/lib/profile/achievements";
 import { PlayerBadges } from "@/components/profile/player-badges";
 import { getMyStats } from "@/lib/profile/stats";
 import { listMatches, type MatchListItem } from "@/lib/matches/queries";
+import { isAwaitingResult, compareLiveThenKickoff } from "@/lib/matches/shared";
 import { getFollowedMatches } from "@/lib/matches/follows";
 import { FollowedMatchesPanel } from "@/components/dashboard/followed-matches-panel";
+import { AdminQuickResults } from "@/components/dashboard/admin-quick-results";
 import { listMyBets } from "@/lib/bets/queries";
 import {
   getGlobalStandings,
@@ -118,6 +120,18 @@ export default async function DashboardPage({
     : null;
 
   const now = Date.now();
+
+  // Admin-only: matches awaiting a result right now (live, or kicked off but not
+  // yet finished). Surfaced inline at the top of the dashboard so the admin can
+  // punch in scores without detouring to /admin/matches. Computed here (server
+  // time = authoritative); <LiveRefresh> re-runs this as matches kick off.
+  const isAdmin = user ? isAdminRole(user.role) : false;
+  const toSettle = isAdmin
+    ? allMatches
+        .filter((m) => isAwaitingResult(m, now))
+        .sort(compareLiveThenKickoff)
+    : [];
+
   const activeBets = myBets.filter((b) => b.status === "validated");
   const myRank = user && standings.find((s) => s.user_id === user.id)?.rank;
   const firstName =
@@ -296,6 +310,10 @@ export default async function DashboardPage({
         {/* Quick actions — folded into the hero window as a full-width footer band */}
         <QuickActions locale={L} />
       </section>
+
+      {/* Admin — quick result entry, right under the hero so it's the first
+          actionable thing an admin sees. Renders for admins only. */}
+      {isAdmin && <AdminQuickResults matches={toSettle} locale={L} />}
 
       {/* ===================== MAIN — act first =====================
           Left = your matches (the daily action). Right rail = where you stand
