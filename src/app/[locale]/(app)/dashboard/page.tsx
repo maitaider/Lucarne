@@ -6,10 +6,9 @@ import { getPlayerAchievements } from "@/lib/profile/achievements";
 import { PlayerBadges } from "@/components/profile/player-badges";
 import { getMyStats } from "@/lib/profile/stats";
 import { listMatches, type MatchListItem } from "@/lib/matches/queries";
-import { isAwaitingResult, compareLiveThenKickoff } from "@/lib/matches/shared";
 import { getFollowedMatches } from "@/lib/matches/follows";
 import { FollowedMatchesPanel } from "@/components/dashboard/followed-matches-panel";
-import { AdminQuickResults } from "@/components/dashboard/admin-quick-results";
+import { AdminKnockoutResults } from "@/components/dashboard/admin-knockout-results";
 import { listMyBets } from "@/lib/bets/queries";
 import {
   getGlobalStandings,
@@ -121,15 +120,12 @@ export default async function DashboardPage({
 
   const now = Date.now();
 
-  // Admin-only: matches awaiting a result right now (live, or kicked off but not
-  // yet finished). Surfaced inline at the top of the dashboard so the admin can
-  // punch in scores without detouring to /admin/matches. Computed here (server
-  // time = authoritative); <LiveRefresh> re-runs this as matches kick off.
+  // Admin-only: knockout matches (grouped by day in the widget) so the admin can
+  // enter or correct any result straight from the dashboard. <LiveRefresh>
+  // re-renders this so freshly-entered scores show immediately.
   const isAdmin = user ? isAdminRole(user.role) : false;
-  const toSettle = isAdmin
-    ? allMatches
-        .filter((m) => isAwaitingResult(m, now))
-        .sort(compareLiveThenKickoff)
+  const knockoutMatches = isAdmin
+    ? allMatches.filter((m) => m.stage !== "group")
     : [];
 
   const activeBets = myBets.filter((b) => b.status === "validated");
@@ -311,9 +307,9 @@ export default async function DashboardPage({
         <QuickActions locale={L} />
       </section>
 
-      {/* Admin — quick result entry, right under the hero so it's the first
+      {/* Admin — knockout results by day, right under the hero so it's the first
           actionable thing an admin sees. Renders for admins only. */}
-      {isAdmin && <AdminQuickResults matches={toSettle} locale={L} />}
+      {isAdmin && <AdminKnockoutResults matches={knockoutMatches} locale={L} />}
 
       {/* ===================== MAIN — act first =====================
           Left = your matches (the daily action). Right rail = where you stand
@@ -1152,12 +1148,20 @@ function MiniLeaderboard({
             </span>
           )}
         </h2>
-        <Link
-          href="/leaderboard/global"
-          className="text-xs font-medium text-text-secondary transition hover:text-text-primary"
-        >
-          {fr ? "Tout voir →" : "View all →"}
-        </Link>
+        <div className="flex shrink-0 items-center gap-3">
+          <Link
+            href="/leaderboard/daily"
+            className="text-xs font-medium text-gold-300/90 transition hover:text-gold-200"
+          >
+            {fr ? "Jour par jour →" : "Day by day →"}
+          </Link>
+          <Link
+            href="/leaderboard/global"
+            className="text-xs font-medium text-text-secondary transition hover:text-text-primary"
+          >
+            {fr ? "Tout voir →" : "View all →"}
+          </Link>
+        </div>
       </header>
       {rows.length === 0 ? (
         <p className="px-4 py-6 text-center text-sm text-text-tertiary">
