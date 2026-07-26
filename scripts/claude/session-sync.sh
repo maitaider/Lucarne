@@ -76,7 +76,7 @@ if [ -d "$MEMDIR/.git" ]; then
   if ! git diff --cached --quiet 2>/dev/null; then
     git -c user.name="${GIT_AUTHOR_NAME:-Mehdi Aitaider}" \
         -c user.email="${GIT_AUTHOR_EMAIL:-mehdi.aitaider@gmail.com}" \
-        commit --quiet -m "sync $(hostname -s) $(date +%F)" 2>/dev/null
+        commit --quiet -m "sync $(scutil --get LocalHostName 2>/dev/null || hostname -s) $(date +%F)" 2>/dev/null
   fi
   # Push même si le commit vient d'une session précédente restée locale.
   if [ -n "$(git log --branches --not --remotes 2>/dev/null | head -1)" ]; then
