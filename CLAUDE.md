@@ -32,6 +32,15 @@ pnpm db:types     # régénère src/lib/supabase/types.generated.ts
 5. **Pas de jetons / pas de balance gameplay** : le jeu est **gratuit, scoré en points**. Le buy-in (Stripe **ou** saisie admin manuelle) est un **accès** : les deux rails écrivent juste une ligne `real_payments` `confirmed` (`tokens_credited = 0`, aucune écriture `profiles.balance_cents`, aucune ligne `transactions`). `balance_cents` / `transactions` / `token_price_cents` sont **résiduels** (dette à retirer) — ne pas s'en servir pour débloquer une fonctionnalité ; l'accès se vérifie via `getMyBuyInStatus()` (lit `real_payments`).
 6. **Anti-triche d'affichage RETIRÉ** (décision humain 2026-06-10, PR #114). La RLS anti-copie sur `bets.SELECT` existe toujours, mais l'affichage des pronos passe par les RPC SECURITY DEFINER `match_predictions` (nominatif) et `match_consensus` (agrégé) qui **ne gardent plus le coup d'envoi** : les pronos du groupe sont visibles **à tout moment**. Ne pas réintroduire de garde `now() >= kickoff_at` sans demander. Détails : mémoire projet `lucarne-anti-cheat-removed`.
 
+## Multi-machine (MacBook + Mac mini)
+
+Le projet est développé depuis plusieurs machines, plusieurs sessions/LLM en parallèle. Règles :
+
+- **`origin/main` est la seule source de vérité.** Chaque session démarre par un sync auto (hook `SessionStart` → `scripts/claude/session-sync.sh` : fetch + fast-forward de `main` si propre, sinon avertissement en contexte). Toute nouvelle branche part de `origin/main` fraîchement fetché.
+- **Mémoire projet partagée** : `~/.claude/projects/<clé>/memory` est un clone du repo **privé** `maitaider/lucarne-memory` (la mémoire contient l'historique sécurité — ne jamais la mettre dans ce repo public). Pull au `SessionStart`, commit+push au `SessionEnd`/`PreCompact` (même hook).
+- **Secrets** : `.env.local` n'est jamais dans Git — copie directe entre machines (scp via Tailscale).
+- **Mac mini** : joignable via Tailscale (`mehdis-mac-mini`, 100.89.51.77), projet dans `~/Documents/WebApps/lucarne`.
+
 ## Débogage — leçons de prod (À LIRE avant de deviner)
 
 Quand un comportement est cassé **sans message d'erreur** (login qui reboucle, données vides, paiement non reconnu), c'est presque toujours la **couche base de données**, pas la logique app. Ne pas supposer — vérifier la DB d'abord.

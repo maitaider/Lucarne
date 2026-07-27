@@ -61,5 +61,8 @@ Icon
 *.swp
 *.swo
 
-# Local Claude Code tooling state (plans, session config)
-.claude/
+# Local Claude Code tooling state (plans, session config) —
+# SAUF settings.json (hooks de sync multi-machine, versionné).
+# settings.local.json et launch.json restent locaux (chemins absolus par machine).
+.claude/*
+!.claude/settings.json
