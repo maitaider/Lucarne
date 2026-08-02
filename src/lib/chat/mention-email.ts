@@ -67,7 +67,7 @@ export async function notifyChatMessageByEmail(opts: {
   const fr = opts.locale !== "en";
   const actorName =
     actor?.display_name || actor?.username || (fr ? "Quelqu'un" : "Someone");
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.lucarne.ca";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://mondial.lucarne.ca";
   const ctaUrl = `${appUrl}/${opts.locale}/chat`;
   const ctaLabel = fr ? "Ouvrir le Salon" : "Open the Lounge";
   const trimmed = opts.body.trim();

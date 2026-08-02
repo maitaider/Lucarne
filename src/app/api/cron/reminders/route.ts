@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
       body: "Il te reste peu de temps pour compléter tes pronostics (groupes + phase finale) avant le verrouillage.\n\nDès que la première rencontre commence, plus aucune modification n'est possible — et les pronos manquants sont remplis aléatoirement.",
       ctaLabel: "Compléter mes pronostics",
       ctaUrl:
-        (process.env.NEXT_PUBLIC_APP_URL ?? "https://www.lucarne.ca") + "/predict",
+        (process.env.NEXT_PUBLIC_APP_URL ?? "https://mondial.lucarne.ca") + "/predict",
     });
     emailed = res.sent;
     emailSkipped = res.skipped;

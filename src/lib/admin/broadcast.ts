@@ -102,7 +102,7 @@ export async function sendAdminBroadcast(
       body: message,
       ctaLabel: "Ouvrir Lucarne",
       ctaUrl:
-        (process.env.NEXT_PUBLIC_APP_URL ?? "https://www.lucarne.ca") + "/dashboard",
+        (process.env.NEXT_PUBLIC_APP_URL ?? "https://mondial.lucarne.ca") + "/dashboard",
     });
     emailed = res.sent;
     emailSkipped = res.skipped;

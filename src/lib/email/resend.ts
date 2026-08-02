@@ -29,7 +29,7 @@ export function renderEmail(opts: {
   ctaUrl?: string;
   recipientName?: string | null;
 }): string {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.lucarne.ca";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://mondial.lucarne.ca";
   const greeting = opts.recipientName ? `Salut ${escapeHtml(opts.recipientName)},` : "Salut,";
   const paragraphs = opts.body
     .split(/\n{2,}/)

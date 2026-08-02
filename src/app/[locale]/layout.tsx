@@ -33,7 +33,7 @@ export async function generateMetadata({
   const t = await getTranslations({ locale, namespace: "metadata" });
   return {
     metadataBase: new URL(
-      process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.lucarne.ca",
+      process.env.NEXT_PUBLIC_SITE_URL ?? "https://mondial.lucarne.ca",
     ),
     title: {
       default: "Lucarne",

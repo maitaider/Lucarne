@@ -69,7 +69,7 @@ export function CreateLeagueForm({ locale }: { locale: "fr" | "en" }) {
 
       <Field
         label="Slug (URL)"
-        hint={`lucarne.ca/leagues/${slug || "..."}`}
+        hint={`mondial.lucarne.ca/leagues/${slug || "..."}`}
       >
         <input
           required
